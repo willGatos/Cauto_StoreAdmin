@@ -66,6 +66,7 @@ const mockDataService = {
         }
 
         //Simple
+
         return data.map(offer => ({
           ...offer,
           startDate: offer.start_date,
