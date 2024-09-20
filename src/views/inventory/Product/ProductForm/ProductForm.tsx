@@ -29,7 +29,10 @@ export type ProductVariation = {
   currency_id?: number;
 };
 
-export const createProduct = async (productData: ProductData, variations: ProductVariation[]) => {
+export const createProduct = async (
+  productData: ProductData,
+  variations: ProductVariation[]
+) => {
   try {
     // Primero, insertamos el producto principal
     const { data: product, error: productError } = await supabase
@@ -44,48 +47,50 @@ export const createProduct = async (productData: ProductData, variations: Produc
 
     if (productError) throw productError;
 
-    console.log(variations)
-    const variationAttributes = variations.flatMap((variation) =>
-      variation.attributes.map((attribute) => ({
-        variation_id: variation.id, // Asegúrate de que cada variación tenga un ID después de la inserción
-        attribute_id: attribute.id,
-      }))
-    );
-
+    console.log(variations);
     // Luego, insertamos las variaciones
     if (variations && variations.length > 0) {
-      const variationsWithProductId = variations.map(
-        (variation) => {
-          delete variation.attributes;
-          const currencyId =  variation.currency.id
-          delete variation.currency;
+      const variationsWithProductId = variations.map((variation) => {
+        const currencyId = variation.currency.id;
 
-          return ({
-          ...variation,
+        return {
+          name: variation.name,
+          price: variation.price,
+          stock: variation.stock,
+          pictures: variation.pictures,
           product_id: product.id,
           currency_id: currencyId,
-        })}
-      );
+        };
+      });
 
-      const { error: variationsError } = await supabase
+      const { data: variationsIds, error: variationsError } = await supabase
         .from("product_variations")
-        .insert(variationsWithProductId);
+        .insert(variationsWithProductId)
+        .select("id, name");
 
+        const variationAttributes = variations.flatMap((variation) => {
+          return variation.attributes.map((attribute) => {
+            return variationsIds.map((varWithIds) => ({
+              variation_id: varWithIds.id,
+              attribute_id: attribute.id,
+            }));
+          }).flat(); // Add .flat() here to flatten the nested array
+        }).flat(); // And add another .flat() here to ensure complete flattening
 
-      
-        if (variationsError) throw variationsError;
+      console.log("CheckBug", variationAttributes);
 
-        // Insertar relaciones en product_variation_attributes
+      //if (variationsError) throw variationsError;
 
+      // Insertar relaciones en product_variation_attributes
 
-        const { error: attributesError } = await supabase
-        .from("product_variation_attributes")
-        .insert(variationAttributes);
+      // const { error: attributesError } = await supabase
+      // .from("product_variation_attributes")
+      // .insert(variationAttributes);
 
-      if (variationsError) throw variationsError;
+      //if (variationsError) throw variationsError;
     }
 
-    return product;
+    return {};
   } catch (error) {
     console.error("Error creating product:", error);
     throw error;
@@ -316,7 +321,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
   const [subcategories, setSubcategories] = useState([
     { label: "", value: "" },
   ]);
-  const [variations, setVariations] = useState<ProductVariation[]>([])
+  const [variations, setVariations] = useState<ProductVariation[]>([]);
 
   const [localImages, setLocalImages] = useState([]);
   const user = useSelector((state) => state.auth.user);
@@ -392,7 +397,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
       values.owner_id = user.id;
       values.images = localImages;
       console.log("GGGG", values);
-      const createdProduct = await createProduct(values, variations);
+      createProduct(values, variations);
       // Manejar el éxito (por ejemplo, mostrar un mensaje, redirigir, etc.)
     } catch (error) {
       // Manejar el error
