@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Switcher } from "@/components/ui/Switcher"
 import { Loader2, X } from "lucide-react"
 import supabase from '@/services/Supabase/BaseClient'
+import { Currency } from '@/@types/currency'
 
 interface Attribute {
   id: number
@@ -17,21 +18,13 @@ interface AttributeValue {
   value: string
 }
 
-interface Currency {
-  id: number
-  name: string
-  code: string
-  symbol: string
-}
-
 interface ProductVariation {
-  id: number
+  id?: number
   product_id: number
   name: string
   price: number
   stock: number
   created_at: string
-  thumbnail: string
   pictures: string[]
   currency: Currency
   attributes?: AttributeValue[]
@@ -81,11 +74,10 @@ interface ProductVariationGeneratorProps {
   onVariationsChange?: (variations: ProductVariation[]) => void
 }
 
-export default function ProductVariationGenerator({ onVariationsChange = () => {} }: ProductVariationGeneratorProps) {
+export default function ProductVariationGenerator({ onVariationsChange = () => {}, variations, setVariations}: ProductVariationGeneratorProps) {
   const [attributes, setAttributes] = useState<Attribute[]>([])
   const [currencies, setCurrencies] = useState<Currency[]>([])
   const [selectedAttributes, setSelectedAttributes] = useState<Record<number, number[]>>({})
-  const [variations, setVariations] = useState<ProductVariation[]>([])
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(null)
   const [requiresStock, setRequiresStock] = useState(false)
 
@@ -120,10 +112,12 @@ export default function ProductVariationGenerator({ onVariationsChange = () => {
   const generateVariations = () => {
     const selectedAttributesList = Object.entries(selectedAttributes)
       .filter(([_, values]) => values.length > 0)
-      .map(([attributeId, valueIds]) => ({
+      .map(
+        ([attributeId, valueIds]) => ({
         attribute: attributes.find(attr => attr.id === Number(attributeId))!,
         values: valueIds.map(id => attributes.find(attr => attr.id === Number(attributeId))!.values.find(v => v.id === id)!)
-      }))
+      })
+    )
 
     if (selectedAttributesList.length === 0) {
       alert("Por favor, seleccione al menos un valor de atributo.")
@@ -145,13 +139,11 @@ export default function ProductVariationGenerator({ onVariationsChange = () => {
     const combinations = generateCombinations(0, [])
 
     const newVariations: ProductVariation[] = combinations.map((combo, index) => ({
-      id: index + 1,
       product_id: 1,
       name: combo.map(attr => attr.value).join(" - "),
       price: 0,
       stock: 0,
       created_at: new Date().toISOString(),
-      thumbnail: "",
       pictures: [],
       currency: selectedCurrency!,
       attributes: combo
@@ -254,7 +246,7 @@ export default function ProductVariationGenerator({ onVariationsChange = () => {
         </label>
       </div>
 
-      <Button onClick={generateVariations} className="mb-6">
+      <Button type='button' onClick={generateVariations} className="mb-6">
         Generar Variaciones
       </Button>
 
@@ -274,7 +266,7 @@ export default function ProductVariationGenerator({ onVariationsChange = () => {
               </thead>
               <tbody>
                 {variations.map((variation, index) => (
-                  <tr key={variation.id} className="hover:bg-gray-50">
+                  <tr key={index} className="hover:bg-gray-50">
                     <td className="py-2 px-4 border-b">
                       <Input
                         value={variation.name}

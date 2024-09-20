@@ -19,6 +19,7 @@ import useSupplyManagement from "./components/Attibutes/hook/useSupplyManagement
 import supabase from "@/services/Supabase/BaseClient";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
+import UploadWidget from "./components/Images";
 
 export type ProductVariation = {
   name: string;
@@ -28,7 +29,7 @@ export type ProductVariation = {
   currency_id?: number;
 };
 
-export const createProduct = async (productData: ProductData) => {
+export const createProduct = async (productData: ProductData, variations: ProductVariation[]) => {
   try {
     // Primero, insertamos el producto principal
     const { data: product, error: productError } = await supabase
@@ -36,7 +37,6 @@ export const createProduct = async (productData: ProductData) => {
       .insert([
         {
           ...productData,
-          variations: undefined, // Eliminamos las variaciones del objeto principal
         },
       ])
       .select("*")
@@ -44,18 +44,43 @@ export const createProduct = async (productData: ProductData) => {
 
     if (productError) throw productError;
 
+    console.log(variations)
+    const variationAttributes = variations.flatMap((variation) =>
+      variation.attributes.map((attribute) => ({
+        variation_id: variation.id, // Asegúrate de que cada variación tenga un ID después de la inserción
+        attribute_id: attribute.id,
+      }))
+    );
+
     // Luego, insertamos las variaciones
-    if (productData.variations && productData.variations.length > 0) {
-      const variationsWithProductId = productData.variations.map(
-        (variation) => ({
+    if (variations && variations.length > 0) {
+      const variationsWithProductId = variations.map(
+        (variation) => {
+          delete variation.attributes;
+          const currencyId =  variation.currency.id
+          delete variation.currency;
+
+          return ({
           ...variation,
           product_id: product.id,
-        })
+          currency_id: currencyId,
+        })}
       );
 
       const { error: variationsError } = await supabase
         .from("product_variations")
         .insert(variationsWithProductId);
+
+
+      
+        if (variationsError) throw variationsError;
+
+        // Insertar relaciones en product_variation_attributes
+
+
+        const { error: attributesError } = await supabase
+        .from("product_variation_attributes")
+        .insert(variationAttributes);
 
       if (variationsError) throw variationsError;
     }
@@ -69,13 +94,14 @@ export const createProduct = async (productData: ProductData) => {
 
 export const upsertProduct = async (
   productData: ProductData,
-  productId?: number
+  productId?: number,
+  variations?: ProductVariation[]
 ) => {
   try {
     let product;
 
     // Separamos las variaciones del objeto principal
-    const { variations, ...mainProductData } = productData;
+    const { ...mainProductData } = productData;
 
     if (productId) {
       // Actualización
@@ -170,14 +196,14 @@ export type ProductData = {
   reference_currency: number | null;
   owner_id: string | null;
   standard_price: number;
-  status: "new" | "out_of_stock" | "in_stock" | "discontinued";
-  variations: ProductVariation[];
-  images: string[]
+  status: 0 | 1 | 2 | 3;
+  variations?: ProductVariation[];
+  images: string[];
 };
 
 export function transformArrayToObjectArray(array: any) {
-  console.log(array);
   return array.map((item: any) => ({
+    ...item,
     label: item.name,
     value: item.id,
   }));
@@ -214,8 +240,8 @@ const productSchema = Yup.object().shape({
   state: Yup.string().oneOf(["available", "unavailable"]),
   gender: Yup.string().nullable(),
   commission: Yup.number().min(0, "La comisión no puede ser negativa"),
-  type: Yup.string().oneOf(["manufactured", "imported", null]),
-  origin: Yup.string().nullable(),
+  type: Yup.string().oneOf(["simple", "variable"]),
+  origin: Yup.string().oneOf(["manufactured", "imported"]),
   commission_type: Yup.string().oneOf(["percentage", "fixed"]),
   reference_currency: Yup.number().nullable(),
   owner_id: Yup.string().nullable(),
@@ -223,12 +249,7 @@ const productSchema = Yup.object().shape({
     0,
     "El precio estándar no puede ser negativo"
   ),
-  status: Yup.string().oneOf([
-    "new",
-    "out_of_stock",
-    "in_stock",
-    "discontinued",
-  ]),
+  status: Yup.number().oneOf([0, 1, 2, 3]),
   variations: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required("El nombre de la variación es requerido"),
@@ -295,8 +316,10 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
   const [subcategories, setSubcategories] = useState([
     { label: "", value: "" },
   ]);
+  const [variations, setVariations] = useState<ProductVariation[]>([])
+
+  const [localImages, setLocalImages] = useState([]);
   const user = useSelector((state) => state.auth.user);
-  
 
   const [initialValues, setInitialValues] = useState<ProductData>({
     name: "",
@@ -315,18 +338,14 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
     reference_currency: null,
     owner_id: null,
     standard_price: 0,
-    status: "new",
-    variations: [],
+    status: 0,
   });
 
   const { id } = useParams;
 
   useEffect(() => {
-    console.log(id)
     if (id) {
-      getProductById(id)
-      .then(setInitialValues)
-      .catch();
+      getProductById(id).then(setInitialValues).catch();
     }
   }, [id]);
 
@@ -370,8 +389,10 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
     { setSubmitting }: FormikHelpers<ProductData>
   ) => {
     try {
-      const createdProduct = await createProduct(values);
-      console.log(createdProduct);
+      values.owner_id = user.id;
+      values.images = localImages;
+      console.log("GGGG", values);
+      const createdProduct = await createProduct(values, variations);
       // Manejar el éxito (por ejemplo, mostrar un mensaje, redirigir, etc.)
     } catch (error) {
       // Manejar el error
@@ -394,6 +415,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
           <Form>
             <FormContainer>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div></div>
                 <div className="lg:col-span-2">
                   <BasicInformationFields touched={touched} errors={errors} />
 
@@ -401,7 +423,6 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
                     touched={touched}
                     errors={errors}
                     values={values}
-                    fieldName={"pricingDetails"}
                   />
 
                   <OrganizationFields
@@ -417,18 +438,19 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
                     touched={touched}
                     errors={errors}
                     values={values}
+                    variations={variations}
+                    setVariations={setVariations}
                     setFieldValue={setFieldValue}
                   />
                 </div>
                 <div className="lg:col-span-1">
-                  {
-                    <ProductImages
-                      values={values}
-                      setFieldValue={setFieldValue}
-                    />
-                  }
+                  <ProductImages
+                    localImages={localImages}
+                    setLocalImages={setLocalImages}
+                  />
                 </div>
               </div>
+
               <StickyFooter
                 className="-mx-8 px-8 flex items-center justify-between py-4"
                 stickyClass="border-t bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"

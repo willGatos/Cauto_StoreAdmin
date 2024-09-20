@@ -307,19 +307,6 @@ export const supabaseService = {
 
         return data || []
     },
-    getCurrencies: async (): Promise<Currency[]> => {
-        const { data, error } = await supabase
-            .from('currency')
-            .select('*')
-            .order('id')
-
-        if (error) {
-            console.error('Error fetching currencies:', error)
-            return []
-        }
-
-        return data || []
-    },
     saveAttribute: async (attribute, isEdit = false) => {
         const { id, name, value, shop_id } = attribute
         if (isEdit) {

@@ -8,26 +8,6 @@ interface Currency {
   exchange_rate: number;
 }
 
-// Supabase client
-// const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-
-// Mock data service
-// const mockDataService = {
-//   getCurrencies: (): Promise<Currency[]> => {
-//     return Promise.resolve([
-//       { id: 1, name: 'USD', exchange_rate: 320 },
-//       { id: 2, name: 'EUR', exchange_rate: 340 },
-//       { id: 3, name: 'MLC', exchange_rate: 240 },
-//       { id: 4, name: 'CUP', exchange_rate: 1 }
-//     ]);
-//   },
-//   updateCurrency: (id: number, exchange_rate: number): Promise<Currency> => {
-//     const currency = mockDataService.getCurrencies()
-//       .then(currencies => currencies.find(c => c.id === id));
-//     return currency.then(c => c ? { ...c, exchange_rate } : { id, name: 'Unknown', exchange_rate });
-//   }
-// };
-
 // Supabase data service
 const supabaseDataService = {
   getCurrencies: async (): Promise<Currency[]> => {

@@ -14,7 +14,6 @@ type Options = {
 type FormFieldsName = {
   category: string;
   brand: string;
-  subcategory: string;
   gender: string;
   status: string;
   isVisible: boolean;
@@ -24,7 +23,7 @@ type OrganizationFieldsProps = {
   touched: FormikTouched<FormFieldsName>;
   errors: FormikErrors<FormFieldsName>;
   values: {
-    category: string;
+    category_id: string;
     tags: Options;
     [key: string]: unknown;
   };
@@ -39,16 +38,17 @@ const forGender = [
   { label: "Unisex", value: "unisex" },
 ];
 
-const status = [
-  { label: "En Inventario", value: "En Inventario" },
-  { label: "En Camino", value: "En Camino" },
-  { label: "Agotado", value: "Agotado" },
+const status =  [
+  { value: 0, label: "Nuevo" },
+  { value: 1, label: "Agotado" },
+  { value: 2, label: "En existencia" },
+  { value: 3, label: "Descontinuado" },
 ];
 
 const OrganizationFields = (props: OrganizationFieldsProps) => {
   const {
     values = {
-      category: "",
+      category_id_id: "",
       brand: "",
       gender: "",
     },
@@ -66,17 +66,17 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
         <div className="col-span-1">
           <FormItem
             label="Categoría"
-            invalid={(errors.category && touched.category) as boolean}
-            errorMessage={errors.category}
+            invalid={(errors.category_id && touched.category_id) as boolean}
+            errorMessage={errors.category_id}
           >
-            <Field name="category">
+            <Field name="category_id">
               {({ field, form }: FieldProps) => (
                 <Select
                   field={field}
                   form={form}
                   options={categories}
                   value={categories.filter(
-                    (category) => category.value === values.category
+                    (category_id) => category_id.value === values.category_id
                   )}
                   onChange={(option) =>
                     form.setFieldValue(field.name, option?.value)
@@ -99,7 +99,7 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
                   form={form}
                   options={status}
                   value={status.filter(
-                    (category) => category.value === values.status
+                    (status) => status.value === values.status
                   )}
                   onChange={(option) => {
                     form.setFieldValue(field.name, option?.value);
@@ -149,7 +149,7 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
                   form={form}
                   options={forGender}
                   value={forGender.filter(
-                    (category) => category.value === values.gender
+                    (gender) => gender.value === values.gender
                   )}
                   onChange={(option) =>
                     form.setFieldValue(field.name, option?.value)

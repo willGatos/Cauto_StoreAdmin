@@ -9,7 +9,7 @@ import mockServer from './mock'
 import { AuthProvider } from './services/Supabase/Auth/AuthContext'
 import store, { persistor } from './store'
 
-const environment = process.env.NODE_ENV
+const environment = import.meta.env.NODE_ENV
 
 if (appConfig.enableMock) {
     if (environment === 'production') {
