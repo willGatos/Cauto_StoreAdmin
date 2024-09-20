@@ -71,23 +71,23 @@ export const createProduct = async (
         const variationAttributes = variations.flatMap((variation) => {
           return variation.attributes.map((attribute) => {
             return variationsIds.map((varWithIds) => ({
-              variation_id: varWithIds.id,
-              attribute_id: attribute.id,
+              product_variation_id: varWithIds.id,
+              attribute_value_id: attribute.id,
             }));
           }).flat(); // Add .flat() here to flatten the nested array
         }).flat(); // And add another .flat() here to ensure complete flattening
 
       console.log("CheckBug", variationAttributes);
 
-      //if (variationsError) throw variationsError;
+      if (variationsError) throw variationsError;
 
       // Insertar relaciones en product_variation_attributes
 
-      // const { error: attributesError } = await supabase
-      // .from("product_variation_attributes")
-      // .insert(variationAttributes);
+      const { error: attributesError } = await supabase
+      .from("product_variation_attributes")
+      .insert(variationAttributes);
 
-      //if (variationsError) throw variationsError;
+      if (variationsError) throw variationsError;
     }
 
     return {};
