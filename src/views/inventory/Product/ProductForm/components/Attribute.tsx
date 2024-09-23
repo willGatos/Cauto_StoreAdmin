@@ -222,7 +222,7 @@ export default function ProductVariationGenerator({
   // };
 
   const handleImageUpload = async (error, result, widget, index: number) => {
-    console.log("VIDEO")
+    console.log("VIDEO");
     if (error) {
       updateError(error);
       widget.close({
@@ -230,27 +230,27 @@ export default function ProductVariationGenerator({
       });
       return;
     }
-  
+
     // Actualizar el estado con una imagen de carga
-    setVariations(prev => {
+    setVariations((prev) => {
       const updatedVariation = { ...prev[index] };
       updatedVariation.pictures = [...updatedVariation.pictures, "loading"];
-      return prev.map((v, i) => i === index ? updatedVariation : v);
+      return prev.map((v, i) => (i === index ? updatedVariation : v));
     });
-  
+
     // Simular la subida de la imagen (reemplaza esto con tu lógica real de subida)
-    const imageUrl =result;
-  
+    const imageUrl = result;
+
     // Actualizar el estado con la URL real de la imagen
-    setVariations(prev => {
+    setVariations((prev) => {
       const updatedVariation = { ...prev[index] };
-      updatedVariation.pictures = updatedVariation.pictures.map(pic => 
+      updatedVariation.pictures = updatedVariation.pictures.map((pic) =>
         pic === "loading" ? imageUrl : pic
       );
-      return prev.map((v, i) => i === index ? updatedVariation : v);
+      return prev.map((v, i) => (i === index ? updatedVariation : v));
     });
-  
-    console.log('Final', variations[index]);
+
+    console.log("Final", variations[index]);
   };
 
   const removeImage = (variationIndex: number, imageIndex: number) => {
@@ -267,7 +267,6 @@ export default function ProductVariationGenerator({
       )
     );
   };
-
   const handleGlobalCurrencyChange = (currencyId: string) => {
     const newCurrency = currencies.find((c) => c.id === Number(currencyId));
     if (newCurrency) {
@@ -464,11 +463,10 @@ export default function ProductVariationGenerator({
                           </div>
                         ))}
                         <UploadWidget
-                          onUpload={(error, result, widget) =>{
-                            const img = result?.info?.secure_url 
-                            handleImageUpload(error, img, widget, index)
-                          }
-                          }
+                          onUpload={(error, result, widget) => {
+                            const img = result?.info?.secure_url;
+                            handleImageUpload(error, img, widget, index);
+                          }}
                         >
                           {({ open }) => {
                             function handleOnClick(e) {

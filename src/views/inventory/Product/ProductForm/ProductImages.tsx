@@ -25,7 +25,7 @@ type ImageListProps = {
 
 type ProductImagesProps = {
   localImages: string[];
-    setLocalImages: any;
+  setLocalImages: any;
 };
 
 const ImageList = (props: ImageListProps) => {
@@ -115,7 +115,6 @@ const ProductImages = (props: ProductImagesProps) => {
   const [progressBar, setProgressBar] = useState(0);
   const [error, updateError] = useState();
 
-
   //   const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   //   const CLOUDINARY_UPLOAD_PRESET = import.meta.env
   //     .VITE_CLOUDINARY_UPLOAD_PRESET;
@@ -128,7 +127,7 @@ const ProductImages = (props: ProductImagesProps) => {
       });
       return;
     }
-    setLocalImages(prevImages => [...prevImages, result?.info?.secure_url]);
+    setLocalImages((prevImages) => [...prevImages, result?.info?.secure_url]);
 
     //setFieldValue("images", [...localImages, result?.info?.secure_url]);
   }
@@ -214,7 +213,7 @@ const ProductImages = (props: ProductImagesProps) => {
   ) => {
     let images = cloneDeep(localImages);
     images = images.filter((img) => img !== deletedImg);
-    form.setFieldValue(field.name, images);
+    setLocalImages(images);
   };
 
   return (
