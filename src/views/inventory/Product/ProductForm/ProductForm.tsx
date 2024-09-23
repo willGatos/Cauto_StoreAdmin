@@ -94,14 +94,14 @@ export const createProduct = async (
   }
 };
 
-export const upsertProduct = async (
+/* export const upsertProduct = async (
   productData: ProductData,
   productId?: number,
   variations?: ProductVariation[]
 ) => {
   try {
     let product;
-
+    delete productData.id
     // Actualización del producto principal
     const { data: updateProduct, error: updateError } = await supabase
       .from("products")
@@ -165,6 +165,87 @@ export const upsertProduct = async (
     throw error;
   }
 };
+ */
+export const upsertProduct = async (
+  productData: ProductData,
+  productId?: number,
+  variations?: ProductVariation[]
+) => {
+  try {
+    let product;
+    if (productId) {
+      const productVar = await supabase
+        .from("product_variations")
+        .select("id")
+        .eq("product_id", productId);
+      // Actualización del producto existente
+      // Eliminar variaciones y atributos existentes
+      await supabase
+        .from("product_variation_attributes")
+        .delete()
+        .in(
+          "product_variation_id",
+          productVar.data.map((prod) => prod.id)
+        );
+
+      await supabase
+        .from("product_variations")
+        .delete()
+        .eq("product_id", productId);
+
+      delete productData.id;
+      // Actualizar el producto principal
+      const { data: updateProduct, error: updateError } = await supabase
+        .from("products")
+        .update(productData)
+        .eq("id", productId)
+        .single();
+
+      if (updateError) throw updateError;
+      product = updateProduct;
+      console.log(variations);
+
+      console.log(variations.map(e => e.currency))
+      // Insertar nuevas variaciones
+      if (variations && variations.length > 0) {
+        const variationsWithProductId = variations.map((variation) => ({
+          name: variation.name,
+          price: variation.price,
+          stock: variation.stock,
+          pictures: variation.pictures,
+          product_id: productId,
+          currency_id: variation.currency,
+        }));
+
+
+        const { error: variationsError } = await supabase
+          .from("product_variations")
+          .insert(variationsWithProductId);
+
+        if (variationsError) throw variationsError;
+
+        // Insertar atributos de las variaciones
+        const variationAttributes = variations.flatMap((variation) =>
+          variation.attributes.map((attribute) => ({
+            product_variation_id: variation.id,
+            attribute_value_id: attribute.id,
+          }))
+        );
+        console.log(variationAttributes);
+
+        const { error: attributesError } = await supabase
+          .from("product_variation_attributes")
+          .insert(variationAttributes);
+
+        if (attributesError) throw attributesError;
+      }
+    }
+    return product;
+  } catch (error) {
+    console.error("Error updating/upserting product:", error);
+    throw error;
+  }
+};
 
 export const getProductById = async (productId: number) => {
   console.log(productId);
@@ -179,7 +260,8 @@ export const getProductById = async (productId: number) => {
 
     const { data: variations, error: variationsError } = await supabase
       .from("product_variations")
-      .select(`
+      .select(
+        `
         *,
         product_variation_attributes (
           attribute_value_id (
@@ -190,13 +272,16 @@ export const getProductById = async (productId: number) => {
           currency_id(*)
           )
         )
-      `)
+      `
+      )
       .eq("product_id", productId);
 
     if (variationsError) throw variationsError;
     // Reestructurar las variaciones para que coincidan con el tipo ProductVariation
     const formattedVariations = variations.map((variation) => {
-      const attributes = variation.product_variation_attributes.map(attr => attr.attribute_value_id);
+      const attributes = variation.product_variation_attributes.map(
+        (attr) => attr.attribute_value_id
+      );
       return {
         id: variation.id,
         product_id: variation.product_id,
@@ -411,9 +496,10 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
       getProductById(parseInt(productId))
         .then((prod) => {
           const formik = formRef.current;
-          console.log("NUEVA", prod);
           formik.setValues(prod);
           setVariations(prod.variations);
+          delete prod.variations;
+          console.log("NUEVA", prod);
 
           setInitialValues(prod);
         })
@@ -441,10 +527,10 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
       values.owner_id = user.id;
       values.images = localImages;
 
-      if (!productId) {
-        await createProduct(values, variations);
-      } else {
+      if (productId) {
         await upsertProduct(values, parseInt(productId), variations);
+      } else {
+        await createProduct(values, variations);
       }
 
       // Manejar el éxito (por ejemplo, mostrar un mensaje, redirigir, etc.)

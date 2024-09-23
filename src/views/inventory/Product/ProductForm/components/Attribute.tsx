@@ -192,6 +192,35 @@ export default function ProductVariationGenerator({
 
   //   //setFieldValue("images", [...localImages, result?.info?.secure_url]);
   // }
+  // const handleImageUpload = async (error, result, widget, index: number) => {
+  //   console.log("VIDEO")
+  //   if (error) {
+  //     updateError(error);
+  //     widget.close({
+  //       quiet: true,
+  //     });
+  //     return;
+  //   }
+
+  //   const updatedVariation = { ...variations[index] };
+  //   updatedVariation.pictures = [...updatedVariation.pictures, "loading"];
+  //   console.log('first', updatedVariation, 'SS',[...updatedVariation.pictures, "loading"])
+
+  //   setVariations((prev) =>
+  //     prev.map((v, i) => (i === index ? updatedVariation : v))
+  //   );
+
+  //   // const imageUrl = await mockService.uploadImage(files[0]);
+
+  //   updatedVariation.pictures = updatedVariation.pictures.map((pic) =>
+  //     pic === "loading" ? result?.info?.secure_url : pic
+  //   );
+  //   console.log('second', updatedVariation)
+  //   setVariations((prev) =>
+  //     prev.map((v, i) => (i === index ? updatedVariation : v))
+  //   );
+  // };
+
   const handleImageUpload = async (error, result, widget, index: number) => {
     console.log("VIDEO")
     if (error) {
@@ -201,21 +230,27 @@ export default function ProductVariationGenerator({
       });
       return;
     }
-
-    const updatedVariation = { ...variations[index] };
-    updatedVariation.pictures = [...updatedVariation.pictures, "loading"];
-    setVariations((prev) =>
-      prev.map((v, i) => (i === index ? updatedVariation : v))
-    );
-
-    // const imageUrl = await mockService.uploadImage(files[0]);
-
-    updatedVariation.pictures = updatedVariation.pictures.map((pic) =>
-      pic === "loading" ? result?.info?.secure_url : pic
-    );
-    setVariations((prev) =>
-      prev.map((v, i) => (i === index ? updatedVariation : v))
-    );
+  
+    // Actualizar el estado con una imagen de carga
+    setVariations(prev => {
+      const updatedVariation = { ...prev[index] };
+      updatedVariation.pictures = [...updatedVariation.pictures, "loading"];
+      return prev.map((v, i) => i === index ? updatedVariation : v);
+    });
+  
+    // Simular la subida de la imagen (reemplaza esto con tu lógica real de subida)
+    const imageUrl =result;
+  
+    // Actualizar el estado con la URL real de la imagen
+    setVariations(prev => {
+      const updatedVariation = { ...prev[index] };
+      updatedVariation.pictures = updatedVariation.pictures.map(pic => 
+        pic === "loading" ? imageUrl : pic
+      );
+      return prev.map((v, i) => i === index ? updatedVariation : v);
+    });
+  
+    console.log('Final', variations[index]);
   };
 
   const removeImage = (variationIndex: number, imageIndex: number) => {
@@ -430,8 +465,8 @@ export default function ProductVariationGenerator({
                         ))}
                         <UploadWidget
                           onUpload={(error, result, widget) =>{
-                            console.log('HOLA',error, result)
-                            handleImageUpload(error, result, widget, index)
+                            const img = result?.info?.secure_url 
+                            handleImageUpload(error, img, widget, index)
                           }
                           }
                         >

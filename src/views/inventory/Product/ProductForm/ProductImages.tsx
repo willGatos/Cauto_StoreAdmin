@@ -240,7 +240,7 @@ const ProductImages = (props: ProductImagesProps) => {
                       open();
                     }
                     return (
-                      <button onClick={handleOnClick}>Upload an Image</button>
+                      <button onClick={handleOnClick}>Subir Imagen</button>
                     );
                   }}
                 </UploadWidget>
