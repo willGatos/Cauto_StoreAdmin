@@ -7,6 +7,7 @@ import { Loader2, X } from "lucide-react";
 import supabase from "@/services/Supabase/BaseClient";
 import { Currency } from "@/@types/currency";
 import UploadWidget from "./Images";
+import { Dialog } from "@/components/ui";
 
 interface Attribute {
   id: number;
@@ -90,6 +91,20 @@ export default function ProductVariationGenerator({
   const [isLoading, setIsLoading] = useState(false);
   const [progressBar, setProgressBar] = useState(0);
   const [error, updateError] = useState();
+  const [selectedImg, setSelectedImg] = useState<string>({} as string);
+  const [viewOpen, setViewOpen] = useState(false);
+
+  const onViewOpen = (img: string) => {
+    setSelectedImg(img);
+    setViewOpen(true);
+  };
+
+  const onDialogClose = () => {
+    setViewOpen(false);
+    setTimeout(() => {
+      setSelectedImg({} as string);
+    }, 300);
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -273,8 +288,8 @@ export default function ProductVariationGenerator({
       setSelectedCurrency(newCurrency);
       setVariations((prev) =>
         prev.map((variation) =>
-          variation.currency.id === selectedCurrency?.id
-            ? { ...variation, currency: newCurrency }
+          variation.currency_id === selectedCurrency?.id
+            ? { ...variation, currency_id: newCurrency?.id }
             : variation
         )
       );
@@ -286,7 +301,6 @@ export default function ProductVariationGenerator({
       <h1 className="text-2xl font-bold mb-4">
         Generador de Variaciones de Producto
       </h1>
-
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-2">
           Seleccione los atributos:
@@ -323,7 +337,6 @@ export default function ProductVariationGenerator({
           </div>
         ))}
       </div>
-
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-2">Seleccione la moneda:</h2>
         <select
@@ -339,7 +352,6 @@ export default function ProductVariationGenerator({
           ))}
         </select>
       </div>
-
       <div className="mb-6 flex items-center space-x-2">
         <Checkbox
           checked={requiresStock}
@@ -353,11 +365,9 @@ export default function ProductVariationGenerator({
           Producto requiere control de stock
         </label>
       </div>
-
       <Button type="button" onClick={generateVariations} className="mb-6">
         Generar Variaciones
       </Button>
-
       {variations.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-2">Variaciones Generadas:</h2>
@@ -450,6 +460,7 @@ export default function ProductVariationGenerator({
                                   src={pic}
                                   alt={`Variation ${index + 1}`}
                                   className="w-16 h-16 object-cover rounded"
+                                  onClick={() => onViewOpen(pic)}
                                 />
                                 <button
                                   onClick={() => removeImage(index, picIndex)}
@@ -492,7 +503,14 @@ export default function ProductVariationGenerator({
             </table>
           </div>
         </div>
-      )}
+      )}{" "}
+      <Dialog
+        isOpen={viewOpen}
+        onClose={onDialogClose}
+        onRequestClose={onDialogClose}
+      >
+        <img className="w-full" src={selectedImg} alt={"img"} />
+      </Dialog>
     </div>
   );
 }
