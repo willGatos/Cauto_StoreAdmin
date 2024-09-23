@@ -248,7 +248,6 @@ export const upsertProduct = async (
 };
 
 export const getProductById = async (productId: number) => {
-  console.log(productId);
   try {
     const { data: product, error: productError } = await supabase
       .from("products")
@@ -445,6 +444,8 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
   const user = useSelector((state) => state.auth.user);
   const productId = location.pathname.substring(
     location.pathname.lastIndexOf("/") + 1
+  ) === 'product-new' ? false : location.pathname.substring(
+    location.pathname.lastIndexOf("/") + 1
   );
   const formRef = useRef<FormikRef>(null);
 
@@ -469,6 +470,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
   });
 
   useEffect(() => {
+    console.log('HOL',productId)
     async function fetchCategories() {
       try {
         const { data, error } = await supabase.from("categories").select("*");
