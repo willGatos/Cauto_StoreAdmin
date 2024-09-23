@@ -55,7 +55,7 @@ export const createProduct = async (
         stock: variation.stock,
         pictures: variation.pictures,
         product_id: product.id,
-        currency_id: variation.currency.id,
+        currency_id: variation.currency_id,
       }));
 
       const { data: variationsIds, error: variationsError } = await supabase
@@ -214,7 +214,7 @@ export const upsertProduct = async (
           stock: variation.stock,
           pictures: variation.pictures,
           product_id: productId,
-          currency_id: variation.currency,
+          currency_id: variation.currency_id,
         }));
 
 

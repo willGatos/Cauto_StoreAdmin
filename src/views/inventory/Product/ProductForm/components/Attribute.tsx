@@ -27,7 +27,7 @@ interface ProductVariation {
   stock: number;
   created_at: string;
   pictures: string[];
-  currency: Currency;
+  currency_id: string | number;
   attributes?: AttributeValue[];
 }
 
@@ -168,7 +168,7 @@ export default function ProductVariationGenerator({
         stock: 0,
         created_at: new Date().toISOString(),
         pictures: [],
-        currency: selectedCurrency!,
+        currency_id: 1,
         attributes: combo,
       })
     );
@@ -418,14 +418,14 @@ export default function ProductVariationGenerator({
                     <td className="py-2 px-4 border-b">
                       <select
                         className="w-full p-2 border border-gray-300 rounded-md"
-                        value={variation.currency.id}
+                        value={variation.currency_id}
                         onChange={(e) =>
                           handleVariationChange(
                             index,
-                            "currency",
+                            "currency_id",
                             currencies.find(
                               (c) => c.id === Number(e.target.value)
-                            )
+                            ).id
                           )
                         }
                       >
