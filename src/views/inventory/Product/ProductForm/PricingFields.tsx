@@ -36,7 +36,6 @@ type PricingFieldsProps = {
   touched: FormikTouched<ProductPricing>;
   errors: FormikErrors<ProductPricing>;
   values: ProductPricing;
-  fieldName: string;
 };
 
 const PriceInput = (props: InputProps) => {
@@ -62,7 +61,7 @@ const NumericFormatInput = ({
 };
 
 const PricingFields = (props: PricingFieldsProps) => {
-  const { values, touched, errors, fieldName = "" } = props;
+  const { values, touched, errors} = props;
   const [prefix, setPrefix] = useState(
     values.commission_type === "percentage" ? "%" : "$"
   );
@@ -292,6 +291,7 @@ const PricingFields = (props: PricingFieldsProps) => {
                 <NumericFormatInput
                   form={form}
                   field={field}
+                  value={values.commission}
                   placeholder="Comisión"
                   customInput={Input as ComponentType}
                   onValueChange={(e) => form.setFieldValue(field.name, e.value)}

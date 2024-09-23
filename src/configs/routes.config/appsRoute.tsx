@@ -76,7 +76,7 @@ const appsRoute: Routes = [
     {
         key: 'appsSales.productEdit',
         path: `${APP_PREFIX_PATH}/sales/product-edit/:productId`,
-        component: lazy(() => import('@/views/inventory/Product/ProductEdit')),
+        component: lazy(() => import('@/views/inventory/Product/ProductEdit/index')),
         authority: [OWNER, SELLER],
         meta: {
             header: 'Edit Product',

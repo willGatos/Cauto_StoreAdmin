@@ -12,7 +12,7 @@ type Options = {
 }[];
 
 type FormFieldsName = {
-  category: string;
+  category_id: string;
   brand: string;
   gender: string;
   status: string;
@@ -48,14 +48,13 @@ const status =  [
 const OrganizationFields = (props: OrganizationFieldsProps) => {
   const {
     values = {
-      category_id_id: "",
+      category_id: "",
       brand: "",
       gender: "",
     },
     touched,
     errors,
     categories,
-    setFieldValue,
   } = props;
 
   return (

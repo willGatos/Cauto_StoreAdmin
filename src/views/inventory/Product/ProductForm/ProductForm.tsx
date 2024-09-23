@@ -1,4 +1,4 @@
-import { forwardRef, useContext, useEffect, useState } from "react";
+import { forwardRef, useContext, useEffect, useRef, useState } from "react";
 import { FormContainer } from "@/components/ui/Form";
 import Button from "@/components/ui/Button";
 import hooks from "@/components/ui/hooks";
@@ -47,45 +47,42 @@ export const createProduct = async (
 
     if (productError) throw productError;
 
-    console.log(variations);
     // Luego, insertamos las variaciones
     if (variations && variations.length > 0) {
-      const variationsWithProductId = variations.map((variation) => {
-        const currencyId = variation.currency.id;
-
-        return {
-          name: variation.name,
-          price: variation.price,
-          stock: variation.stock,
-          pictures: variation.pictures,
-          product_id: product.id,
-          currency_id: currencyId,
-        };
-      });
+      const variationsWithProductId = variations.map((variation) => ({
+        name: variation.name,
+        price: variation.price,
+        stock: variation.stock,
+        pictures: variation.pictures,
+        product_id: product.id,
+        currency_id: variation.currency.id,
+      }));
 
       const { data: variationsIds, error: variationsError } = await supabase
         .from("product_variations")
         .insert(variationsWithProductId)
         .select("id, name");
 
-        const variationAttributes = variations.flatMap((variation) => {
-          return variation.attributes.map((attribute) => {
-            return variationsIds.map((varWithIds) => ({
-              product_variation_id: varWithIds.id,
-              attribute_value_id: attribute.id,
-            }));
-          }).flat(); // Add .flat() here to flatten the nested array
-        }).flat(); // And add another .flat() here to ensure complete flattening
-
-      console.log("CheckBug", variationAttributes);
+      const variationAttributes = variations
+        .flatMap((variation) => {
+          return variation.attributes
+            .map((attribute) => {
+              return variationsIds.map((varWithIds) => ({
+                product_variation_id: varWithIds.id,
+                attribute_value_id: attribute.id,
+              }));
+            })
+            .flat(); // Add .flat() here to flatten the nested array
+        })
+        .flat(); // And add another .flat() here to ensure complete flattening
 
       if (variationsError) throw variationsError;
 
       // Insertar relaciones en product_variation_attributes
 
       const { error: attributesError } = await supabase
-      .from("product_variation_attributes")
-      .insert(variationAttributes);
+        .from("product_variation_attributes")
+        .insert(variationAttributes);
 
       if (variationsError) throw variationsError;
     }
@@ -105,46 +102,34 @@ export const upsertProduct = async (
   try {
     let product;
 
-    // Separamos las variaciones del objeto principal
-    const { ...mainProductData } = productData;
+    // Actualización del producto principal
+    const { data: updateProduct, error: updateError } = await supabase
+      .from("products")
+      .update(productData)
+      .eq("id", productId)
+      .single();
 
-    if (productId) {
-      // Actualización
-      const { data, error: updateError } = await supabase
-        .from("products")
-        .update(mainProductData)
-        .eq("id", productId)
-        .single();
-
-      if (updateError) throw updateError;
-      product = data;
-    } else {
-      // Creación
-      const { data, error: insertError } = await supabase
-        .from("products")
-        .insert([mainProductData])
-        .single();
-
-      if (insertError) throw insertError;
-      product = data;
-    }
+    if (updateError) throw updateError;
+    product = updateProduct;
 
     // Manejar variaciones
     if (variations && variations.length > 0) {
       // Eliminar variaciones existentes si es una actualización
-      if (productId) {
-        const { error: deleteError } = await supabase
-          .from("product_variations")
-          .delete()
-          .eq("product_id", productId);
+      const { error: deleteError } = await supabase
+        .from("product_variations")
+        .delete()
+        .eq("product_id", productId);
 
-        if (deleteError) throw deleteError;
-      }
+      if (deleteError) throw deleteError;
 
       // Insertar nuevas variaciones
       const variationsWithProductId = variations.map((variation) => ({
-        ...variation,
+        name: variation.name,
+        price: variation.price,
+        stock: variation.stock,
+        pictures: variation.pictures,
         product_id: product.id,
+        currency_id: variation.currency.id,
       }));
 
       const { error: variationsError } = await supabase
@@ -152,33 +137,81 @@ export const upsertProduct = async (
         .insert(variationsWithProductId);
 
       if (variationsError) throw variationsError;
+
+      // Actualizar relaciones en product_variation_attributes
+      const variationAttributes = variations
+        .flatMap((variation) => {
+          return variation.attributes
+            .map((attribute) => {
+              return variationsWithProductId.map((varWithIds) => ({
+                product_variation_id: varWithIds.id,
+                attribute_value_id: attribute.id,
+              }));
+            })
+            .flat();
+        })
+        .flat();
+
+      const { error: attributesError } = await supabase
+        .from("product_variation_attributes")
+        .upsert(variationAttributes, { onConflict: "product_variation_id" });
+
+      if (attributesError) throw attributesError;
     }
 
     return product;
   } catch (error) {
-    console.error("Error upserting product:", error);
+    console.error("Error updating product:", error);
     throw error;
   }
 };
 
 export const getProductById = async (productId: number) => {
+  console.log(productId);
   try {
     const { data: product, error: productError } = await supabase
       .from("products")
       .select("*")
       .eq("id", productId)
       .single();
-
+    console.log("GOL", product);
     if (productError) throw productError;
 
     const { data: variations, error: variationsError } = await supabase
       .from("product_variations")
-      .select("*")
+      .select(`
+        *,
+        product_variation_attributes (
+          attribute_value_id (
+            *
+          ),
+          product_variation_id(
+          *,
+          currency_id(*)
+          )
+        )
+      `)
       .eq("product_id", productId);
 
     if (variationsError) throw variationsError;
+    // Reestructurar las variaciones para que coincidan con el tipo ProductVariation
+    const formattedVariations = variations.map((variation) => {
+      const attributes = variation.product_variation_attributes.map(attr => attr.attribute_value_id);
+      return {
+        id: variation.id,
+        product_id: variation.product_id,
+        name: variation.name,
+        price: variation.price,
+        stock: variation.stock,
+        created_at: variation.created_at,
+        pictures: variation.pictures,
+        currency_id: variation.currency_id,
+        attributes: attributes,
+        currency: variation.currency_id,
+      };
+    });
 
-    return { ...product, variations };
+    return { ...product, variations: formattedVariations };
   } catch (error) {
     console.error("Error fetching product:", error);
     throw error;
@@ -316,15 +349,19 @@ const DeleteProductButton = ({ onDelete }: { onDelete: OnDelete }) => {
   );
 };
 
-const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
+const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
   const [categories, setCategories] = useState([{ label: "", value: "" }]);
   const [subcategories, setSubcategories] = useState([
     { label: "", value: "" },
   ]);
   const [variations, setVariations] = useState<ProductVariation[]>([]);
-
+  const [error, setError] = useState<string | null>(null);
   const [localImages, setLocalImages] = useState([]);
   const user = useSelector((state) => state.auth.user);
+  const productId = location.pathname.substring(
+    location.pathname.lastIndexOf("/") + 1
+  );
+  const formRef = useRef<FormikRef>(null);
 
   const [initialValues, setInitialValues] = useState<ProductData>({
     name: "",
@@ -345,14 +382,6 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
     standard_price: 0,
     status: 0,
   });
-
-  const { id } = useParams;
-
-  useEffect(() => {
-    if (id) {
-      getProductById(id).then(setInitialValues).catch();
-    }
-  }, [id]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -378,6 +407,21 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
       }
     }
     fetchCategories();
+    if (productId) {
+      getProductById(parseInt(productId))
+        .then((prod) => {
+          const formik = formRef.current;
+          console.log("NUEVA", prod);
+          formik.setValues(prod);
+          setVariations(prod.variations);
+
+          setInitialValues(prod);
+        })
+        .catch((error) => {
+          console.log(error);
+          setError("No se encontró el producto");
+        });
+    }
     return () => {};
   }, []);
 
@@ -396,12 +440,19 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
     try {
       values.owner_id = user.id;
       values.images = localImages;
-      console.log("GGGG", values);
-      createProduct(values, variations);
+
+      if (!productId) {
+        await createProduct(values, variations);
+      } else {
+        await upsertProduct(values, parseInt(productId), variations);
+      }
+
       // Manejar el éxito (por ejemplo, mostrar un mensaje, redirigir, etc.)
+      console.log("Formulario enviado exitosamente");
+      setSubmitting(false);
     } catch (error) {
-      // Manejar el error
-    } finally {
+      console.error("Error al enviar formulario:", error);
+      setError("Ocurrió un error al enviar el formulario");
       setSubmitting(false);
     }
   };
@@ -409,7 +460,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
   return (
     <>
       <Formik
-        innerRef={ref}
+        innerRef={formRef}
         initialValues={{
           ...initialData,
         }}
@@ -481,7 +532,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props, ref) => {
                     icon={<AiOutlineSave />}
                     type="submit"
                   >
-                    {id ? "Actualizar Producto" : "Crear Producto"}
+                    {productId ? "Actualizar Producto" : "Crear Producto"}
                   </Button>
                 </div>
               </StickyFooter>

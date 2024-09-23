@@ -36,8 +36,9 @@ export  interface ProductVariation {
     created_at: string;
     thumbnail: string;
     pictures: string[];
-    currency: Currency;
-  product_variations?: ProductVariationRelation[];
+    currency_id: number;
+    currency?: Currency;
+    product_variations?: ProductVariationRelation[];
     attributes?: AttributeValue[];
     supplies?: SupplyVariation[];
   }

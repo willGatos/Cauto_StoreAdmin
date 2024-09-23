@@ -1,122 +1,81 @@
-import { useEffect } from 'react'
-import Loading from '@/components/shared/Loading'
-import DoubleSidedImage from '@/components/shared/DoubleSidedImage'
-import toast from '@/components/ui/toast'
-import Notification from '@/components/ui/Notification'
+import Notification from "@/components/ui/Notification";
+import toast from "@/components/ui/toast";
+import { injectReducer } from "@/store";
+import { useNavigate } from "react-router-dom";
 import reducer, {
-    getProduct,
-    updateProduct,
     deleteProduct,
-    useAppSelector,
-    useAppDispatch,
-} from './store'
-import { injectReducer } from '@/store'
-import { useLocation, useNavigate } from 'react-router-dom'
+    updateProduct,
+    useAppSelector
+} from "./store";
 
 import ProductForm, {
     FormModel,
-    SetSubmitting,
     OnDeleteCallback,
-} from '@/views/inventory/Product/ProductForm'
-import isEmpty from 'lodash/isEmpty'
+    SetSubmitting,
+} from "@/views/inventory/Product/ProductForm";
 
-injectReducer('salesProductEdit', reducer)
+injectReducer("salesProductEdit", reducer);
 
 const ProductEdit = () => {
-    const dispatch = useAppDispatch()
+  const navigate = useNavigate();
 
-    const location = useLocation()
-    const navigate = useNavigate()
+  const productData = useAppSelector(
+    (state) => state.salesProductEdit.data.productData
+  );
+  const loading = useAppSelector(
+    (state) => state.salesProductEdit.data.loading
+  );
 
-    const productData = useAppSelector(
-        (state) => state.salesProductEdit.data.productData
-    )
-    const loading = useAppSelector(
-        (state) => state.salesProductEdit.data.loading
-    )
-
-    const fetchData = (data: { id: string }) => {
-        dispatch(getProduct(data))
+  const handleFormSubmit = async (
+    values: FormModel,
+    setSubmitting: SetSubmitting
+  ) => {
+    setSubmitting(true);
+    const success = await updateProduct(values, { id: productData._id });
+    setSubmitting(false);
+    console.log("SSSS", success);
+    if (success) {
+      popNotification("updated");
     }
+  };
 
-    const handleFormSubmit = async (
-        values: FormModel,
-        setSubmitting: SetSubmitting
-    ) => {
-        setSubmitting(true)
-        const success = await updateProduct(values, {id: productData._id})
-        setSubmitting(false);
-        console.log("SSSS",success);
-        if (success) {
-            popNotification('updated')
-        }
+  const handleDiscard = () => {
+    navigate("/app/sales/product-list");
+  };
+
+  const handleDelete = async (setDialogOpen: OnDeleteCallback) => {
+    setDialogOpen(false);
+    const success = await deleteProduct({ id: productData._id });
+    if (success) {
+      popNotification("deleted");
     }
+  };
 
-    const handleDiscard = () => {
-        navigate('/app/sales/product-list')
-    }
+  const popNotification = (keyword: string) => {
+    toast.push(
+      <Notification
+        title={`Successfuly ${keyword}`}
+        type="success"
+        duration={2500}
+      >
+        Producto Exitosamente {keyword}
+      </Notification>,
+      {
+        placement: "top-center",
+      }
+    );
+    navigate("/app/sales/product-list");
+  };
 
-    const handleDelete = async (setDialogOpen: OnDeleteCallback) => {
-        setDialogOpen(false)
-        const success = await deleteProduct({ id: productData._id })
-        if (success) {
-            popNotification('deleted')
-        }
-    }
 
-    const popNotification = (keyword: string) => {
-        toast.push(
-            <Notification
-                title={`Successfuly ${keyword}`}
-                type="success"
-                duration={2500}
-            >
-                Producto Exitosamente {keyword}
-            </Notification>,
-            {
-                placement: 'top-center',
-            }
-        )
-        navigate('/app/sales/product-list')
-    }
+  return (
+    <ProductForm
+      type="edit"
+      onFormSubmit={handleFormSubmit}
+      onDiscard={handleDiscard}
+      onDelete={handleDelete}
+    />
+  );
+};
 
-    useEffect(() => {
-        const path = location.pathname.substring(
-            location.pathname.lastIndexOf('/') + 1
-        )
-        const rquestParam = { id: path }
-        fetchData(rquestParam)
-        console.log(rquestParam)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location.pathname])
-
-    return (
-        <>
-            <Loading loading={loading}>
-                {!isEmpty(productData) && (
-                    <>
-                        <ProductForm
-                            type="edit"
-                            initialData={productData}
-                            onFormSubmit={handleFormSubmit}
-                            onDiscard={handleDiscard}
-                            onDelete={handleDelete}
-                        />
-                    </>
-                )}
-            </Loading>
-            {!loading && isEmpty(productData) && (
-                <div className="h-full flex flex-col items-center justify-center">
-                    <DoubleSidedImage
-                        src="/img/others/img-2.png"
-                        darkModeSrc="/img/others/img-2-dark.png"
-                        alt="No product found!"
-                    />
-                    <h3 className="mt-8">No product found!</h3>
-                </div>
-            )}
-        </>
-    )
-}
-
-export default ProductEdit
+export default ProductEdit;
