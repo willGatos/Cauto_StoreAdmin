@@ -123,9 +123,10 @@ function useAuth() {
             const { data: existingInvitation, error: findError } =
                 await supabase
                     .from('invitations')
-                    .select('id')
+                    .select('*')
                     .eq('shop_id', shopId)
                     .eq('inviter_id', inviterId)
+                    .is('invitee_id', null)
                     .single()
 
             if (existingInvitation?.id) {

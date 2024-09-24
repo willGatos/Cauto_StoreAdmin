@@ -637,11 +637,6 @@ export default function SupplyForm() {
                                           currency.id
                                         );
                                       } else {
-                                        console.log(
-                                          "HOLA2",
-                                          initialFormValues,
-                                          currency.id
-                                        );
 
                                         setFieldValue(
                                           `variations.${index}.currency_id`,

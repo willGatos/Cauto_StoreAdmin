@@ -178,11 +178,13 @@ export const signUpWithInvitation = async (
         const { data: authData, error: authError } = await supabase.auth.signUp(
             {
                 email,
+                phone,
                 password,
                 options: {
                     data: {
                         name,
                         phone,
+                        email,
                     },
                 },
             }

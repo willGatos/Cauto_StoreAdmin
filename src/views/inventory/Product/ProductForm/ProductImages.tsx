@@ -223,7 +223,6 @@ const ProductImages = (props: ProductImagesProps) => {
       <FormItem>
         <Field name="images" es>
           {({ field, form }: FieldProps) => {
-            console.log("HOLA", localImages);
             return (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                 <ImageList
