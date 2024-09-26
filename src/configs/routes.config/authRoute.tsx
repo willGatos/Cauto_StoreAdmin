@@ -15,7 +15,7 @@ const authRoute: Routes = [
     },
     {
         key: 'signUp',
-        path: `/sign-up/:subscriptionId`,
+        path: `/sign-up/`,
         component: lazy(() => import('@/views/auth/SignUp')),
         authority: [],
         meta: {

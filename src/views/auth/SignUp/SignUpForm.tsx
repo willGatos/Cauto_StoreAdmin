@@ -111,7 +111,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                                 />
                             </FormItem>
                             <FormItem
-                                label="Identificador de tú Catálogo"
+                                label="Nombre Como Usario"
                                 invalid={errors.identifier && touched.identifier}
                                 errorMessage={errors.identifier}
                             >
@@ -119,8 +119,9 @@ const SignUpForm = (props: SignUpFormProps) => {
                                     type="text"
                                     autoComplete="off"
                                     name="identifier"
-                                    placeholder="@suxces"
+                                    placeholder="juan1402"
                                     component={Input}
+                                    prefix={'@'}
                                 />
                             </FormItem>
                             

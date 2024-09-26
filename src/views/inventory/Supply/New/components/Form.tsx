@@ -13,7 +13,7 @@ import { useSelector } from "react-redux";
 import supabase from "@/services/Supabase/BaseClient";
 import { Supply, SupplyVariation } from "@/@types/supply";
 import { Currency } from "@/@types/currency";
-import { Product, ProductVariation } from "@/@types/products";
+//import { Product, ProductVariation } from "@/@types/products";
 // Tipos
 
 interface FormValues extends Supply {
@@ -32,7 +32,7 @@ const initialValues: FormValues = {
       currency_id: 0,
       description: "",
       measure: "",
-      product_variations: [],
+      //product_variations: [],
     },
   ],
   products: [],
@@ -79,7 +79,7 @@ const fetchCurrencies = async (): Promise<Currency[]> => {
   ];
 };
 
-const fetchProducts = async (): Promise<Product[]> => {
+/* const fetchProducts = async (): Promise<Product[]> => {
   await new Promise((resolve) => setTimeout(resolve, 500));
   return [
     {
@@ -99,7 +99,7 @@ const fetchProducts = async (): Promise<Product[]> => {
       ],
     },
   ];
-};
+}; */
 const fetchCurrenciesFromSupabase = async (): Promise<Currency[]> => {
   const { data, error } = await supabase.from("currency").select("*");
 
@@ -141,7 +141,7 @@ const createSupplyVariations = async (variations: SupplyVariation[]): Promise<Su
 }
 */
 
-const fetchProductsFromSupabase = async (): Promise<Product[]> => {
+/* const fetchProductsFromSupabase = async (): Promise<Product[]> => {
   const { data, error } = await supabase.from("products").select(`
       id,
       name,
@@ -150,7 +150,7 @@ const fetchProductsFromSupabase = async (): Promise<Product[]> => {
 
   if (error) throw error;
   return data;
-};
+}; */
 const updateSupplyVariationProductVariations = async (
   supplyVariationId: string | number,
   productVariations: ProductVariationRelation[]
@@ -232,7 +232,7 @@ const createSupply = async (supply: Supply): Promise<Supply> => {
   const { data, error } = await supabase
     .from("supplies")
     .upsert(supply)
-    .select()
+    .select('id')
     .single();
   console.log("SOY", data);
   if (error) throw error;
@@ -289,7 +289,7 @@ const deleteSupplyVariation = async (variationId: number): Promise<void> => {
   if (error) throw error;
 };
 
-export const fetchProductsAndVariations = async () => {
+/* const fetchProductsAndVariations = async () => {
   // Fetch products
   const { data: productsData, error: productsError } = await supabase
     .from("products")
@@ -321,7 +321,7 @@ export const fetchProductsAndVariations = async () => {
 
   return newProd;
 };
-
+ */
 export default function SupplyForm() {
   const { id } = useParams<{ id: string }>();
   const [initialFormValues, setInitialFormValues] =
@@ -329,7 +329,7 @@ export default function SupplyForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  //const [products, setProducts] = useState<Product[]>([]);
   const [valueRan, setValueRan] = useState("");
   const user = useSelector((state) => state.auth.user);
 
@@ -342,10 +342,10 @@ export default function SupplyForm() {
         setCurrencies(currenciesData);
         try {
           // Cargar prods desde Supabase
-          const productsData = await fetchProductsAndVariations();
+          //const productsData = await fetchProductsAndVariations();
 
-          console.log("Productos:", productsData);
-          setProducts(productsData);
+          //console.log("Productos:", productsData);
+          //setProducts(productsData);
         } catch (error) {
           console.error("Error al cargar productos y variaciones:", error);
         }
@@ -353,7 +353,7 @@ export default function SupplyForm() {
         if (id) {
           // Cargar el suministro existente desde Supabase
           const supply = await fetchSupplyById(id);
-
+          console.log('HOW',user)
           // Verificar si el suministro pertenece a la tienda del usuario
           if (supply.shop_id !== user.shopId) {
             throw new Error("No tienes permiso para editar este suministro");
@@ -370,10 +370,10 @@ export default function SupplyForm() {
             supply_variation_id: supply.supply_variation_id,
             variations: variations.map((variation) => ({
               ...variation,
-              product_variations: [],
+             // product_variations: [],
               created_at: new Date(variation.created_at).toISOString(),
             })),
-            products: products.map((p) => p.id),
+            //products: products.map((p) => p.id),
           });
         }
       } catch (err) {
@@ -403,24 +403,24 @@ export default function SupplyForm() {
         }
 
         // Actualizar relaciones de variaciones de suministro con variaciones de producto
-        for (const variation of values.variations) {
+        /* for (const variation of values.variations) {
           await updateSupplyVariationProductVariations(
             variation.id,
             variation.product_variations
           );
           delete variation.product_variations;
           delete variation.id;
-        }
+        } */
 
-        const variations = await createSupplyVariations(
+       /*  const variations = await createSupplyVariations(
           values.variations.map((v) => ({
             ...v,
             supply_id: id,
           }))
-        );
+        ); */
 
         // Actualizar relaciones de suministro con productos
-        await updateProductSupplies(id!, values.products);
+        // await updateProductSupplies(id!, values.products);
 
         // Actualizar el suministro
         supply = await updateSupply(values.id, {
@@ -476,7 +476,7 @@ export default function SupplyForm() {
         // Crear variaciones para el nuevo suministro
         const variationsToCreate = values.variations.map((v) => ({
           ...v,
-          supply_id: id,
+          supply_id: supply.id,
         }));
         await createSupplyVariations(variationsToCreate);
       }
@@ -540,7 +540,7 @@ export default function SupplyForm() {
               <label htmlFor="variable">Variable</label>
             </div>
 
-            <div>
+            {/* <div>
               <label>Productos</label>
               <div className="space-y-2 mt-2">
                 <Checkbox.Group
@@ -567,7 +567,7 @@ export default function SupplyForm() {
                   ))}
                 </Checkbox.Group>
 
-                {/* {products.map(product => (
+              {products.map(product => (
                             <div key={product.id} className="flex items-center space-x-2">
                               <Checkbox
                                 id={`product-${product.id}`}
@@ -584,9 +584,9 @@ export default function SupplyForm() {
                               />
                               <label htmlFor={`product-${product.id}`}>{product.name}</label>
                             </div>
-                          ))} */}
+                          ))} 
               </div>
-            </div>
+            </div>*/}
 
             <FieldArray name="variations">
               {({ push, remove }) => (
@@ -637,7 +637,6 @@ export default function SupplyForm() {
                                           currency.id
                                         );
                                       } else {
-
                                         setFieldValue(
                                           `variations.${index}.currency_id`,
                                           0
@@ -697,7 +696,7 @@ export default function SupplyForm() {
                           <div>
                             <label>Variaciones de Producto</label>
                             <div className="space-y-4 mt-2">
-                              {products
+                              {/* {products
                                 .filter((p) => values.products.includes(p.id))
                                 .map((product, key) => (
                                   <div key={key}>
@@ -769,7 +768,7 @@ export default function SupplyForm() {
                                       </div>
                                     ))}
                                   </div>
-                                ))}
+                                ))} */}
                             </div>
                           </div>
                           {index > 0 && (
@@ -798,9 +797,9 @@ export default function SupplyForm() {
                         measure: "", // Cadena vacía para la medida
                         created_at: "", // Cadena vacía para la fecha de creación
                         supply_id: 0, // Valor vacío para el ID de suministro
-                        product_variations: [
-                          { id: null, required_supplies: 0 }, // Valores vacíos para la variación de producto
-                        ],
+                        // product_variations: [
+                        //   { id: null, required_supplies: 0 }, // Valores vacíos para la variación de producto
+                        // ],
                       })
                     }
                   >
