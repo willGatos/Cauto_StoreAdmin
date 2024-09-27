@@ -125,6 +125,15 @@ const appsRoute: Routes = [
     },
   },
   {
+    key: "appsSales.catalog",
+    path: `${APP_PREFIX_PATH}/catalog`,
+    component: lazy(() => import("@/views/catalog/")),
+    authority: [OWNER, SELLER],
+    meta: {
+      header: "Add New Product",
+    },
+  },
+  {
     key: "appsSales.orderDetails",
     path: `${APP_PREFIX_PATH}/sales/order-details/:orderId`,
     component: lazy(() => import("@/views/sales/OrderDetails")),

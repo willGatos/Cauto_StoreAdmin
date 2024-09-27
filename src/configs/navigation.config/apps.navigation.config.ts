@@ -101,6 +101,27 @@ const appsNavigationConfig: NavigationTree[] = [
         ],
       },
       {
+        key: "apps.catalog",
+        path: "",
+        title: "Catalogo",
+        translateKey: "nav.appsCrm.catalog",
+        icon: "inventory",
+        type: NAV_ITEM_TYPE_COLLAPSE,
+        authority: [ADMIN, OWNER, SELLER],
+        subMenu: [
+          {
+            key: "appsSales.seccions",
+            path: `${APP_PREFIX_PATH}/catalog`,
+            title: "Secciones",
+            translateKey: "nav.appsSales.catalog",
+            icon: "",
+            type: NAV_ITEM_TYPE_ITEM,
+            authority: [ADMIN, OWNER, SELLER],
+            subMenu: [],
+          },
+        ],
+      },
+      {
         key: "apps.crm",
         path: "",
         title: "CRM",
