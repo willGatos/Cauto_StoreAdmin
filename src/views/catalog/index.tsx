@@ -8,6 +8,7 @@ import NotificationMessage from "../crm/CrmDashboard/components/NotificationMess
 import { useSelector } from "react-redux";
 import { useAppSelector } from "@/store";
 import supabase from "@/services/Supabase/BaseClient";
+import { name } from "@cloudinary/url-gen/actions/namedTransformation";
 
 export const getProductsByShopId = async (shopId: number) => {
   const { data, error } = await supabase
@@ -21,6 +22,11 @@ export const getProductsByShopId = async (shopId: number) => {
 
   return data;
 };
+
+const typeOfView = [
+  { label: "Grilla", value: "Grid" },
+  { label: "Flex", value: "Flex" },
+];
 
 export const saveCatalogSectionToApi = async (sectionData: {
   shopId: number;
@@ -41,8 +47,45 @@ export const saveCatalogSectionToApi = async (sectionData: {
 
   return data[0];
 };
+export const updateCatalogSection = async (
+  sectionId: number,
+  updatedData: {
+    name?: string;
+    type_of_view?: "Grid" | "Flex";
+    products?: { id: number }[];
+  }
+) => {
+  try {
+    // Actualizar los datos de la sección
+    const { data: updatedSection } = await supabase
+      .from("catalog_sections")
+      .update({
+        name: updatedData.name,
+        type_of_view: updatedData.type_of_view,
+      })
+      .eq("id", sectionId)
+      .select();
 
-const addProductsToSection = async (
+    if (!updatedSection || !updatedSection.length) {
+      throw new Error("Sección no encontrada");
+    }
+
+    // Actualizar los productos asociados a la sección si es necesario
+    if (updatedData.products) {
+      await addProductsToSection(
+        sectionId,
+        updatedData.products.map((p) => p.id)
+      );
+    }
+
+    return updatedSection[0];
+  } catch (error) {
+    console.error("Error al actualizar la sección:", error);
+    throw error;
+  }
+};
+
+export const addProductsToSection = async (
   sectionId: number,
   productIds: number[]
 ) => {
@@ -76,9 +119,9 @@ const addProductsToSection = async (
 
 const fetchSections = async (shopId: number) => {
   try {
-    const { data: sectionsData, error: sectionsError } = await supabase
-      .from('catalog_sections')
-      .select(`
+    const { data: sectionsData, error: sectionsError } = await supabase.from(
+      "catalog_sections"
+    ).select(`
         *,
         products: catalog_section_products (
           product_id (
@@ -91,9 +134,9 @@ const fetchSections = async (shopId: number) => {
 
     console.log(sectionsData);
 
-    return sectionsData.map(section => ({
+    return sectionsData.map((section) => ({
       ...section,
-      products: section.products.map(product => product.product_id)
+      products: section.products.map((product) => product.product_id),
     }));
   } catch (error) {
     console.error("Error al obtener secciones y productos:", error);
@@ -126,15 +169,25 @@ export default function Component() {
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [products, setProducts] = useState([]);
 
-  const { shopId } = useAppSelector((state) => state.auth.user);
-  // Simula la creación/actualización de una sección
-  const saveCatalogSection = async (section: Omit<CatalogSection, "id">) => {
-    // En un caso real, esto sería una llamada POST/PUT a la API
-    section.shopId = shopId;
-    const data = await saveCatalogSectionToApi(section);
-    console.log(data);
-    return data;
+  const [isEditing, setIsEditing] = useState(false);
+  // Función para iniciar la edición de una sección
+  const handleEditSection = (section) => {
+    setCurrentSection(section);
+    setSectionName(section.name);
+    setViewType(typeOfView.find(({ value }) => value == section.type_of_view));
+    setSelectedProducts(section.products.map((product) => product.id));
+    setIsEditing(true);
   };
+
+  // Función para cancelar la edición
+  const handleCancelEdit = () => {
+    setCurrentSection(null);
+    setSectionName("");
+    setSelectedProducts([]);
+    setIsEditing(false);
+  };
+
+  const { shopId } = useAppSelector((state) => state.auth.user);
 
   useEffect(() => {
     fetchSections(shopId).then(setSections);
@@ -163,26 +216,44 @@ export default function Component() {
     }
 
     const sectionToSave = {
-      id : null,
+      id: null,
       name: sectionName.trim(),
       type_of_view: viewType.value,
       products: selectedProducts.map((id) => ({ id })),
     };
 
     try {
-      const savedSection = await saveCatalogSection(sectionToSave);
+      const newSection = isEditing
+        ? await updateCatalogSection(currentSection.id, {
+            name: sectionName,
+            type_of_view: viewType.value,
+            products: selectedProducts.map((id) => ({ id })),
+          })
+        : await saveCatalogSectionToApi({
+            shopId,
+            name: sectionName.trim(),
+            type_of_view: viewType.value,
+            products: selectedProducts.map((id) => ({ id })),
+          });
       //setCurrentSection(savedSection);
       setSectionName("");
       setSelectedProducts([]);
 
-      sectionToSave.id = savedSection.id
+      sectionToSave.id = newSection.id;
 
       // Agregar productos seleccionados a la sección
       const addedProducts = await addProductsToSection(
-        savedSection.id,
+        newSection.id,
         selectedProducts
       );
-      setSections((prevSec) => [...prevSec,sectionToSave ]);
+      // Actualizar la lista de secciones en el estado
+      setSections((prevSections) =>
+        prevSections.map((section) =>
+          section.id === newSection.id
+            ? { ...newSection, products: selectedProducts }
+            : section
+        )
+      );
     } catch (error) {
       console.error("No se pudo guardar la sección:", error);
       alert("Error al guardar la sección.");
@@ -207,19 +278,21 @@ export default function Component() {
             onChange={(value) => {
               setViewType(value);
             }}
-            options={[
-              { label: "Grilla", value: "Grid" },
-              { label: "Flex", value: "Flex" },
-            ]}
+            options={typeOfView}
           />
         </div>
         <NotificationMessage
-          buttonText={"Guardar Sección"}
+          buttonText={isEditing ? "Actualizar Sección" : "Guardar Sección"}
           notifcationText="Exito en la Creacion de la Seccion"
           action={() => {
             handleSaveSection();
           }}
         />
+        {isEditing && (
+          <Button variant="secondary" onClick={handleCancelEdit}>
+            Cancelar Edición
+          </Button>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -316,11 +389,8 @@ export default function Component() {
                 <Td>{section.type_of_view}</Td>
                 <Td>{section.products.length}</Td>
                 <Td>
-                  <Button
-                    variant="default"
-                    onClick={() => setCurrentSection(section)}
-                  >
-                    Ver
+                  <Button onClick={() => handleEditSection(section)}>
+                    Editar
                   </Button>
                 </Td>
               </Tr>
