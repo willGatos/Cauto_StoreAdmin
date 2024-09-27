@@ -5,55 +5,111 @@ import { Select } from "@/components/ui/select";
 import { toast } from "@/components/ui/";
 import { Table } from "@/components/ui";
 import NotificationMessage from "../crm/CrmDashboard/components/NotificationMessage";
+import { useSelector } from "react-redux";
+import { useAppSelector } from "@/store";
+import supabase from "@/services/Supabase/BaseClient";
+
+export const getProductsByShopId = async (shopId: number) => {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("shop_id", shopId)
+    .order("standard_price");
+
+  if (error) console.error("Error al obtener productos:", error);
+  else console.log("Productos obtenidos:", data);
+
+  return data;
+};
+
+export const saveCatalogSectionToApi = async (sectionData: {
+  shopId: number;
+  name: string;
+  type_of_view: "Grid" | "Flex";
+}) => {
+  const { data, error } = await supabase
+    .from("catalog_sections")
+    .insert({
+      shop_id: sectionData.shopId,
+      name: sectionData.name,
+      type_of_view: sectionData.type_of_view,
+    })
+    .select();
+
+  if (error) console.error("Error al guardar sección:", error);
+  else console.log("Sección guardada:", data[0]);
+
+  return data[0];
+};
+
+const addProductsToSection = async (
+  sectionId: number,
+  productIds: number[]
+) => {
+  try {
+    console.log("HOLA", sectionId);
+    // Eliminar productos existentes de la sección
+    await supabase
+      .from("catalog_section_products")
+      .delete()
+      .eq("catalog_section_id", sectionId);
+
+    // Agregar nuevos productos a la sección
+    const { data, error } = await supabase
+      .from("catalog_section_products")
+      .insert(
+        productIds.map((productId) => ({
+          catalog_section_id: sectionId,
+          product_id: productId,
+        }))
+      );
+
+    if (error) throw error;
+
+    console.log("Productos agregados a la sección:", data);
+    return data;
+  } catch (error) {
+    console.error("Error al agregar productos a la sección:", error);
+    throw error;
+  }
+};
+const fetchSections = async (shopId) => {
+  try {
+    // Primero obtenemos las secciones
+    const { data: sectionsData } = await supabase
+      .from("catalog_sections")
+      .select("*");
+
+    // Luego obtenemos los productos para cada sección
+    const productsPromises = sectionsData.map(async (section) => {
+      const { data: products } = await getProductsByShopId(shopId);
+      return { ...section, products };
+    });
+
+    // Esperamos a que todas las promesas se resuelvan y luego actualizamos el estado
+    const updatedSections = await Promise.all(productsPromises);
+    console.log(updatedSections);
+
+    return updatedSections;
+  } catch (error) {
+    console.error("Error al obtener secciones y productos:", error);
+  }
+};
 
 const { Tr, Th, Td, THead, TBody } = Table;
 type Product = {
   id: number;
   name: string;
-  price: number;
-  image: string;
+  standard_price: number;
+  images: string;
 };
 
 type CatalogSection = {
-  id: number;
+  id?: number;
   name: string;
   type_of_view: "Grid" | "Flex";
   products: Product[];
 };
-
-// Datos de prueba
-const testProducts: Product[] = [
-  {
-    id: 1,
-    name: "Producto 1",
-    price: 19.99,
-    image: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: 2,
-    name: "Producto 2",
-    price: 29.99,
-    image: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: 3,
-    name: "Producto 3",
-    price: 39.99,
-    image: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: 4,
-    name: "Producto 4",
-    price: 49.99,
-    image: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: 5,
-    name: "Producto 5",
-    price: 59.99,
-    image: "/placeholder.svg?height=200&width=200",
-  },
-];
 
 export default function Component() {
   const [sections, setSections] = useState<CatalogSection[]>([]);
@@ -63,23 +119,21 @@ export default function Component() {
   const [sectionName, setSectionName] = useState("");
   const [viewType, setViewType] = useState();
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+  const [products, setProducts] = useState([]);
 
-  // Simula la obtención de secciones
-  const fetchSections = async () => {
-    // En un caso real, esto sería una llamada a la API
-    return [];
-  };
-
+  const { shopId } = useAppSelector((state) => state.auth.user);
   // Simula la creación/actualización de una sección
   const saveCatalogSection = async (section: Omit<CatalogSection, "id">) => {
     // En un caso real, esto sería una llamada POST/PUT a la API
-    const newSection = { ...section, id: Date.now() };
-    setSections([...sections, newSection]);
-    return newSection;
+    section.shopId = shopId;
+    const data = await saveCatalogSectionToApi(section);
+    console.log(data);
+    return data;
   };
 
   useEffect(() => {
-    fetchSections().then(setSections);
+    //fetchSections(shopId).then(setSections);
+    getProductsByShopId(shopId).then(setProducts);
   }, []);
 
   const handleAddProduct = (productId: number) => {
@@ -94,34 +148,39 @@ export default function Component() {
 
   const handleSaveSection = async () => {
     if (!sectionName.trim()) {
-      toast({
-        title: "Error",
-        description: "Por favor, ingrese un nombre para la sección.",
-      });
+      alert("Por favor, ingresa un nombre para la sección.");
       return;
     }
 
     if (selectedProducts.length === 0) {
-      toast({
-        title: "Error",
-        description: "Por favor, seleccione al menos un producto.",
-      });
+      alert("Por favor, selecciona al menos un producto.");
       return;
     }
 
     const sectionToSave = {
+      id : null,
       name: sectionName.trim(),
       type_of_view: viewType.value,
-      products: testProducts.filter((p) => selectedProducts.includes(p.id)),
+      products: selectedProducts.map((id) => ({ id })),
     };
 
     try {
       const savedSection = await saveCatalogSection(sectionToSave);
-      setCurrentSection(savedSection);
+      //setCurrentSection(savedSection);
       setSectionName("");
       setSelectedProducts([]);
+
+      sectionToSave.id = savedSection.id
+
+      // Agregar productos seleccionados a la sección
+      const addedProducts = await addProductsToSection(
+        savedSection.id,
+        selectedProducts
+      );
+      setSections((prevSec) => [...prevSec,sectionToSave ]);
     } catch (error) {
-      toast({ title: "Error", description: "No se pudo guardar la sección." });
+      console.error("No se pudo guardar la sección:", error);
+      alert("Error al guardar la sección.");
     }
   };
 
@@ -141,7 +200,7 @@ export default function Component() {
             placeholder="Tipo de vista"
             value={viewType}
             onChange={(value) => {
-                setViewType(value);
+              setViewType(value);
             }}
             options={[
               { label: "Grilla", value: "Grid" },
@@ -169,10 +228,10 @@ export default function Component() {
             </Tr>
           </THead>
           <TBody>
-            {testProducts.map((product) => (
+            {products.map((product) => (
               <Tr key={product.id}>
                 <Td>{product.name}</Td>
-                <Td>${product.price.toFixed(2)}</Td>
+                <Td>${product.standard_price}</Td>
                 <Td>
                   {selectedProducts.includes(product.id) ? (
                     <Button
@@ -198,9 +257,7 @@ export default function Component() {
 
       {currentSection && (
         <div className="space-y-4">
-          <h5 className=" font-semibold">
-            Previsualización: 
-          </h5>
+          <h5 className=" font-semibold">Previsualización:</h5>
           <h3>{currentSection.name}</h3>
           <div
             className={`
@@ -224,12 +281,12 @@ export default function Component() {
               `}
               >
                 <img
-                  src={product.image}
+                  src={product.images}
                   alt={product.name}
                   className="w-full h-48 object-cover mb-4 rounded"
                 />
                 <h4 className="font-semibold text-lg mb-2">{product.name}</h4>
-                <p className="text-xl font-bold">${product.price.toFixed(2)}</p>
+                <p className="text-xl font-bold">${product.standard_price}</p>
               </div>
             ))}
           </div>

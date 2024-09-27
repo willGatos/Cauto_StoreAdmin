@@ -99,7 +99,7 @@ const PricingFields = (props: PricingFieldsProps) => {
   ];
 
   useEffect(() => {
-    console.log(values.commission_type);
+    console.log(values);
     setPrefix(values.commission_type === "percentage" ? "%" : "$");
   }, [values.commission_type]);
   

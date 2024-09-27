@@ -577,14 +577,15 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                     setFieldValue={setFieldValue}
                   />
 
-                  <Attribute
+                  {values.type !== "simple" &&
+                    <Attribute
                     touched={touched}
                     errors={errors}
                     values={values}
                     variations={variations}
                     setVariations={setVariations}
                     setFieldValue={setFieldValue}
-                  />
+                  />}
                 </div>
                 <div className="lg:col-span-1">
                   <ProductImages
