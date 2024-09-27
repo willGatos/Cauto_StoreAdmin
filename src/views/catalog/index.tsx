@@ -73,26 +73,31 @@ const addProductsToSection = async (
     throw error;
   }
 };
-const fetchSections = async (shopId) => {
+
+const fetchSections = async (shopId: number) => {
   try {
-    // Primero obtenemos las secciones
-    const { data: sectionsData } = await supabase
-      .from("catalog_sections")
-      .select("*");
+    const { data: sectionsData, error: sectionsError } = await supabase
+      .from('catalog_sections')
+      .select(`
+        *,
+        products: catalog_section_products (
+          product_id (
+            *
+          )
+        )
+      `);
 
-    // Luego obtenemos los productos para cada sección
-    const productsPromises = sectionsData.map(async (section) => {
-      const { data: products } = await getProductsByShopId(shopId);
-      return { ...section, products };
-    });
+    if (sectionsError) throw sectionsError;
 
-    // Esperamos a que todas las promesas se resuelvan y luego actualizamos el estado
-    const updatedSections = await Promise.all(productsPromises);
-    console.log(updatedSections);
+    console.log(sectionsData);
 
-    return updatedSections;
+    return sectionsData.map(section => ({
+      ...section,
+      products: section.products.map(product => product.product_id)
+    }));
   } catch (error) {
     console.error("Error al obtener secciones y productos:", error);
+    throw error;
   }
 };
 
@@ -132,7 +137,7 @@ export default function Component() {
   };
 
   useEffect(() => {
-    //fetchSections(shopId).then(setSections);
+    fetchSections(shopId).then(setSections);
     getProductsByShopId(shopId).then(setProducts);
   }, []);
 
