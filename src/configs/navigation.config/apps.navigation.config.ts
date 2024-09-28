@@ -162,8 +162,8 @@ const appsNavigationConfig: NavigationTree[] = [
           },
           {
             key: "appsSales.offerForm",
-            path: `${APP_PREFIX_PATH}/sales/offers`,
-            title: "Order List",
+            path: `${APP_PREFIX_PATH}/sales/createForm`,
+            title: "Crear Oferta",
             translateKey: "nav.appsSales.offerForm",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,

@@ -99,11 +99,20 @@ const appsRoute: Routes = [
   },
   {
     key: "appsSales.offerForm",
-    path: `${APP_PREFIX_PATH}/sales/offersForm`,
+    path: `${APP_PREFIX_PATH}/sales/createForm`,
     component: lazy(() => import("@/views/sales/Offers/Form")),
     authority: [OWNER, SELLER],
     meta: {
-      header: "Add New Product",
+      header: "Crear Oferta",
+    },
+  },
+  {
+    key: "appsSales.offerForm",
+    path: `${APP_PREFIX_PATH}/sales/editForm/:id`,
+    component: lazy(() => import("@/views/sales/Offers/Form")),
+    authority: [OWNER, SELLER],
+    meta: {
+      header: "Crear Oferta",
     },
   },
   {

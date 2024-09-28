@@ -1,58 +1,56 @@
-import React, { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ChevronDown, ChevronRight } from "lucide-react"
-import supabase from '@/services/Supabase/BaseClient'
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import supabase from "@/services/Supabase/BaseClient";
+import { supabaseService } from "@/services/Supabase/AttributeService";
 
 interface Product {
-  id: number
-  name: string
-  variations: ProductVariation[]
+  id: number;
+  name: string;
+  variations: ProductVariation[];
 }
 
 interface ProductVariation {
-  id: number
-  name: string
+  id: number;
+  name: string;
+  offer_price: number;
 }
 
 interface Currency {
-  id: number
-  name: string
-  exchange_rate: number
+  id: number;
+  name: string;
+  exchange_rate: number;
 }
 
 interface Offer {
-  id?: number
-  name: string
-  description: string
-  startDate: string
-  endDate: string
-  shopId: number
-  products: OfferProduct[]
+  id?: number;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  shopId: number;
+  products: OfferProduct[];
 }
 
 interface OfferProduct {
-  id?: number
-  productId: number
-  variations: OfferProductVariation[]
+  id?: number;
+  productId: number;
+  variations: OfferProductVariation[];
 }
 
 interface OfferProductVariation {
-  id?: number
-  variationId: number
-  offerPrice: number
-  currencyId: number
+  id?: number;
+  variationId: number;
+  offer_price: number;
+  currencyId: number;
 }
 
-const mockCurrencies: Currency[] = [
-  { id: 1, name: "CUP", exchange_rate: 1 },
-  { id: 2, name: "USD", exchange_rate: 340 },
-  { id: 3, name: "EUR", exchange_rate: 350 },
-]
-
 export default function OfferForm() {
-  const { id } = useParams<{ id: string }>()
+  const [currency, setCurrency] = useState([]);
+
+  const { id } = useParams<{ id: string }>();
   const [offer, setOffer] = useState<Offer>({
     name: "",
     description: "",
@@ -60,43 +58,46 @@ export default function OfferForm() {
     endDate: "",
     shopId: 1,
     products: [],
-  })
-  const [expandedProducts, setExpandedProducts] = useState<Record<number, boolean>>({})
-  const [selectedProducts, setSelectedProducts] = useState<Record<number, boolean>>({})
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-
+  });
+  const [expandedProducts, setExpandedProducts] = useState<
+    Record<number, boolean>
+  >({});
+  const [selectedProducts, setSelectedProducts] = useState<
+    Record<number, boolean>
+  >({});
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
-    fetchProducts()
+    fetchProducts();
+    supabaseService.getCurrencies().then(setCurrency);
     if (id) {
-      fetchOffer(parseInt(id))
+      fetchOffer(parseInt(id));
     } else {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [id])
+  }, [id]);
 
   const fetchProducts = async () => {
-    const { data, error } = await supabase
-      .from('products')
-      .select(`
+    const { data, error } = await supabase.from("products").select(`
         id,
         name,
         variations:product_variations (
           id,
           name
         )
-      `)
+      `);
     if (error) {
-      console.error('Error fetching products:', error)
+      console.error("Error fetching products:", error);
     } else {
-      setProducts(data || [])
+      setProducts(data || []);
     }
-  }
+  };
 
   const fetchOffer = async (offerId: number) => {
     const { data, error } = await supabase
-      .from('offers')
-      .select(`
+      .from("offers")
+      .select(
+        `
         *,
         products:offer_products (
           id,
@@ -108,12 +109,13 @@ export default function OfferForm() {
             currency_id
           )
         )
-      `)
-      .eq('id', offerId)
-      .single()
+      `
+      )
+      .eq("id", offerId)
+      .single();
 
     if (error) {
-      console.error('Error fetching offer:', error)
+      console.error("Error fetching offer:", error);
     } else if (data) {
       const formattedOffer: Offer = {
         ...data,
@@ -126,86 +128,108 @@ export default function OfferForm() {
           variations: p.variations.map((v: any) => ({
             id: v.id,
             variationId: v.product_variation_id,
-            offerPrice: v.offer_price,
+            offer_price: v.offer_price,
             currencyId: v.currency_id,
           })),
         })),
-      }
-      setOffer(formattedOffer)
-      const selectedProductIds = formattedOffer.products.map((p) => p.productId)
-      setSelectedProducts(
-        selectedProductIds.reduce((acc: Record<number, boolean>, id: number) => {
-          acc[id] = true
-          return acc
-        }, {})
-      )
-    }
-    setLoading(false)
-  }
+      };
+      console.log(formattedOffer);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setOffer(prev => ({ ...prev, [name]: value }))
-  }
+      setOffer(formattedOffer);
+      const selectedProductIds = formattedOffer.products.map(
+        (p) => p.productId
+      );
+      setSelectedProducts(
+        selectedProductIds.reduce(
+          (acc: Record<number, boolean>, id: number) => {
+            acc[id] = true;
+            return acc;
+          },
+          {}
+        )
+      );
+    }
+    setLoading(false);
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setOffer((prev) => ({ ...prev, [name]: value }));
+  };
 
   const toggleProductExpansion = (productId: number) => {
-    setExpandedProducts(prev => ({ ...prev, [productId]: !prev[productId] }))
-  }
+    setExpandedProducts((prev) => ({ ...prev, [productId]: !prev[productId] }));
+  };
 
   const handleProductSelection = (productId: number, isChecked: boolean) => {
-    setSelectedProducts(prev => ({ ...prev, [productId]: isChecked }))
+    setSelectedProducts((prev) => ({ ...prev, [productId]: isChecked }));
     if (isChecked) {
-      setOffer(prev => ({
+      setOffer((prev) => ({
         ...prev,
         products: [...prev.products, { productId, variations: [] }],
-      }))
+      }));
     } else {
-      setOffer(prev => ({
+      setOffer((prev) => ({
         ...prev,
-        products: prev.products.filter(p => p.productId !== productId),
-      }))
+        products: prev.products.filter((p) => p.productId !== productId),
+      }));
     }
-  }
+  };
 
-  const handleVariationPriceChange = (productId: number, variationId: number, price: string, currencyId: number) => {
-    setOffer(prev => ({
-      ...prev,
-      products: prev.products.map(p => 
-        p.productId === productId
-          ? {
-              ...p,
-              variations: [
-                ...p.variations.filter(v => v.variationId !== variationId),
-                { variationId, offerPrice: parseFloat(price) || 0, currencyId },
-              ],
-            }
-          : p
-      ),
-    }))
-  }
+  const handleVariationPriceChange = (
+    productId: number,
+    variationId: number,
+    price: string,
+    currencyId: any
+  ) => {
+    console.log(offer)
+    setOffer((prev) => {
+      const dat = {
+        ...prev,
+        products: prev.products.map((p) =>
+          p.productId === productId
+            ? {
+                ...p,
+                variations: [
+                  {
+                    variationId,
+                    offer_price: parseFloat(price) || 0,
+                    currencyId: parseFloat(currencyId),
+                  },
+                  ...p.variations.filter((v) => v.variationId !== variationId),
+                ],
+              }
+            : p
+        ),
+      };
+      return dat;
+    });
+  };
 
   const getPriceRange = (productId: number) => {
-    const product = offer.products.find(p => p.productId === productId)
-    if (!product || product.variations.length === 0) return 'N/A'
-    
-    const pricesInCUP = product.variations.map(v => {
-      const currency = mockCurrencies.find(c => c.id === v.currencyId)
-      if (!currency) return 0
-      return v.offerPrice * currency.exchange_rate // Convert to CUP
-    })
+    const product = offer.products.find((p) => p.productId === productId);
+    if (!product || product.variations.length === 0) return "N/A";
 
-    const minPrice = Math.min(...pricesInCUP)
-    const maxPrice = Math.max(...pricesInCUP)
+    const pricesInCUP = product.variations.map((v) => {
+      const currencyMain = currency.find((c) => c.id === v.currencyId);
+      if (!currencyMain) return 0;
+      return v.offer_price * currencyMain.exchange_rate; // Convert to CUP
+    });
+
+    const minPrice = Math.min(...pricesInCUP);
+    const maxPrice = Math.max(...pricesInCUP);
 
     if (minPrice === maxPrice) {
-      return `${maxPrice.toFixed(2)} CUP`
+      return `${maxPrice.toFixed(2)} CUP`;
     }
-    return `${maxPrice.toFixed(2)} - ${minPrice.toFixed(2)} CUP`
-  }
+    return `${maxPrice.toFixed(2)} - ${minPrice.toFixed(2)} CUP`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     const offerData = {
       name: offer.name,
@@ -213,87 +237,105 @@ export default function OfferForm() {
       start_date: offer.startDate,
       end_date: offer.endDate,
       shop_id: offer.shopId,
-    }
+    };
 
-    let offerId: number
+    let offerId: number;
 
     if (id) {
       // Update existing offer
       const { data, error } = await supabase
-        .from('offers')
+        .from("offers")
         .update(offerData)
-        .eq('id', id)
-        .select()
-      
+        .eq("id", id)
+        .select();
+
       if (error) {
-        console.error('Error updating offer:', error)
-        setLoading(false)
-        return
+        console.error("Error updating offer:", error);
+        setLoading(false);
+        return;
       }
-      offerId = parseInt(id)
+      offerId = parseInt(id);
     } else {
       // Create new offer
       const { data, error } = await supabase
-        .from('offers')
+        .from("offers")
         .insert(offerData)
-        .select()
-      
+        .select();
+
       if (error) {
-        console.error('Error creating offer:', error)
-        setLoading(false)
-        return
+        console.error("Error creating offer:", error);
+        setLoading(false);
+        return;
       }
-      offerId = data![0].id
+      offerId = data![0].id;
     }
 
-    // Delete existing offer products and variations
-    await supabase
-      .from('offer_products')
-      .delete()
-      .eq('offer_id', offerId)
+    const { data: offersProducts } = await supabase
+      .from("offer_products")
+      .select("id")
+      .eq("offer_id", offerId);
+
+    // Eliminar variaciones existentes para todos los productos de la oferta
+    const { data: deletedVariations, error: deleteVariationError } =
+      await supabase
+        .from("offer_product_variations")
+        .delete()
+        .in(
+          "offer_product_id",
+          offersProducts.map((p) => p.id)
+        );
 
     // Insert new offer products and variations
     for (const product of offer.products) {
-      const { data: offerProductData, error: offerProductError } = await supabase
-        .from('offer_products')
-        .insert({ offer_id: offerId, product_id: product.productId })
-        .select()
+      const { data: offerProductData, error: offerProductError } =
+        await supabase
+          .from("offer_products")
+          .insert({ offer_id: offerId, product_id: product.productId })
+          .select();
 
       if (offerProductError) {
-        console.error('Error inserting offer product:', offerProductError)
-        continue
+        console.error("Error inserting offer product:", offerProductError);
+        continue;
       }
 
-      const offerProductId = offerProductData![0].id
+      const offerProductId = offerProductData![0].id;
 
-      const variations = product.variations.map(variation => ({
+      const variations = product.variations.map((variation) => ({
         offer_product_id: offerProductId,
         product_variation_id: variation.variationId,
-        offer_price: variation.offerPrice,
+        offer_price: variation.offer_price,
         currency_id: variation.currencyId,
-      }))
+      }));
 
       const { error: variationError } = await supabase
-        .from('offer_product_variations')
-        .insert(variations)
+        .from("offer_product_variations")
+        .insert(variations);
 
       if (variationError) {
-        console.error('Error inserting offer product variations:', variationError)
+        console.error(
+          "Error inserting offer product variations:",
+          variationError
+        );
       }
     }
 
-    setLoading(false)
+    setLoading(false);
     // Redirect or show success message
-  }
+  };
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nombre de la oferta</label>
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Nombre de la oferta
+        </label>
         <Input
           id="name"
           name="name"
@@ -304,7 +346,12 @@ export default function OfferForm() {
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">Descripción</label>
+        <label
+          htmlFor="description"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Descripción
+        </label>
         <Input
           id="description"
           name="description"
@@ -316,7 +363,12 @@ export default function OfferForm() {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">Fecha de inicio</label>
+          <label
+            htmlFor="startDate"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Fecha de inicio
+          </label>
           <Input
             id="startDate"
             name="startDate"
@@ -327,7 +379,12 @@ export default function OfferForm() {
           />
         </div>
         <div>
-          <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">Fecha de fin</label>
+          <label
+            htmlFor="endDate"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Fecha de fin
+          </label>
           <Input
             id="endDate"
             name="endDate"
@@ -344,41 +401,63 @@ export default function OfferForm() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Seleccionar
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Nombre del producto
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Rango de precios (CUP)
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Expandir
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {products.map(product => (
+            {products.map((product, pkey) => (
               <React.Fragment key={product.id}>
                 <tr>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <input
                       type="checkbox"
                       checked={selectedProducts[product.id] || false}
-                      onChange={(e) => handleProductSelection(product.id, e.target.checked)}
+                      onChange={(e) =>
+                        handleProductSelection(product.id, e.target.checked)
+                      }
                       className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
                     />
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{product.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{getPriceRange(product.id)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {product.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {getPriceRange(product.id)}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
                       type="button"
                       onClick={() => toggleProductExpansion(product.id)}
                       className="text-indigo-600 hover:text-indigo-900"
                     >
-                      {expandedProducts[product.id] ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                      {expandedProducts[product.id] ? (
+                        <ChevronDown className="h-5 w-5" />
+                      ) : (
+                        <ChevronRight className="h-5 w-5" />
+                      )}
                     </button>
                   </td>
                 </tr>
@@ -388,37 +467,79 @@ export default function OfferForm() {
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
                               Variación
                             </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
                               Precio de oferta
                             </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
                               Moneda
                             </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {product.variations.map(variation => (
+                          {product.variations.map((variation, key) => (
                             <tr key={variation.id}>
-                              <td className="px-6 py-4 whitespace-nowrap">{variation.name}</td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                {variation.name}
+                              </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <input
                                   type="number"
+                                  //value={offer.products[pkey].variations[key].offer_price || 0}
                                   disabled={!selectedProducts[product.id]}
-                                  onChange={(e) => handleVariationPriceChange(product.id, variation.id, e.target.value, 1)}
+                                  onChange={(e) => {
+                                    handleVariationPriceChange(
+                                      product.id,
+                                      variation.id,
+                                      e.target.value,
+                                      currency.find((curren) => {
+                                        const currencyF = offer.products[
+                                          pkey
+                                        ].variations.find(
+                                          (vars) => (vars.id = variation.id)
+                                        ).currencyId;
+                                        if (currencyF)
+                                          return currencyF == curren.id;
+                                        else {
+                                          return curren.id == 5;
+                                        }
+                                      }).id
+                                    );
+                                  }}
                                   className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                                 />
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <select
                                   disabled={!selectedProducts[product.id]}
-                                  onChange={(e) => handleVariationPriceChange(product.id, variation.id, "0", parseInt(e.target.value))}
+                                  //value={offer.products[pkey].variations[key].currencyId}
+                                  onChange={(e) => {
+                                    console.log("vas", e.target.value);
+                                    handleVariationPriceChange(
+                                      product.id,
+                                      variation.id,
+                                      "0",
+                                      e.target.value
+                                    );
+                                  }}
                                   className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 >
-                                  {mockCurrencies.map(currency => (
-                                    <option key={currency.id} value={currency.id}>
+                                  {currency.map((currency) => (
+                                    <option
+                                      key={currency.id}
+                                      value={currency.id}
+                                    >
                                       {currency.name}
                                     </option>
                                   ))}
@@ -438,8 +559,8 @@ export default function OfferForm() {
       </div>
 
       <Button type="submit" disabled={loading}>
-        {id ? 'Actualizar Oferta' : 'Crear Oferta'}
+        {id ? "Actualizar Oferta" : "Crear Oferta"}
       </Button>
     </form>
-  )
+  );
 }
