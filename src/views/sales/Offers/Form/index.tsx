@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import supabase from "@/services/Supabase/BaseClient";
 import { supabaseService } from "@/services/Supabase/AttributeService";
+import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
 
 interface Product {
   id: number;
@@ -50,6 +51,8 @@ interface OfferProductVariation {
 export default function OfferForm() {
   const [currency, setCurrency] = useState([]);
 
+  const [error, updateError] = useState();
+  const [ localImages, setLocalImages ] = useState("");
   const { id } = useParams<{ id: string }>();
   const [offer, setOffer] = useState<Offer>({
     name: "",
@@ -184,7 +187,7 @@ export default function OfferForm() {
     price: string,
     currencyId: any
   ) => {
-    console.log(offer)
+    console.log(offer);
     setOffer((prev) => {
       const dat = {
         ...prev,
@@ -327,8 +330,52 @@ export default function OfferForm() {
     return <div>Loading...</div>;
   }
 
+  const handleImageUpload = async (error, result, widget) => {
+    console.log("VIDEO");
+    console.log(result, error)
+
+    if (error) {
+      updateError(error);
+      widget.close({
+        quiet: true,
+      });
+      return;
+    }
+    setLocalImages(result);
+
+    // Actualizar el estado con una imagen de carga
+
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="group relative rounded border p-2 flex">
+          <img
+            className="rounded max-h-[140px] max-w-full"
+            src={localImages}
+            alt={""}
+          />
+        </div>
+      <UploadWidget
+        onUpload={(error, result, widget) => {
+          const img = result?.info?.secure_url;
+          handleImageUpload(error, img, widget);
+        }}
+      >
+        {({ open }) => {
+          function handleOnClick(e) {
+            e.preventDefault();
+            open();
+          }
+          return (
+            <label className="w-16 h-16 flex items-center justify-center bg-gray-200 rounded cursor-pointer">
+              <button onClick={handleOnClick}>
+                <span className="text-4xl text-gray-500">+</span>
+              </button>
+            </label>
+          );
+        }}
+      </UploadWidget>
       <div>
         <label
           htmlFor="name"
