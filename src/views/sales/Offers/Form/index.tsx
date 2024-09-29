@@ -29,6 +29,7 @@ interface Offer {
   id?: number;
   name: string;
   description: string;
+  general_offer_price: number;
   startDate: string;
   endDate: string;
   shopId: number;
@@ -52,11 +53,12 @@ export default function OfferForm() {
   const [currency, setCurrency] = useState([]);
 
   const [error, updateError] = useState();
-  const [ localImages, setLocalImages ] = useState("");
+  const [localImages, setLocalImages] = useState([]);
   const { id } = useParams<{ id: string }>();
   const [offer, setOffer] = useState<Offer>({
     name: "",
     description: "",
+    general_offer_price: 0,
     startDate: "",
     endDate: "",
     shopId: 1,
@@ -187,7 +189,6 @@ export default function OfferForm() {
     price: string,
     currencyId: any
   ) => {
-    console.log(offer);
     setOffer((prev) => {
       const dat = {
         ...prev,
@@ -224,6 +225,7 @@ export default function OfferForm() {
     const minPrice = Math.min(...pricesInCUP);
     const maxPrice = Math.max(...pricesInCUP);
 
+    setOffer((prev) => ({ ...prev, general_offer_price: minPrice }))
     if (minPrice === maxPrice) {
       return `${maxPrice.toFixed(2)} CUP`;
     }
@@ -237,9 +239,11 @@ export default function OfferForm() {
     const offerData = {
       name: offer.name,
       description: offer.description,
+      general_offer_price: offer.general_offer_price,
       start_date: offer.startDate,
       end_date: offer.endDate,
       shop_id: offer.shopId,
+      image: localImages,
     };
 
     let offerId: number;
@@ -332,7 +336,7 @@ export default function OfferForm() {
 
   const handleImageUpload = async (error, result, widget) => {
     console.log("VIDEO");
-    console.log(result, error)
+    console.log(result, error);
 
     if (error) {
       updateError(error);
@@ -341,21 +345,27 @@ export default function OfferForm() {
       });
       return;
     }
-    setLocalImages(result);
+    setLocalImages((prevImages) => [...prevImages, result]);
 
     // Actualizar el estado con una imagen de carga
-
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="group relative rounded border p-2 flex">
-          <img
-            className="rounded max-h-[140px] max-w-full"
-            src={localImages}
-            alt={""}
-          />
+      <div className="flex flex-col space-y-2">
+        {" "}
+        <div className="group relative rounded border p-2 flex">
+          {localImages.map((e) => (
+            <img
+              className="rounded max-h-[140px] max-w-full"
+              src={e}
+              alt={""}
+            />
+          ))}
         </div>
+      </div>
+
+      <h5>Imagenes</h5>
       <UploadWidget
         onUpload={(error, result, widget) => {
           const img = result?.info?.secure_url;
