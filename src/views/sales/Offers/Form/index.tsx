@@ -29,6 +29,7 @@ interface Offer {
   id?: number;
   name: string;
   description: string;
+  long_description: string;
   general_offer_price: number;
   startDate: string;
   endDate: string;
@@ -58,6 +59,7 @@ export default function OfferForm() {
   const [offer, setOffer] = useState<Offer>({
     name: "",
     description: "",
+    long_description: '',
     general_offer_price: 0,
     startDate: "",
     endDate: "",
@@ -239,11 +241,12 @@ export default function OfferForm() {
     const offerData = {
       name: offer.name,
       description: offer.description,
+      long_description: offer.long_description,
       general_offer_price: offer.general_offer_price,
       start_date: offer.startDate,
       end_date: offer.endDate,
       shop_id: offer.shopId,
-      image: localImages,
+      images: localImages,
     };
 
     let offerId: number;
@@ -414,6 +417,23 @@ export default function OfferForm() {
           name="description"
           value={offer.description}
           onChange={handleInputChange}
+          rows={3}
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="description"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Descripción
+        </label>
+        <Input
+          id="long_description"
+          name="long_description"
+          value={offer.long_description}
+          onChange={handleInputChange}
+          textArea={true}
           rows={3}
         />
       </div>
