@@ -1,52 +1,60 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Table } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-
+import { useState, useEffect } from "react";
+import { Table } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import supabase from "@/services/Supabase/BaseClient";
+import { useAppSelector } from "@/store";
 
 interface Slide {
-  id: number
-  name: string
-  images: string[]
-  created_at: string
+  id: number;
+  name: string;
+  images: string[];
+  created_at: string;
 }
+export const getSlides = async (shopId) => {
+  try {
+    const { data, error } = await supabase
+      .from("slides")
+      .select("*")
+      .eq("shop_id", shopId);
 
-const mockSlideService = {
-  getSlides: (): Promise<Slide[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          { id: 1, name: "Summer Collection", images: ["/img1.jpg", "/img2.jpg"], created_at: "2023-06-15T10:30:00Z" },
-          { id: 2, name: "Winter Sale", images: ["/img3.jpg", "/img4.jpg"], created_at: "2023-06-16T14:45:00Z" },
-        ])
-      }, 1000)
-    })
+    if (error) throw error;
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching tables:", error);
+    throw error;
   }
-}
+};
 
 export default function SlideList() {
-  const [slides, setSlides] = useState<Slide[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const { Tr, Th, Td, THead, TBody } = Table
+  const [slides, setSlides] = useState<Slide[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { shopId } = useAppSelector((state) => state.auth.user);
+  const { Tr, Th, Td, THead, TBody } = Table;
   useEffect(() => {
     const fetchSlides = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const data = await mockSlideService.getSlides()
-        setSlides(data)
+        const data = await getSlides(shopId);
+        setSlides(data);
       } catch (error) {
-        console.error('Error fetching slides:', error)
+        console.error("Error fetching slides:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchSlides()
-  }, [])
+    fetchSlides();
+  }, []);
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">Cargando slides...</div>
+    return (
+      <div className="flex justify-center items-center h-64">
+        Cargando slides...
+      </div>
+    );
   }
 
   return (
@@ -76,8 +84,10 @@ export default function SlideList() {
               <Td>{slide.images.length}</Td>
               <Td>{new Date(slide.created_at).toLocaleString()}</Td>
               <Td>
-                <a href={`/slides/edit/${slide.id}`}>
-                  <Button variant="default" size="sm">Editar</Button>
+                <a href={`/app/Eslides/${slide.id}`}>
+                  <Button variant="default" size="sm">
+                    Editar
+                  </Button>
                 </a>
               </Td>
             </Tr>
@@ -85,5 +95,5 @@ export default function SlideList() {
         </TBody>
       </Table>
     </div>
-  )
+  );
 }

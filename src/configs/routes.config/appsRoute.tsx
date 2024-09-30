@@ -143,12 +143,20 @@ const appsRoute: Routes = [
     },
   },
   {
-    key: "appsSales.catalog",
+    key: "appsSales.Cslides",
     path: `${APP_PREFIX_PATH}/Cslides`,
     component: lazy(() => import("@/views/catalog/slides/components/Create")),
     authority: [OWNER, SELLER],
     meta: {
       header: "Crear Diapositivas",
+    },
+  },{
+    key: "appsSales.Eslides",
+    path: `${APP_PREFIX_PATH}/Eslides/:id`,
+    component: lazy(() => import("@/views/catalog/slides/components/Edit")),
+    authority: [OWNER, SELLER],
+    meta: {
+      header: "Editar Diapositiva",
     },
   },
   {
