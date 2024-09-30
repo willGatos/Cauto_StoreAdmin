@@ -115,7 +115,7 @@ function Step2 ({ storeData,setStoreData=()=>{}, onNext, onBack }: Step2Props) {
                                     />
                                 </FormItem>
                                 {storeData?.storeLogo 
-                                && <img src={ import.meta.env.SERVER + 'uploads/thn-' + storeData?.storeLogo} alt=""/>}
+                                && <img src={ import.meta.env.VITE_SERVER + 'uploads/thn-' + storeData?.storeLogo} alt=""/>}
                                 <FormItem
                                     label="Logo de la Empresa (Opcional)"
                                 >
@@ -129,7 +129,7 @@ function Step2 ({ storeData,setStoreData=()=>{}, onNext, onBack }: Step2Props) {
                                                 const formData = new FormData();
                                                 formData.append('file', e.target.files[0]);
                                                 formData.append('upload_preset', 'service');
-                                                axios.post(import.meta.env.SERVER + 'upload/shopIcon',formData)
+                                                axios.post(import.meta.env.VITE_SERVER + 'upload/shopIcon',formData)
                                                 .then((res)=>
                                                 {
                                                     setStoreData((prevState:StoreData) => ({...prevState, storeLogo:res.data.fileName}))

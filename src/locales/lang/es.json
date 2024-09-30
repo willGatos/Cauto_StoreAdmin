@@ -11,7 +11,9 @@
         "appsCrm": {
             "crm": "CRM",
             "catalog":"Catalogo",
-            "seccions":"Secciones",
+            "sections":"Secciones",
+            "slides":"Diapostivas",
+            "Cslides":"Diapostivas",
             "org": "Organizar Inventario",
             "dashboard": "Lista de Vendedores",
             "calendar": "Calendario",

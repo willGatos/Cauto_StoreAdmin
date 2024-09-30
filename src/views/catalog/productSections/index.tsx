@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { toast } from "@/components/ui/";
 import { Table } from "@/components/ui";
-import NotificationMessage from "../crm/CrmDashboard/components/NotificationMessage";
+import NotificationMessage from "../../crm/CrmDashboard/components/NotificationMessage";
 import { useSelector } from "react-redux";
 import { useAppSelector } from "@/store";
 import supabase from "@/services/Supabase/BaseClient";

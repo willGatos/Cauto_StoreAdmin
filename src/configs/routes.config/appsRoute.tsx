@@ -20,15 +20,6 @@ const appsRoute: Routes = [
     },
   },
   {
-    key: "appsCrm.customers",
-    path: `${APP_PREFIX_PATH}/crm/customers2`,
-    component: lazy(() => import("@/views/sales/ShoppingProducts")),
-    authority: [OWNER],
-    meta: {
-      header: "Customers",
-    },
-  },
-  {
     key: "appsCrm.customerDetails",
     path: `${APP_PREFIX_PATH}/crm/customer-details`,
     component: lazy(() => import("@/views/crm/CustomerDetail")),
@@ -136,10 +127,28 @@ const appsRoute: Routes = [
   {
     key: "appsSales.catalog",
     path: `${APP_PREFIX_PATH}/catalog`,
-    component: lazy(() => import("@/views/catalog/")),
+    component: lazy(() => import("@/views/catalog/productSections")),
     authority: [OWNER, SELLER],
     meta: {
       header: "Add New Product",
+    },
+  },
+  {
+    key: "appsSales.slides",
+    path: `${APP_PREFIX_PATH}/slides`,
+    component: lazy(() => import("@/views/catalog/slides/Tables")),
+    authority: [OWNER, SELLER],
+    meta: {
+      header: "Diapositivas",
+    },
+  },
+  {
+    key: "appsSales.catalog",
+    path: `${APP_PREFIX_PATH}/Cslides`,
+    component: lazy(() => import("@/views/catalog/slides/components/Create")),
+    authority: [OWNER, SELLER],
+    meta: {
+      header: "Crear Diapositivas",
     },
   },
   {
@@ -205,15 +214,6 @@ const appsRoute: Routes = [
     authority: [OWNER],
     meta: {
       header: "Anadir Nuevo Atributo",
-    },
-  },
-  {
-    key: "appsSales.attributeEdit",
-    path: `${APP_PREFIX_PATH}/sales/attribute-edit/:attributeId`,
-    component: lazy(() => import("@/views/inventory/AttributeEdit")),
-    authority: [OWNER],
-    meta: {
-      header: "Edit Attribute",
     },
   },
   {

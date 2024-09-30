@@ -50,7 +50,7 @@ const store: CustomStore = configureStore({
                 ],
             },
         }).concat(middlewares),
-    devTools: import.meta.env.NODE_ENV === 'development',
+    devTools: import.meta.env.VITE_NODE_ENV === 'development',
 })
 
 store.asyncReducers = {}
