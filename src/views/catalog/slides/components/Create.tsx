@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/button";
 import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
 import supabase from "@/services/Supabase/BaseClient";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/Input";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import supabase from "@/services/Supabase/BaseClient";
 import { supabaseService } from "@/services/Supabase/AttributeService";

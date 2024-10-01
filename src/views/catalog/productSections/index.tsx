@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/select";
 import { toast } from "@/components/ui/";
 import { Table } from "@/components/ui";

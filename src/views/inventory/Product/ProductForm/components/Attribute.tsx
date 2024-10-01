@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/button";
 import { Switcher } from "@/components/ui/Switcher";
 import { Loader2, X } from "lucide-react";
