@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Table } from "@/components/ui/table";
+import { Table } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
 import supabase from "@/services/Supabase/BaseClient";
 import { useAppSelector } from "@/store";
