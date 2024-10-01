@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import InviteButton from "./components/InviteButton";
+import supabase from "@/services/Supabase/BaseClient";
+
 interface Seller {
   id: string;
   name: string;
@@ -125,28 +127,33 @@ const mockDataService = {
 
 const supabaseDataService = {
   getSellers: async (): Promise<SellerWithOrders[]> => {
-    const { data: sellers, error: sellersError } = await supabase
-      .from('profiles')
-      .select('id, name, email')
-      .eq('role', 'seller')
+    const { data: sellers, error: sellersError } = await supabase.rpc(
+      "get_sellers"
+    );
+    // .from("profiles")
+    // .select("id, name, email, roles(*)")
+    // .in("roles.name", ["seller"]);
+
+    console.log(sellers);
 
     if (sellersError) {
-      throw sellersError
+      throw sellersError;
     }
 
-    const sellersWithOrders: SellerWithOrders[] = []
+    const sellersWithOrders: SellerWithOrders[] = [];
 
     for (const seller of sellers) {
       const { data: orders, error: ordersError } = await supabase
-        .from('orders')
-        .select(`
+        .from("orders")
+        .select(
+          `
           id,
           total,
           status,
           created_at,
           shipping_cost,
           amount_paid,
-          client:clients (
+          clients (
             id,
             location:locations (
               name,
@@ -158,22 +165,23 @@ const supabaseDataService = {
               )
             )
           )
-        `)
-        .eq('seller_id', seller.id)
+        `
+        )
+        .eq("seller_id", seller.id);
 
       if (ordersError) {
-        throw ordersError
+        throw ordersError;
       }
 
       sellersWithOrders.push({
         ...seller,
-        orders: orders
-      })
+        orders: orders,
+      });
     }
 
-    return sellersWithOrders
-  }
-}
+    return sellersWithOrders;
+  },
+};
 
 // Choose which service to use
 const dataService = mockDataService;
@@ -187,7 +195,7 @@ export default function SellerOrdersTable() {
 
   useEffect(() => {
     const loadSellers = async () => {
-      const data = await dataService.getSellers();
+      const data = await supabaseDataService.getSellers();
       setSellers(data);
     };
     loadSellers();
@@ -340,7 +348,7 @@ export default function SellerOrdersTable() {
       <h1 className="text-2xl font-semibold text-gray-900 my-6">
         Seller Orders
       </h1>
-      <InviteButton/>
+      <InviteButton />
 
       <div className="flex flex-col">
         <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

@@ -15,16 +15,16 @@ const ProductTableTools = () => {
                 to="/data/product-list.csv"
                 target="_blank"
             >
-                <Button block size="sm" icon={<HiDownload />}>
+                {/* <Button block size="sm" icon={<HiDownload />}>
                     Export
-                </Button>
+                </Button> */}
             </Link>
             <Link
                 className="block lg:inline-block md:mb-0 mb-4"
                 to="/app/sales/product-new"
             >
                 <Button block variant="solid" size="sm" icon={<HiPlusCircle />}>
-                    Add Product
+                    Añadir Producto
                 </Button>
             </Link>
         </div>

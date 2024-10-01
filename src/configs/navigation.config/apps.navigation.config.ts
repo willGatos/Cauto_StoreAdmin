@@ -70,7 +70,7 @@ const appsNavigationConfig: NavigationTree[] = [
           {
             key: "appsSales.supplyNew",
             path: `${APP_PREFIX_PATH}/sales/supply-new`,
-            title: "New Supply",
+            title: "Nuevo Insumo",
             translateKey: "nav.appsSales.supplyNew",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,

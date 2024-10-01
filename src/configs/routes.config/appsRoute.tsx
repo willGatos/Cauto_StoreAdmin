@@ -171,7 +171,7 @@ const appsRoute: Routes = [
     component: lazy(() => import("@/views/inventory/Supply/New/index")),
     authority: [OWNER, SELLER],
     meta: {
-      header: "Add New Supply",
+      header: "Nuevo Insumo",
     },
   },
   {
@@ -180,7 +180,7 @@ const appsRoute: Routes = [
     component: lazy(() => import("@/views/inventory/Supply/New")),
     authority: [OWNER, SELLER],
     meta: {
-      header: "Editar Supply",
+      header: "Editar Insumo",
     },
   },
   // {

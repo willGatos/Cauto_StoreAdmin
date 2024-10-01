@@ -4,6 +4,7 @@ import AdaptableCard from '@/components/shared/AdaptableCard'
 import ProductTable from './components/ProductTable'
 import ProductTableTools from './components/ProductTableTools'
 import MainComponent from './components/ProductsTest'
+
 injectReducer('salesProductList', reducer)
 
 const ProductList = () => {
