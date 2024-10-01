@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/select";
+import { Select } from "@/components/ui/Select";
 import { toast } from "@/components/ui/";
 import { Table } from "@/components/ui";
 import NotificationMessage from "../../crm/CrmDashboard/components/NotificationMessage";
