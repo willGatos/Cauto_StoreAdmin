@@ -1,10 +1,9 @@
+import { Product } from "@/@types/products";
+import supabase from "@/services/Supabase/BaseClient";
+import { useAppSelector } from "@/store";
 import React from "react";
 import MainTable from "./MainTable"; // Asegúrate de ajustar la ruta correcta
 import SubTable from "./SubTable";
-import { mockProductService } from "../data";
-import { Product } from "@/@types/products";
-import { useAppSelector } from "@/store";
-import supabase from "@/services/Supabase/BaseClient";
 
 export const getProducts = async (id) => {
   try {
