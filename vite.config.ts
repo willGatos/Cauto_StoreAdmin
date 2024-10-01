@@ -20,12 +20,6 @@ export default defineConfig({
     },
   },
   build: {
-    // generate .vite/manifest.json in outDir
-    manifest: true,
-    outDir: 'build',
-    rollupOptions: {
-      // overwrite default .html entry
-      input: '/path/to/main.js',
-    },
-  },
+    outDir: 'build'
+  }
 });
