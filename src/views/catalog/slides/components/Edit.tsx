@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/card";
 import { useParams } from "react-router-dom";
 import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";

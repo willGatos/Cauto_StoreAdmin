@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Table } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import supabase from "@/services/Supabase/BaseClient";
 import { useAppSelector } from "@/store";
 

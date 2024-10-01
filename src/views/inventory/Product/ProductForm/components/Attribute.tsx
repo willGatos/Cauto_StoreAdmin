@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Switcher } from "@/components/ui/Switcher";
 import { Loader2, X } from "lucide-react";
 import supabase from "@/services/Supabase/BaseClient";

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { ChevronDown, ChevronRight, Edit, Trash2 } from 'lucide-react'
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { Table } from '@/components/ui'
 import supabase from '@/services/Supabase/BaseClient'
 const {TBody, THead, Td,Tr, Th} = Table
