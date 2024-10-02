@@ -27,6 +27,9 @@ interface ClientWithOrders extends Client {
   orders: Order[];
 }
 
+// Supabase client
+// const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+
 // Mock data service
 const mockDataService = {
   getClientsWithOrders: (sellerId: number): Promise<ClientWithOrders[]> => {
@@ -112,7 +115,7 @@ const mockDataService = {
 // Use mock data service
 const dataService = mockDataService;
 
-function SellerClientsView() {
+export default function SellerClientsView() {
   const [clientsWithOrders, setClientsWithOrders] = useState<ClientWithOrders[]>([]);
   const [expandedClients, setExpandedClients] = useState<Record<number, boolean>>({});
 
@@ -210,10 +213,4 @@ function SellerClientsView() {
       </div>
     </div>
   );
-}
-
-export default function index (){
-    return <div>
-        <SellerClientsView />
-    </div>
 }

@@ -4,7 +4,7 @@ import ProductTableSearch from './ProductTableSearch'
 import ProductFilter from './ProductFilter'
 import { Link } from 'react-router-dom'
 import { isEmpty } from 'lodash'
-import OrderDrawer from '../../../../sales/MakeOrder/OrderDrawer'
+import OrderDrawer from '../../../../Orders/Delievery/DeliveryDrawer'
 
 const ProductTableTools = ({selectedProductIds}) => {
     return (

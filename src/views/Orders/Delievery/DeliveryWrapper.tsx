@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Loading from '@/components/shared/Loading'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
-import DelieveryForm from './OrderForm'
+import DelieveryForm from './DeliveryForm'
 import isEmpty from 'lodash/isEmpty'
 import { apiGetDelievery, apiPostDelievery } from '@/services/SalesService'
 
