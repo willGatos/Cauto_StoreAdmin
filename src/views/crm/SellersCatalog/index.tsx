@@ -43,7 +43,7 @@ type Product = {
   commission_type: "percentage" | "fixed";
   reference_currency: number;
   tax: number;
-  variations: ProductVariation[];
+  product_variations: ProductVariation[];
   currency: Currency;
 };
 
@@ -67,7 +67,7 @@ const mockProduct: Product = {
   commission_type: "percentage",
   reference_currency: 1,
   tax: 7,
-  variations: [
+  product_variations: [
     {
       id: 1,
       product_id: 1,
@@ -155,9 +155,9 @@ export default function ProductsVariations() {
       const { data: productData, error: productError } = await supabase
         .from("products")
         .select(
-          "*,product_variations(*,attribute_values(value, types: attributes(name)))"
+          "*,currency: currency(*), product_variations(*,attribute_values(value, types: attributes(name)))"
         );
-
+      console.log(productData);
       setProducts(productData);
     };
 
@@ -174,7 +174,7 @@ export default function ProductsVariations() {
         <>
           <h1 className="text-3xl font-bold mb-6">{product.name}</h1>
           <p className="text-gray-600 mb-8">{product.description}</p>
-          {product.variations.map((variation) => (
+          {product.product_variations.map((variation) => (
             <section key={variation.id} className="mb-12 border-b pb-8">
               <div className="mb-4">
                 <h2 className="text-2xl font-semibold">{variation.name}</h2>
@@ -190,8 +190,7 @@ export default function ProductsVariations() {
                       key={attr.id}
                       className="bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"
                     >
-                      {attributeTypes[attr.type as keyof typeof attributeTypes]}
-                      : {attr.value}
+                      {attr.value}
                     </span>
                   ))}
                 </div>
