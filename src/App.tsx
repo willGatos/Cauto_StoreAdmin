@@ -8,7 +8,6 @@ import "./locales";
 import mockServer from "./mock";
 import { AuthProvider } from "./services/Supabase/Auth/AuthContext";
 import store, { persistor } from "./store";
-import { CartProvider } from "./context/CartContext";
 
 const environment = import.meta.env.VITE_NODE_ENV;
 
@@ -32,7 +31,6 @@ function App() {
   return (
     <AuthProvider>
       <Provider store={store}>
-        <CartProvider>
           <PersistGate loading={null} persistor={persistor}>
             <BrowserRouter>
               <Theme>
@@ -40,7 +38,6 @@ function App() {
               </Theme>
             </BrowserRouter>
           </PersistGate>
-        </CartProvider>
       </Provider>
     </AuthProvider>
   );

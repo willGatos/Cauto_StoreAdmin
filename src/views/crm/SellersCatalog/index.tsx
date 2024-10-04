@@ -1,5 +1,8 @@
+import { Button } from "@/components/ui";
 import supabase from "@/services/Supabase/BaseClient";
 import { useState, useEffect } from "react";
+import HandleFeedback from "@/components/ui/FeedBack";
+import { useAppSelector } from "@/store";
 
 type Currency = {
   id: number;
@@ -47,93 +50,6 @@ type Product = {
   currency: Currency;
 };
 
-// Datos de prueba con más imágenes
-const mockProduct: Product = {
-  id: 1,
-  name: "Camiseta Premium",
-  description:
-    "Una camiseta de alta calidad con múltiples opciones de color y talla.",
-  price: 29.99,
-  category_id: 1,
-  shop_id: 1,
-  cost: 15.0,
-  discount: 0,
-  state: "available",
-  owner_id: 1,
-  gender: null,
-  commission: 5,
-  type: "variable",
-  origin: "manufactured",
-  commission_type: "percentage",
-  reference_currency: 1,
-  tax: 7,
-  product_variations: [
-    {
-      id: 1,
-      product_id: 1,
-      name: "Camiseta Premium - Rojo S",
-      price: 29.99,
-      stock: 10,
-      pictures: [
-        "/placeholder.svg?height=600&width=600",
-        "/placeholder.svg?height=600&width=600",
-        "/placeholder.svg?height=600&width=600",
-        "/placeholder.svg?height=600&width=600",
-        "/placeholder.svg?height=600&width=600",
-      ],
-      currency_id: 1,
-      attribute_values: [
-        { id: 1, type: 1, value: "Rojo" },
-        { id: 2, type: 2, value: "S" },
-      ],
-    },
-    {
-      id: 2,
-      product_id: 1,
-      name: "Camiseta Premium - Azul M",
-      price: 29.99,
-      stock: 15,
-      pictures: [
-        "/placeholder.svg?height=600&width=600",
-        "/placeholder.svg?height=600&width=600",
-        "/placeholder.svg?height=600&width=600",
-        "/placeholder.svg?height=600&width=600",
-        "/placeholder.svg?height=600&width=600",
-      ],
-      currency_id: 1,
-      attribute_values: [
-        { id: 3, type: 1, value: "Azul" },
-        { id: 4, type: 2, value: "M" },
-      ],
-    },
-    {
-      id: 3,
-      product_id: 1,
-      name: "Camiseta Premium - Verde L",
-      price: 34.99,
-      stock: 5,
-      pictures: [
-        "/placeholder.svg?height=600&width=600",
-        "/placeholder.svg?height=600&width=600",
-        "/placeholder.svg?height=600&width=600",
-        "/placeholder.svg?height=600&width=600",
-        "/placeholder.svg?height=600&width=600",
-      ],
-      currency_id: 1,
-      attribute_values: [
-        { id: 5, type: 1, value: "Verde" },
-        { id: 6, type: 2, value: "L" },
-      ],
-    },
-  ],
-  currency: {
-    id: 1,
-    name: "USD",
-    exchange_rate: 1,
-    is_automatic: true,
-  },
-};
-
 // Mapa de tipos de atributos
 const attributeTypes = {
   1: "Color",
@@ -142,6 +58,10 @@ const attributeTypes = {
 
 export default function ProductsVariations() {
   const [products, setProducts] = useState<Product[] | null>(null);
+  const { loading, error, success, handleLoading, handleError, handleSuccess } =
+    HandleFeedback();
+  const { productsSelected } = useAppSelector((state) => state.auth.user);
+  const [isDisabled, setIsDisabled] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -164,6 +84,20 @@ export default function ProductsVariations() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="fixed bottom-5 bg left-0 right-0 ml-auto mr-auto text-center">
+        <Button
+          disabled={isDisabled}
+          type="button"
+          variant="solid"
+          className="w-56"
+          size="md"
+          onClick={() => {
+            handleSuccess("Éxito al Cargar Productos");
+          }}
+        >
+          Realizar Orden con {productsSelected.lenght} Productos
+        </Button>
+      </div>
       {products.map((product) => (
         <>
           <h1 className="text-3xl font-bold mb-6">{product.name}</h1>
