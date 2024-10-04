@@ -36,6 +36,7 @@ const HandleFeedback = () => {
         }
     };
 
+    
     // Manejar los errores
     const handleError = (errorMessage: string) => {
         setError(errorMessage);

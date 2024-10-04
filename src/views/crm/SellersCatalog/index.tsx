@@ -13,7 +13,7 @@ type Currency = {
 
 type AttributeValue = {
   id: number;
-  type: number;
+  types: number;
   value: string;
 };
 
@@ -89,7 +89,7 @@ export default function ProductsVariations() {
           disabled={isDisabled}
           type="button"
           variant="solid"
-          className="w-56"
+          className=""
           size="md"
           onClick={() => {
             handleSuccess("Éxito al Cargar Productos");
@@ -99,51 +99,65 @@ export default function ProductsVariations() {
         </Button>
       </div>
       {products.map((product) => (
-        <div key={product.id}>
+        <section key={product.id}>
           <h1 className="text-3xl font-bold mb-6">{product.name}</h1>
           <p
             className="text-gray-600 mb-8"
             dangerouslySetInnerHTML={{ __html: product.description }}
-          ></p>
-          {product.product_variations.map((variation) => (
-            <section key={variation.id} className="mb-12 border-b pb-8">
-              <div className="mb-4">
-                <h2 className="text-2xl font-semibold">{variation.name}</h2>
-                <p className="text-3xl font-bold text-blue-600 mt-2">
-                  {variation.price.toFixed(2)} {product.currency.name}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Stock: {variation.stock}
-                </p>
-                <div className="flex flex-wrap mt-2">
-                  {variation.attribute_values.map((attr) => (
-                    <span
-                      key={attr.id}
-                      className="bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"
+          />
+          <div className="overflow-x-auto">
+            <div className={"flex space-x-6 pb-4"}>
+              {product.product_variations.map((variation) => (
+                <div
+                  key={variation.id}
+                  className="flex-shrink-0 w-64 border rounded-lg p-4 shadow-md relative"
+                >
+                  <div className="mb-4">
+                    <img
+                      src={variation.pictures[0]}
+                      alt={variation.name}
+                      width={250}
+                      height={250}
+                      className="rounded-lg"
+                    />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    {variation.name}
+                  </h3>
+                  <p className="text-xl font-bold text-blue-600 mb-2">
+                    {variation.price.toFixed(2)} {product.currency.name}
+                  </p>
+                  <p className="text-sm text-gray-500 mb-2">
+                    Stock: {variation.stock}
+                  </p>
+                  <div className="flex flex-wrap">
+                    {variation.attribute_values.map((attr) => (
+                      <span
+                        key={attr.id}
+                        className="bg-gray-200 rounded-full px-2 py-1 text-xs font-semibold text-gray-700 mr-1 mb-1"
+                      >
+                        {attr.value}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="my-10"></div>
+                  <div className="absolute bottom-5">
+                    <Button
+                      type="button"
+                      variant="solid"
+                      size="md"
+                      onClick={() => {
+                        handleSuccess("Éxito al Cargar Productos");
+                      }}
                     >
-                      {attr.value}
-                    </span>
-                  ))}
+                      Agregar Producto
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              <div className="overflow-x-auto">
-                <div className="flex space-x-4 pb-4">
-                  {variation.pictures.map((picture, index) => (
-                    <div key={index} className="flex-shrink-0">
-                      <img
-                        src={picture}
-                        alt={`${variation.name} - Imagen ${index + 1}`}
-                        width={600}
-                        height={600}
-                        className="rounded-lg"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          ))}
-        </div>
+              ))}
+            </div>
+          </div>
+        </section>
       ))}
     </div>
   );
