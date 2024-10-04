@@ -60,7 +60,7 @@ export default function ProductsVariations() {
   const [products, setProducts] = useState<Product[] | null>(null);
   const { loading, error, success, handleLoading, handleError, handleSuccess } =
     HandleFeedback();
-  const { productsSelected } = useAppSelector((state) => state.auth.user);
+  const { productsSelected } = useAppSelector((state) => state.products);
   const [isDisabled, setIsDisabled] = useState(true);
 
   useEffect(() => {
@@ -95,11 +95,11 @@ export default function ProductsVariations() {
             handleSuccess("Éxito al Cargar Productos");
           }}
         >
-          Realizar Orden con {productsSelected.lenght} Productos
+          Realizar Orden con {productsSelected.length} Productos
         </Button>
       </div>
       {products.map((product) => (
-        <>
+        <div key={product.id}>
           <h1 className="text-3xl font-bold mb-6">{product.name}</h1>
           <p
             className="text-gray-600 mb-8"
@@ -143,7 +143,7 @@ export default function ProductsVariations() {
               </div>
             </section>
           ))}
-        </>
+        </div>
       ))}
     </div>
   );

@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { SLICE_BASE_NAME } from "./constants";
 import { User } from "@/@types/auth";
 
-const initialState: User = {
+export const initialState: User = {
   id: null,
   name: "",
   email: "",
