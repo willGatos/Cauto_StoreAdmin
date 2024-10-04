@@ -1,3 +1,5 @@
+import { Product } from "./products"
+
 export type SignInCredential = {
     email: string
     password: string
@@ -45,5 +47,6 @@ export interface User {
     phone: string;
     shopId: string | null;
     roles: string[];
+    productsSelected: Product[];
 
   }

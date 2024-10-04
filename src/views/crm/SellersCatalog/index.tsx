@@ -144,12 +144,6 @@ export default function ProductsVariations() {
   const [products, setProducts] = useState<Product[] | null>(null);
 
   useEffect(() => {
-    // Comentario: Cómo se extraerían los datos de Supabase
-    /*  
-    import { createClient } from '@supabase/supabase-js'
-
-    const supabase = createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_ANON_KEY')
-*/
     const fetchProducts = async () => {
       // Paso 1: Obtener el producto principal con su moneda
       const { data: productData, error: productError } = await supabase
@@ -158,10 +152,10 @@ export default function ProductsVariations() {
           "*,currency: currency(*), product_variations(*,attribute_values(value, types: attributes(name)))"
         );
       console.log(productData);
+      // Paso 2: Ponerlo en el Estado
       setProducts(productData);
     };
-
-    fetchProducts(); // Reemplazar con el ID del producto real
+    fetchProducts();
   }, []);
 
   if (!products) {
@@ -173,7 +167,10 @@ export default function ProductsVariations() {
       {products.map((product) => (
         <>
           <h1 className="text-3xl font-bold mb-6">{product.name}</h1>
-          <p className="text-gray-600 mb-8">{product.description}</p>
+          <p
+            className="text-gray-600 mb-8"
+            dangerouslySetInnerHTML={{ __html: product.description }}
+          ></p>
           {product.product_variations.map((variation) => (
             <section key={variation.id} className="mb-12 border-b pb-8">
               <div className="mb-4">
