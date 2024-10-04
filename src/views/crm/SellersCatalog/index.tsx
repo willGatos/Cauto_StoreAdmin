@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui";
-import supabase from "@/services/Supabase/BaseClient";
-import { useState, useEffect } from "react";
-import HandleFeedback from "@/components/ui/FeedBack";
-import { useAppSelector, useAppDispatch, setProductsSelected } from "@/store";
 import { ProductVariation } from "@/@types/products";
+import { Button } from "@/components/ui";
+import HandleFeedback from "@/components/ui/FeedBack";
+import supabase from "@/services/Supabase/BaseClient";
+import { setProductsSelected, useAppDispatch, useAppSelector } from "@/store";
+import { useEffect, useState } from "react";
 type Currency = {
   id: number;
   name: string;
@@ -46,20 +46,49 @@ const attributeTypes = {
 };
 
 export default function ProductsVariations() {
+  // State to store fetched products
   const [products, setProducts] = useState<Product[] | null>(null);
-  const { loading, error, success, handleLoading, handleError, handleSuccess } =
-    HandleFeedback();
+
+  // Feedback handling utilities
+  const { handleSuccess } = HandleFeedback();
   const dispatch = useAppDispatch();
 
+  // Get selected products from redux state
   const { productsSelected } = useAppSelector((state) => state.products);
+  // Flag to control button disablement
   const [isDisabled, setIsDisabled] = useState(true);
 
+  // Effect to update isDisabled based on productsSelected length
+  useEffect(() => {
+    // If there's only one or no product selected, disable the button
+    if (productsSelected.length <= 1) {
+      setIsDisabled(productsSelected.length > 0 ? false : true);
+    }
+  }, [productsSelected]);
+
+  // Effect to fetch products when component mounts
+  useEffect(() => {
+    const fetchProducts = async () => {
+      // Paso 1: Obtener el producto principal con su moneda
+      const { data: productData, error: productError } = await supabase
+        .from("products")
+        .select(
+          "*,currency: currency(*), product_variations(*,attribute_values(value, types: attributes(name)))"
+        );
+      console.log(productData);
+      // Paso 2: Ponerlo en el Estado
+      setProducts(productData);
+    };
+    fetchProducts();
+  }, []);
+
+  // Function to add or update a product variation
   const addOrUpdateItem = (item: ProductVariation) => {
+    // Find if the item already exists in productsSelected
     const existingItem = productsSelected.find((i) => i.id === item.id);
-    console.log("asd", existingItem);
     if (existingItem) {
-      const a = productsSelected.filter((item2) => item.id !== item2.id);
-      console.log("asdas", a);
+      // Dispatch action to update redux state
+
       dispatch(
         setProductsSelected({
           ...productsSelected,
@@ -78,21 +107,6 @@ export default function ProductsVariations() {
       handleSuccess("Éxito introducir el Producto");
     }
   };
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      // Paso 1: Obtener el producto principal con su moneda
-      const { data: productData, error: productError } = await supabase
-        .from("products")
-        .select(
-          "*,currency: currency(*), product_variations(*,attribute_values(value, types: attributes(name)))"
-        );
-      console.log(productData);
-      // Paso 2: Ponerlo en el Estado
-      setProducts(productData);
-    };
-    fetchProducts();
-  }, []);
 
   if (!products) {
     return <div>Cargando...</div>;
@@ -163,7 +177,7 @@ export default function ProductsVariations() {
                     <div className="my-10"></div>
                     <div className="absolute bottom-5">
                       <Button
-                        style={{width: "200px"}}
+                        style={{ width: "200px" }}
                         type="button"
                         variant={psfinded ? "solid" : "default"}
                         size="md"
