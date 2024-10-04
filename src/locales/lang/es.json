@@ -17,13 +17,14 @@
             "org": "Organizar Inventario",
             "dashboard": "Lista de Vendedores",
             "calendar": "Calendario",
-            "customers": "Clientes",
             "customerDetails": "Detalles del cliente",
-            "mail": "Correo"
+            "mail": "Correo",
+            "binding" : "Conexion de Producto con Insumo"
         },
         "appsSales": {
             "productsAttributes":"Atributos de Productos",
             "sales": "Ventas",
+            "customers": "Clientes",
             "dashboard": "Contabilidad",
             "productList": "Lista de productos",
             "storeList": "Lista de Tiendas",

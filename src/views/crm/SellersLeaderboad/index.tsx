@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
-import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
 // Types
@@ -184,13 +183,13 @@ export default function Component() {
                                 <td className="py-2 px-4 border-b">{order.status}</td>
                                 <td className="py-2 px-4 border-b">{formatDate(order.created_at)}</td>
                                 <td className="py-2 px-4 border-b">
-                                  <Link
+                                  <a
                                     href={`/orders/${order.id}`}
                                     className="text-blue-500 hover:text-blue-700 flex items-center"
                                   >
                                     <ExternalLink className="h-4 w-4 mr-1" />
                                     Ver orden
-                                  </Link>
+                                  </a>
                                 </td>
                               </tr>
                             ))}
@@ -207,4 +206,4 @@ export default function Component() {
       </div>
     </div>
   );
-} Rolling
+}

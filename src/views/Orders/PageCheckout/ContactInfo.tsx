@@ -1,9 +1,9 @@
-import Label from "components/Label/Label";
+import Label from "@/components/ui/Label";
 import React, { FC } from "react";
-import ButtonPrimary from "shared/Button/ButtonPrimary";
-import ButtonSecondary from "shared/Button/ButtonSecondary";
-import Checkbox from "shared/Checkbox/Checkbox";
-import Input from "shared/Input/Input";
+import ButtonPrimary from "@/components/ui/Button";
+import ButtonSecondary from "@/components/ui/Button";
+import Checkbox from "@/components/ui/Checkbox/Checkbox";
+import Input from "@/components/ui/Input/Input";
 
 interface Props {
   isActive: boolean;
@@ -69,9 +69,7 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
             </div>
           </div>
           <ButtonSecondary
-            sizeClass="py-2 px-4 "
-            fontSize="text-sm font-medium"
-            className="bg-slate-50 dark:bg-slate-800 mt-5 sm:mt-0 sm:ml-auto !rounded-lg"
+            className="bg-slate-50 dark:bg-slate-800 mt-5 sm:mt-0 sm:ml-auto !rounded-lgtext-sm font-medium py-2 px-4"
             onClick={() => onOpenActive()}
           >
             Change
@@ -103,7 +101,7 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
             <Checkbox
               className="!text-sm"
               name="uudai"
-              label="Email me news and offers"
+              //label="Email me news and offers"
               defaultChecked
             />
           </div>

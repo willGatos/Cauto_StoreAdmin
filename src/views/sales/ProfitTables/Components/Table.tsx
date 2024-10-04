@@ -188,7 +188,7 @@ const mockDataService = {
 // Use mock data service
 const dataService = mockDataService;
 
-export default function Component() {
+export default function TableProfit() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);

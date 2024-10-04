@@ -5,29 +5,28 @@ import type { Routes } from "@/@types/routes";
 
 const appsRoute: Routes = [
   {
-    key: "appsCrm.dashboard",
-    path: `${APP_PREFIX_PATH}/crm/dashboard`,
-    component: lazy(() => import("@/views/crm/CrmDashboard")),
+    key: "appsSales.checkout",
+    path: `${APP_PREFIX_PATH}/sales/dashboard`,
+    component: lazy(() => import("@/views/orders/PageCheckout/CheckoutPage")),
     authority: [OWNER],
   },
   {
-    key: "appsCrm.customers",
-    path: `${APP_PREFIX_PATH}/crm/customers`,
-    component: lazy(() => import("@/views/crm/Customers")),
+    key: "appsSales.binding",
+    path: `${APP_PREFIX_PATH}/sales/binding`,
+    component: lazy(() => import("@/views/inventory/Supply/Associate/Table")),
     authority: [OWNER],
-    meta: {
-      header: "Customers",
-    },
   },
   {
-    key: "appsCrm.customerDetails",
-    path: `${APP_PREFIX_PATH}/crm/customer-details`,
-    component: lazy(() => import("@/views/crm/CustomerDetail")),
+    key: "appsSales.delivery",
+    path: `${APP_PREFIX_PATH}/sales/delivery`,
+    component: lazy(() => import("@/views/orders/Delievery/index")),
+    authority: [OWNER, SELLER],
+  },
+  {
+    key: "appsSales.profit",
+    path: `${APP_PREFIX_PATH}/sales/profit`,
+    component: lazy(() => import("@/views/sales/ProfitTables/index")),
     authority: [OWNER],
-    meta: {
-      header: "Customer Details",
-      headerContainer: true,
-    },
   },
   {
     key: "appsSales.dashboard",
@@ -150,7 +149,8 @@ const appsRoute: Routes = [
     meta: {
       header: "Crear Diapositivas",
     },
-  },{
+  },
+  {
     key: "appsSales.Eslides",
     path: `${APP_PREFIX_PATH}/Eslides/:id`,
     component: lazy(() => import("@/views/catalog/slides/components/Edit")),
@@ -192,6 +192,43 @@ const appsRoute: Routes = [
   //         header: 'Edit Supply',
   //     },
   // },
+
+  {
+    key: "appsSales.sellerCatalog",
+    path: `${APP_PREFIX_PATH}/sales/sellerCatalog`,
+    component: lazy(() => import("@/views/crm/SellersCatalog")),
+    authority: [OWNER, SELLER],
+    meta: {
+      header: "Crear Orden",
+    },
+  },
+  {
+    key: "appsSales.clients",
+    path: `${APP_PREFIX_PATH}/sales/clients`,
+    component: lazy(() => import("@/views/crm/SellersClients")),
+    authority: [OWNER, SELLER],
+    meta: {
+      header: "Clientes",
+    },
+  },
+  {
+    key: "appsSales.clients",
+    path: `${APP_PREFIX_PATH}/sales/pendingOrders`,
+    component: lazy(() => import("@/views/crm/PendingOrders")),
+    authority: [OWNER, SELLER],
+    meta: {
+      header: "Ordenes Pendientes",
+    },
+  },
+  {
+    key: "appsSales.leaderboardSellers",
+    path: `${APP_PREFIX_PATH}/sales/leaderboardSellers`,
+    component: lazy(() => import("@/views/crm/SellersLeaderboad")),
+    authority: [OWNER, SELLER],
+    meta: {
+      header: "Tabla Insignea",
+    },
+  },
   {
     key: "appsSales.supplyList",
     path: `${APP_PREFIX_PATH}/sales/supplies`,

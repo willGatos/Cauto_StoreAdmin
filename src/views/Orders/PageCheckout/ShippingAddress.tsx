@@ -1,10 +1,10 @@
-import Label from "components/Label/Label";
+import Label from "@/components/ui/Label";
 import React, { FC } from "react";
-import ButtonPrimary from "shared/Button/ButtonPrimary";
-import ButtonSecondary from "shared/Button/ButtonSecondary";
-import Input from "shared/Input/Input";
-import Radio from "shared/Radio/Radio";
-import Select from "shared/Select/Select";
+import ButtonPrimary from "@/components/ui/Button";
+import ButtonSecondary from "@/components/ui/Button";
+import Input from "@/components/ui/Input/Input";
+import Radio from "@/components/ui/Radio/Radio";
+import Select from "@/components/ui/Select/Select";
 
 interface Props {
   isActive: boolean;
@@ -90,9 +90,7 @@ const ShippingAddress: FC<Props> = ({
             </div>
           </div>
           <ButtonSecondary
-            sizeClass="py-2 px-4 "
-            fontSize="text-sm font-medium"
-            className="bg-slate-50 dark:bg-slate-800 mt-5 sm:mt-0 sm:ml-auto !rounded-lg"
+            className="bg-slate-50 dark:bg-slate-800 mt-5 sm:mt-0 sm:ml-auto !rounded-lgpy-2 px-4 text-sm font-medium"
             onClick={onOpenActive}
           >
             Change

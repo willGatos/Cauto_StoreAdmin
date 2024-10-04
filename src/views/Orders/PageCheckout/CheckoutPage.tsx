@@ -1,12 +1,11 @@
-import Label from "components/Label/Label";
-import NcInputNumber from "components/NcInputNumber";
-import Prices from "components/Prices";
-import { Product, PRODUCTS } from "data/data";
+import Label from "@/components/ui/Label";
+import NcInputNumber from "@/components/shared/FormNumericInput";
+import Prices from "@/components/ui/Prices";
+import { Product, PRODUCTS } from "@/data/data";
 import { useState } from "react";
-import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import ButtonPrimary from "shared/Button/ButtonPrimary";
-import Input from "shared/Input/Input";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import ContactInfo from "./ContactInfo";
 import PaymentMethod from "./PaymentMethod";
 import ShippingAddress from "./ShippingAddress";
@@ -219,10 +218,6 @@ const CheckoutPage = () => {
 
   return (
     <div className="nc-CheckoutPage">
-      <Helmet>
-        <title>Checkout || Ciseco Ecommerce Template</title>
-      </Helmet>
-
       <main className="container py-16 lg:pb-28 lg:pt-20 ">
         <div className="mb-16">
           <h2 className="block text-2xl sm:text-3xl lg:text-4xl font-semibold ">
@@ -256,7 +251,7 @@ const CheckoutPage = () => {
               <div>
                 <Label className="text-sm">Discount code</Label>
                 <div className="flex mt-1.5">
-                  <Input sizeClass="h-10 px-4 py-3" className="flex-1" />
+                  <Input className="flex-1 h-10 px-4 py-3" />
                   <button className="text-neutral-700 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 rounded-2xl px-4 ml-3 font-medium text-sm bg-neutral-200/70 dark:bg-neutral-700 dark:hover:bg-neutral-800 w-24 flex justify-center items-center transition-colors">
                     Apply
                   </button>
@@ -286,9 +281,12 @@ const CheckoutPage = () => {
                 <span>$276.00</span>
               </div>
             </div>
-            <ButtonPrimary href="/account-my-order" className="mt-8 w-full">
+            <Button
+              //href="/account-my-order"
+              className="mt-8 w-full"
+            >
               Confirm order
-            </ButtonPrimary>
+            </Button>
             <div className="mt-5 text-sm text-slate-500 dark:text-slate-400 flex items-center justify-center">
               <p className="block relative pl-5">
                 <svg

@@ -5,7 +5,6 @@ import { Select } from "@/components/ui/Select";
 import supabase from "@/services/Supabase/BaseClient";
 import { useAppSelector } from "@/store";
 import { useEffect, useState } from "react";
-import NotificationMessage from "../../crm/CrmDashboard/components/NotificationMessage";
 
 export const getProductsByShopId = async (shopId: number) => {
   const { data, error } = await supabase
@@ -278,13 +277,14 @@ export default function Component() {
             options={typeOfView}
           />
         </div>
-        <NotificationMessage
-          buttonText={isEditing ? "Actualizar Sección" : "Guardar Sección"}
-          notifcationText="Exito en la Creacion de la Seccion"
-          action={() => {
-            handleSaveSection();
-          }}
-        />
+        <Button
+         //notifcationText="Exito en la Creacion de la Seccion"
+         onClick={() => {
+           handleSaveSection();
+         }}
+        >{isEditing ? "Actualizar Sección" : "Guardar Sección"}
+         
+        </Button>
         {isEditing && (
           <Button variant="secondary" onClick={handleCancelEdit}>
             Cancelar Edición

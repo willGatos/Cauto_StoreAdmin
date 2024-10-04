@@ -36,7 +36,7 @@ const CardFooter = (props: CardFooterProps) => {
 
     useEffect(() => {
         if (expand && !markdown) {
-            fetchMd()
+           // fetchMd()
         }
         if (copied && markdown) {
             navigator.clipboard.writeText(markdown.replace(/```jsx|```/g, ''))

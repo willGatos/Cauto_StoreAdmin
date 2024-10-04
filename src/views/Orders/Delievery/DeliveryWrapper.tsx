@@ -11,15 +11,6 @@ const DelieveryWrapper = () => {
     const [isLoading, setIsLoading] = useState(false)
     const [delieveyData, setDelieveyData] = useState({messagerPricingList:""})
 
-    const fetchData = () => {
-        apiGetDelievery()
-        .then((res)=> {
-            console.log(res.data)
-            setDelieveyData(res.data)
-            setIsLoading(false)
-        })
-    }
-
     const handleFormSubmit = async (
         values: string,
     ) => {
@@ -46,8 +37,8 @@ const DelieveryWrapper = () => {
     }
 
     useEffect(() => {
-        setIsLoading(true)
-        fetchData()
+        setIsLoading(false)
+       // fetchData()
     }, [])
 
     return (
