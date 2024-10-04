@@ -41,7 +41,8 @@ export  interface ProductVariation {
     product_variations?: ProductVariationRelation[];
     attributes?: AttributeValue[];
     supplies?: SupplyVariation[];
-    offerPrice?: number
+    offerPrice?: number;
+    attribute_values: AttributeValue[];
   }
 
   interface ProductVariationRelation {
