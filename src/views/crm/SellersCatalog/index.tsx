@@ -1,3 +1,4 @@
+import supabase from "@/services/Supabase/BaseClient";
 import { useState, useEffect } from "react";
 
 type Currency = {
@@ -139,94 +140,80 @@ const attributeTypes = {
   2: "Talla",
 };
 
-export default function ProductVariations() {
-  const [product, setProduct] = useState<Product | null>(null);
+export default function ProductsVariations() {
+  const [products, setProducts] = useState<Product[] | null>(null);
 
   useEffect(() => {
-    // Simula la carga de datos
-    setTimeout(() => {
-      setProduct(mockProduct);
-    }, 1000);
-
     // Comentario: Cómo se extraerían los datos de Supabase
     /*  
     import { createClient } from '@supabase/supabase-js'
 
     const supabase = createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_ANON_KEY')
 */
-    const fetchProduct = async () => {
+    const fetchProducts = async () => {
       // Paso 1: Obtener el producto principal con su moneda
       const { data: productData, error: productError } = await supabase
         .from("products")
         .select(
-          `
-          *,
-          currency:reference_currency (*),
-          product_variation_attributes (
-            attribute_values (
-              id,
-              type,
-              value
-            )
-          )
-        `
-        )
-        .single();
+          "*,product_variations(*,attribute_values(value, types: attributes(name)))"
+        );
 
-
-      setProduct(productData);
+      setProducts(productData);
     };
 
-    fetchProduct(); // Reemplazar con el ID del producto real
+    fetchProducts(); // Reemplazar con el ID del producto real
   }, []);
 
-  if (!product) {
+  if (!products) {
     return <div>Cargando...</div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">{product.name}</h1>
-      <p className="text-gray-600 mb-8">{product.description}</p>
-
-      {product.variations.map((variation) => (
-        <section key={variation.id} className="mb-12 border-b pb-8">
-          <div className="mb-4">
-            <h2 className="text-2xl font-semibold">{variation.name}</h2>
-            <p className="text-3xl font-bold text-blue-600 mt-2">
-              {variation.price.toFixed(2)} {product.currency.name}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
-              Stock: {variation.stock}
-            </p>
-            <div className="flex flex-wrap mt-2">
-              {variation.attribute_values.map((attr) => (
-                <span
-                  key={attr.id}
-                  className="bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"
-                >
-                  {attributeTypes[attr.type as keyof typeof attributeTypes]}:{" "}
-                  {attr.value}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <div className="flex space-x-4 pb-4">
-              {variation.pictures.map((picture, index) => (
-                <div key={index} className="flex-shrink-0">
-                  <img
-                    src={picture}
-                    alt={`${variation.name} - Imagen ${index + 1}`}
-                    width={600}
-                    height={600}
-                    className="rounded-lg"
-                  />
+      {products.map((product) => (
+        <>
+          <h1 className="text-3xl font-bold mb-6">{product.name}</h1>
+          <p className="text-gray-600 mb-8">{product.description}</p>
+          {product.variations.map((variation) => (
+            <section key={variation.id} className="mb-12 border-b pb-8">
+              <div className="mb-4">
+                <h2 className="text-2xl font-semibold">{variation.name}</h2>
+                <p className="text-3xl font-bold text-blue-600 mt-2">
+                  {variation.price.toFixed(2)} {product.currency.name}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Stock: {variation.stock}
+                </p>
+                <div className="flex flex-wrap mt-2">
+                  {variation.attribute_values.map((attr) => (
+                    <span
+                      key={attr.id}
+                      className="bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"
+                    >
+                      {attributeTypes[attr.type as keyof typeof attributeTypes]}
+                      : {attr.value}
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
+              </div>
+              <div className="overflow-x-auto">
+                <div className="flex space-x-4 pb-4">
+                  {variation.pictures.map((picture, index) => (
+                    <div key={index} className="flex-shrink-0">
+                      <img
+                        src={picture}
+                        alt={`${variation.name} - Imagen ${index + 1}`}
+                        width={600}
+                        height={600}
+                        className="rounded-lg"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          ))}
+        </>
       ))}
     </div>
   );
