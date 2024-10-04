@@ -114,8 +114,8 @@ export default function ProductsVariations() {
           Realizar Orden con {productsSelected.length} Productos
         </Button>
       </div>
-      {products.map((product) => (
-        <section key={product.id}>
+      {products.map((product, key) => (
+        <section key={key}>
           <h1 className="text-3xl font-bold mb-6">{product.name}</h1>
           <p
             className="text-gray-600 mb-8"
@@ -123,13 +123,13 @@ export default function ProductsVariations() {
           />
           <div className="overflow-x-auto">
             <div className={"flex space-x-6 pb-4"}>
-              {product.product_variations.map((variation) => {
+              {product.product_variations.map((variation, key2) => {
                 const psfinded = productsSelected.find(
                   (PS) => PS.id === variation.id
                 );
                 return (
                   <div
-                    key={variation.id}
+                    key={key2}
                     className="flex-shrink-0 w-64 border rounded-lg p-4 shadow-md relative"
                   >
                     <div className="mb-4">
@@ -151,9 +151,9 @@ export default function ProductsVariations() {
                       Stock: {variation.stock}
                     </p>
                     <div className="flex overflow-scroll w-52 my-2 py-2">
-                      {variation.attribute_values.map((attr) => (
+                      {variation.attribute_values.map((attr, key3) => (
                         <span
-                          key={attr.id}
+                          key={key3}
                           className="bg-gray-200 rounded-full px-2 py-1 text-xs font-semibold text-gray-700 mr-1 mb-1"
                         >
                           {attr.value}
