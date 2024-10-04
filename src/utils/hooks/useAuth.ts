@@ -81,8 +81,6 @@ function useAuth() {
                     navigate(appConfig.authenticatedEntryPath)
                 }
 
-                //const redirectUrl = query.get(REDIRECT_URL_KEY)
-
                 return {
                     status: 'success',
                     message: '',
@@ -90,7 +88,6 @@ function useAuth() {
             } else {
                 return data
             }
-            // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         } catch (errors: any) {
             return {
                 status: 'failed',
