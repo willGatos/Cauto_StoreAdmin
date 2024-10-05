@@ -7,16 +7,33 @@ import { Link } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import ContactInfo from "./ContactInfo";
-import PaymentMethod from "./PaymentMethod";
 import ShippingAddress from "./ShippingAddress";
 import { useAppSelector } from "@/store";
 
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
     "ContactInfo" | "ShippingAddress" | "PaymentMethod"
-  >("ShippingAddress");
+  >("ContactInfo");
 
+  const [formSubmit, setFormSubmit] = useState({
+    name: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    hasDelivery: false,
+  })
+  const [delivery, setDelivery] = useState({
+    municipality: "",
+    province: "",
+    address: "",
+  })
   const { productsSelected } = useAppSelector((state) => state.products);
+  // State for form fields
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
 
   const handleScrollToEl = (id: string) => {
     const element = document.getElementById(id);
@@ -24,10 +41,6 @@ const CheckoutPage = () => {
       element?.scrollIntoView({ behavior: "smooth" });
     }, 80);
   };
-
-  useEffect(()=>{
-    console.log('first', productsSelected)
-  },[])
 
   const renderProduct = (item: Product, index: number) => {
     const { images, price, name } = item;
@@ -192,6 +205,8 @@ const CheckoutPage = () => {
               setTabActive("ShippingAddress");
               handleScrollToEl("ShippingAddress");
             }}
+            formSubmit={formSubmit}
+            setFormSubmit={setFormSubmit}
           />
         </div>
 
@@ -203,13 +218,12 @@ const CheckoutPage = () => {
               handleScrollToEl("ShippingAddress");
             }}
             onCloseActive={() => {
-              setTabActive("PaymentMethod");
-              handleScrollToEl("PaymentMethod");
+              setTabActive("ShippingAddress");
             }}
           />
         </div>
 
-        <div id="PaymentMethod" className="scroll-mt-24">
+        {/* <div id="PaymentMethod" className="scroll-mt-24">
           <PaymentMethod
             isActive={tabActive === "PaymentMethod"}
             onOpenActive={() => {
@@ -218,7 +232,7 @@ const CheckoutPage = () => {
             }}
             onCloseActive={() => setTabActive("PaymentMethod")}
           />
-        </div>
+        </div> */}
       </div>
     );
   };

@@ -104,40 +104,20 @@ const ShippingAddress: FC<Props> = ({
           {/* ============ */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
             <div>
-              <Label className="text-sm">First name</Label>
-              <Input className="mt-1.5" defaultValue="Cole" />
+              <Label className="text-sm">Provincia</Label>
+              <Select className="mt-1.5" defaultValue="United States ">
+                <option value="United States">United States</option>
+                <option value="United States">Canada</option>
+                <option value="United States">Mexico</option>
+                <option value="United States">Israel</option>
+                <option value="United States">France</option>
+                <option value="United States">England</option>
+                <option value="United States">Laos</option>
+                <option value="United States">China</option>
+              </Select>
             </div>
             <div>
-              <Label className="text-sm">Last name</Label>
-              <Input className="mt-1.5" defaultValue="Enrico " />
-            </div>
-          </div>
-
-          {/* ============ */}
-          <div className="sm:flex space-y-4 sm:space-y-0 sm:space-x-3">
-            <div className="flex-1">
-              <Label className="text-sm">Address</Label>
-              <Input
-                className="mt-1.5"
-                placeholder=""
-                defaultValue={"123, Dream Avenue, USA"}
-                type={"text"}
-              />
-            </div>
-            <div className="sm:w-1/3">
-              <Label className="text-sm">Apt, Suite *</Label>
-              <Input className="mt-1.5" defaultValue="55U - DD5 " />
-            </div>
-          </div>
-
-          {/* ============ */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
-            <div>
-              <Label className="text-sm">City</Label>
-              <Input className="mt-1.5" defaultValue="Norris" />
-            </div>
-            <div>
-              <Label className="text-sm">Country</Label>
+              <Label className="text-sm">Municipio</Label>
               <Select className="mt-1.5" defaultValue="United States ">
                 <option value="United States">United States</option>
                 <option value="United States">Canada</option>
@@ -151,34 +131,9 @@ const ShippingAddress: FC<Props> = ({
             </div>
           </div>
 
-          {/* ============ */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
-            <div>
-              <Label className="text-sm">State/Province</Label>
-              <Input className="mt-1.5" defaultValue="Texas" />
-            </div>
-            <div>
-              <Label className="text-sm">Postal code</Label>
-              <Input className="mt-1.5" defaultValue="2500 " />
-            </div>
-          </div>
-
-          {/* ============ */}
           <div>
-            <Label className="text-sm">Address type</Label>
-            <div className="mt-1.5 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-              <Radio
-                label={`<span class="text-sm font-medium">Home <span class="font-light">(All Day Delivery)</span></span>`}
-                id="Address-type-home"
-                name="Address-type"
-                defaultChecked
-              />
-              <Radio
-                label={`<span class="text-sm font-medium">Office <span class="font-light">(Delivery <span class="font-medium">9 AM - 5 PM</span>)</span> </span>`}
-                id="Address-type-office"
-                name="Address-type"
-              />
-            </div>
+            <Label className="text-sm">Dirección</Label>
+            <Input textArea className="mt-1.5" defaultValue="Calles: <br/>Referencias: " />
           </div>
 
           {/* ============ */}

@@ -1,5 +1,5 @@
 import Label from "@/components/ui/Label";
-import React, { FC } from "react";
+import React, { FC, SetStateAction, useRef } from "react";
 import ButtonPrimary from "@/components/ui/Button";
 import ButtonSecondary from "@/components/ui/Button";
 import Checkbox from "@/components/ui/Checkbox/Checkbox";
@@ -9,9 +9,20 @@ interface Props {
   isActive: boolean;
   onOpenActive: () => void;
   onCloseActive: () => void;
+  setFormSubmit;
+  formSubmit;
 }
 
-const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
+const ContactInfo: FC<Props> = ({
+  isActive,
+  onCloseActive,
+  onOpenActive,
+  formSubmit,
+  setFormSubmit,
+}) => {
+  const handleChange = (e) =>
+    setFormSubmit((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
   const renderAccount = () => {
     return (
       <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden z-0">
@@ -48,7 +59,9 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
           </span>
           <div className="sm:ml-8">
             <h3 className=" text-slate-700 dark:text-slate-300 flex ">
-              <span className="uppercase tracking-tight">CONTACT INFO</span>
+              <span className="uppercase tracking-tight">
+                INFORMACION DE CONTACTO
+              </span>
               <svg
                 fill="none"
                 viewBox="0 0 24 24"
@@ -81,29 +94,61 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
           }`}
         >
           <div className="flex justify-between flex-wrap items-baseline">
-            <h3 className="text-lg font-semibold">Contact infomation</h3>
-            <span className="block text-sm my-1 md:my-0">
-              Do not have an account?{` `}
-              <a href="##" className="text-primary-500 font-medium">
-                Log in
-              </a>
-            </span>
+            <h3 className="text-lg font-semibold">Información de Contacto</h3>
+          </div>
+          {/* ============ */}
+          <div className="max-w-lg flex gap-5">
+            <div className="w-56">
+              <Label className="text-sm">Nombre</Label>
+              <Input
+                value={formSubmit.name}
+                onChange={handleChange}
+                className="mt-1.5"
+                name="name"
+                defaultValue="Sam"
+              />
+            </div>
+            <div className="w-56">
+              <Label className="text-sm">Apellidos</Label>
+              <Input
+                value={formSubmit.lastName}
+                onChange={handleChange}
+                name="lastName"
+                className="mt-1.5"
+                defaultValue="Simpson"
+              />
+            </div>
           </div>
           <div className="max-w-lg">
-            <Label className="text-sm">Your phone number</Label>
-            <Input className="mt-1.5" defaultValue={"+808 xxx"} type={"tel"} />
+            <Label className="text-sm">Teléfono de WhatsApp</Label>
+            <Input
+              value={formSubmit.phone}
+              onChange={handleChange}
+              className="mt-1.5"
+              name="phone"
+              defaultValue={"+53 "}
+              type={"tel"}
+            />
           </div>
           <div className="max-w-lg">
-            <Label className="text-sm">Email address</Label>
-            <Input className="mt-1.5" type={"email"} />
+            <Label className="text-sm">Correo para Mantenerle al tanto</Label>
+            <Input
+              value={formSubmit.email}
+              onChange={handleChange}
+              className="mt-1.5"
+              name="email"
+              type={"email"}
+            />
           </div>
-          <div>
+          <div className="flex justify-center text-center">
             <Checkbox
+              value={formSubmit.hasDelivery}
+              onChange={handleChange}
               className="!text-sm"
-              name="uudai"
-              //label="Email me news and offers"
+              name="hasDelivery"
               defaultChecked
             />
+            <Label className="text-sm">Desea Mensajería</Label>
           </div>
 
           {/* ============ */}
@@ -112,7 +157,7 @@ const ContactInfo: FC<Props> = ({ isActive, onCloseActive, onOpenActive }) => {
               className="sm:!px-7 shadow-none"
               onClick={() => onCloseActive()}
             >
-              Save and next to Shipping
+              Guardar
             </ButtonPrimary>
             <ButtonSecondary
               className="mt-3 sm:mt-0 sm:ml-3"
