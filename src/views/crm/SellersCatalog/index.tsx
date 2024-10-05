@@ -55,6 +55,7 @@ export default function ProductsVariations() {
 
   // Get selected products from redux state
   const { productsSelected } = useAppSelector((state) => state.products);
+  
   // Flag to control button disablement
   const [isDisabled, setIsDisabled] = useState(true);
 
@@ -115,18 +116,20 @@ export default function ProductsVariations() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="fixed bottom-5 bg left-0 right-0 ml-auto mr-auto text-center">
-        <Button
-          disabled={isDisabled}
-          type="button"
-          variant="solid"
-          className=""
-          size="md"
-          onClick={() => {
-            handleSuccess("Éxito al Cargar Productos");
-          }}
-        >
-          Realizar Orden con {productsSelected.length} Productos
-        </Button>
+        <a href={isDisabled ? "#" : "checkout"}>
+          <Button
+            disabled={isDisabled}
+            type="button"
+            variant="solid"
+            className=""
+            size="md"
+            onClick={() => {
+              handleSuccess("Éxito al Cargar Productos");
+            }}
+          >
+            Realizar Orden con {productsSelected.length} Productos
+          </Button>
+        </a>
       </div>
       {products.map((product, key) => (
         <section key={key}>
@@ -179,7 +182,7 @@ export default function ProductsVariations() {
                       <Button
                         style={{ width: "200px" }}
                         type="button"
-                        variant={psfinded ? "solid" : "default"}
+                        variant={psfinded ? "twoTone" : "solid"}
                         size="md"
                         onClick={() => {
                           addOrUpdateItem(variation);

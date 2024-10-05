@@ -6,7 +6,7 @@ import type { Routes } from "@/@types/routes";
 const appsRoute: Routes = [
   {
     key: "appsSales.checkout",
-    path: `${APP_PREFIX_PATH}/sales/dashboard`,
+    path: `${APP_PREFIX_PATH}/sales/checkout`,
     component: lazy(() => import("@/views/orders/PageCheckout/CheckoutPage")),
     authority: [OWNER],
   },

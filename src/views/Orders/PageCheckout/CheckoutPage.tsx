@@ -2,18 +2,21 @@ import Label from "@/components/ui/Label";
 import NcInputNumber from "@/components/shared/FormNumericInput";
 import Prices from "@/components/ui/Prices";
 import { Product, PRODUCTS } from "@/data/data";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import ContactInfo from "./ContactInfo";
 import PaymentMethod from "./PaymentMethod";
 import ShippingAddress from "./ShippingAddress";
+import { useAppSelector } from "@/store";
 
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
     "ContactInfo" | "ShippingAddress" | "PaymentMethod"
   >("ShippingAddress");
+
+  const { productsSelected } = useAppSelector((state) => state.products);
 
   const handleScrollToEl = (id: string) => {
     const element = document.getElementById(id);
@@ -21,6 +24,10 @@ const CheckoutPage = () => {
       element?.scrollIntoView({ behavior: "smooth" });
     }, 80);
   };
+
+  useEffect(()=>{
+    console.log('first', productsSelected)
+  },[])
 
   const renderProduct = (item: Product, index: number) => {
     const { images, price, name } = item;
