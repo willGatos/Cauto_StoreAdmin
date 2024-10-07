@@ -20,9 +20,15 @@ const ContactInfo: FC<Props> = ({
   formSubmit,
   setFormSubmit,
 }) => {
-  const handleChange = (e) =>
+  const handleChange = (e) => {
+    console.log("e", e.target.value, e.target.name);
     setFormSubmit((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
+  const onCheck = (value: boolean, e) => {
+    console.log(value, e);
+    setFormSubmit((prev) => ({ ...prev, hasDelivery: e.target.value }));
+  };
   const renderAccount = () => {
     return (
       <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden z-0">
@@ -142,8 +148,8 @@ const ContactInfo: FC<Props> = ({
           </div>
           <div className="flex justify-center text-center">
             <Checkbox
-              value={formSubmit.hasDelivery}
-              onChange={handleChange}
+              checked={formSubmit.hasDelivery}
+              onChange={onCheck}
               className="!text-sm"
               name="hasDelivery"
               defaultChecked
@@ -158,6 +164,7 @@ const ContactInfo: FC<Props> = ({
               onClick={() => onCloseActive()}
             >
               Guardar
+              {" " + formSubmit.hasDelivery ? "y seguir a Mensajería" : ""}
             </ButtonPrimary>
             <ButtonSecondary
               className="mt-3 sm:mt-0 sm:ml-3"

@@ -21,12 +21,12 @@ const CheckoutPage = () => {
     phone: "",
     email: "",
     hasDelivery: false,
-  })
+  });
   const [delivery, setDelivery] = useState({
     municipality: "",
     province: "",
     address: "",
-  })
+  });
   const { productsSelected } = useAppSelector((state) => state.products);
   // State for form fields
   const [formData, setFormData] = useState({
@@ -242,19 +242,8 @@ const CheckoutPage = () => {
       <main className="container py-16 lg:pb-28 lg:pt-20 ">
         <div className="mb-16">
           <h2 className="block text-2xl sm:text-3xl lg:text-4xl font-semibold ">
-            Checkout
+            Revision de Productos
           </h2>
-          <div className="block mt-3 sm:mt-5 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-400">
-            <Link to={"/#"} className="">
-              Homepage
-            </Link>
-            <span className="text-xs mx-1 sm:mx-1.5">/</span>
-            <Link to={"/#"} className="">
-              Clothing Categorías
-            </Link>
-            <span className="text-xs mx-1 sm:mx-1.5">/</span>
-            <span className="underline">Checkout</span>
-          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row">
@@ -263,18 +252,18 @@ const CheckoutPage = () => {
           <div className="flex-shrink-0 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-700 my-10 lg:my-0 lg:mx-10 xl:lg:mx-14 2xl:mx-16 "></div>
 
           <div className="w-full lg:w-[36%] ">
-            <h3 className="text-lg font-semibold">Order summary</h3>
+            <h3 className="text-lg font-semibold">Resumen de Ordenes</h3>
             <div className="mt-8 divide-y divide-slate-200/70 dark:divide-slate-700 ">
               {[PRODUCTS[0], PRODUCTS[2], PRODUCTS[3]].map(renderProduct)}
             </div>
 
             <div className="mt-10 pt-6 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200/70 dark:border-slate-700 ">
               <div>
-                <Label className="text-sm">Discount code</Label>
+                <Label className="text-sm">Código de Descuento</Label>
                 <div className="flex mt-1.5">
                   <Input className="flex-1 h-10 px-4 py-3" />
                   <button className="text-neutral-700 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 rounded-2xl px-4 ml-3 font-medium text-sm bg-neutral-200/70 dark:bg-neutral-700 dark:hover:bg-neutral-800 w-24 flex justify-center items-center transition-colors">
-                    Apply
+                    Aplicar
                   </button>
                 </div>
               </div>
@@ -286,19 +275,21 @@ const CheckoutPage = () => {
                 </span>
               </div>
               <div className="flex justify-between py-2.5">
-                <span>Shipping estimate</span>
+                <span>Costo de Mensajería</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
                   $5.00
                 </span>
               </div>
-              <div className="flex justify-between py-2.5">
-                <span>Tax estimate</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-200">
-                  $24.90
-                </span>
-              </div>
+              {
+                <div className="flex justify-between py-2.5">
+                  <span>Impuestos Estimados</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-200">
+                    $24.90
+                  </span>
+                </div>
+              }
               <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-200 text-base pt-4">
-                <span>Order total</span>
+                <span>Orden Total</span>
                 <span>$276.00</span>
               </div>
             </div>
@@ -306,7 +297,7 @@ const CheckoutPage = () => {
               //href="/account-my-order"
               className="mt-8 w-full"
             >
-              Confirm order
+              Confirmar Orden
             </Button>
             <div className="mt-5 text-sm text-slate-500 dark:text-slate-400 flex items-center justify-center">
               <p className="block relative pl-5">
@@ -337,14 +328,14 @@ const CheckoutPage = () => {
                     strokeLinejoin="round"
                   />
                 </svg>
-                Learn more{` `}
+                Aprender Más{` `}
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
                   href="##"
                   className="text-slate-900 dark:text-slate-200 underline font-medium"
                 >
-                  Taxes
+                  Impuestos
                 </a>
                 <span>
                   {` `}and{` `}
@@ -355,9 +346,9 @@ const CheckoutPage = () => {
                   href="##"
                   className="text-slate-900 dark:text-slate-200 underline font-medium"
                 >
-                  Shipping
+                  Mensajería
                 </a>
-                {` `} infomation
+                {` `} Información
               </p>
             </div>
           </div>
