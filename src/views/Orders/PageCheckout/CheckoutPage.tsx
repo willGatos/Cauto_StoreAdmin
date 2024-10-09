@@ -29,7 +29,7 @@ const CheckoutPage = () => {
     },
   ]);
   const [hasPersonalizedOrder, setHasPersonalizedOrder] = useState(false);
-  const [personalized_order, setPersonalizedOrders] = useState({
+  const [personalizedOrder, setPersonalizedOrders] = useState({
     order_id: 0,
     custom_description: 0,
     images: [],
@@ -79,7 +79,9 @@ const CheckoutPage = () => {
   const subtotal = productsSelected.reduce((acc, curr) => acc + curr.price, 0);
   // const taxAmount = subtotal * 0.24; // Assuming 24% tax rate
   const totalPrice = subtotal; // + taxAmount;
+
   // TODO: HACER QUE SE CAMBIE EL TOTAL EN AUTOMATICO y agregar el campo de shipping
+  // TODO: hacer que analice la cantidad, y las variaciones, en base a eso hacer
 
   const onSubmit = async () => {
     const { name, lastName, phone, email } = formData;
@@ -96,7 +98,7 @@ const CheckoutPage = () => {
         .select("id")
         .single();
 
-      const order = await supabase
+      const { data: orderData } = await supabase
         .from("orders")
         .upsert({
           status: 1,
@@ -108,17 +110,23 @@ const CheckoutPage = () => {
         .select("id")
         .single();
       //TODO: Hacerlo como un Array
-      await supabase.from("order_items").upsert({
-        order_id: order.data.id,
-        variation_id: shopId,
+      //
+      const oiArray = orderItems.map(async (oi) => ({
+        order_id: orderData.id,
+        variation_id: oi.variation_id,
         client_id: client.data.id,
-        price: 1,
-        quantity: 1,
+        price: oi.price,
+        quantity: oi.quantity,
+      }));
+
+      await supabase.from("order_items").upsert(oiArray);
+      await supabase.from("personalized_orders").upsert({
+        order_id: orderData.id,
+        custom_description: personalizedOrder.custom_description,
+        images: personalizedOrder.images,
+        price: personalizedOrder.price,
+        quantity: personalizedOrder.quantity,
       });
-      /* 
-    selected_image text null,
-    custom_description text null,
-     */
     } else {
       handleError("Tienes un campo en CONTACTO sin llenar.");
     }
@@ -389,7 +397,7 @@ const CheckoutPage = () => {
                       Descripción de Orden Personalizada
                     </Label>
                     <Input
-                      value={personalized_order.custom_description}
+                      value={personalizedOrder.custom_description}
                       onChange={(e) => handleChange(e)}
                       className="mt-1.5"
                       name="custom_description"
@@ -404,7 +412,7 @@ const CheckoutPage = () => {
                         onChange={(e) => handleChange(e)}
                         className="mt-1.5"
                         name="quantiy"
-                        value={personalized_order.quantity}
+                        value={personalizedOrder.quantity}
                       />
                     </div>
                     <div>
@@ -413,7 +421,7 @@ const CheckoutPage = () => {
                         onChange={(e) => handleChange(e)}
                         className="mt-1.5"
                         name="price"
-                        value={personalized_order.price}
+                        value={personalizedOrder.price}
                       />
                     </div>
                   </div>
@@ -440,7 +448,7 @@ const CheckoutPage = () => {
                     }}
                   </UploadWidget>
                   <div>
-                    {personalized_order.images.map((image) => (
+                    {personalizedOrder.images.map((image) => (
                       <img src={image} />
                     ))}
                   </div>
