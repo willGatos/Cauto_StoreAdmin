@@ -9,18 +9,20 @@ import { Link } from "react-router-dom";
 import ContactInfo from "./ContactInfo";
 import ShippingAddress from "./ShippingAddress";
 import HandleFeedback from "@/components/ui/FeedBack";
+import supabase from "@/services/Supabase/BaseClient";
 
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
     "ContactInfo" | "ShippingAddress" | "PaymentMethod"
   >("ContactInfo");
 
-  const [formSubmit, setFormSubmit] = useState({
-    name: "",
-    lastName: "",
-    phone: "",
-    email: "",
-    hasDelivery: false,
+  const { handleError } = HandleFeedback();
+  const { shopId, id } = useAppSelector((state) => state.auth.user);
+  const [delivery, setDelivery] = useState({
+    municipality: "",
+    province: "",
+    address: "",
+    price: 0,
   });
 
   const [delivery, setDelivery] = useState({
@@ -33,8 +35,10 @@ const CheckoutPage = () => {
   // State for form fields
   const [formData, setFormData] = useState({
     name: "",
+    lastName: "",
+    phone: "",
     email: "",
-    message: "",
+    hasDelivery: false,
   });
   const handleScrollToEl = (id: string) => {
     const element = document.getElementById(id);
@@ -45,7 +49,52 @@ const CheckoutPage = () => {
   const subtotal = productsSelected.reduce((acc, curr) => acc + curr.price, 0);
   // const taxAmount = subtotal * 0.24; // Assuming 24% tax rate
   const totalPrice = subtotal; // + taxAmount;
+  // TODO: HACER QUE SE CAMBIE EL TOTAL EN AUTOMATICO
+  // TODO: Descripcion y IMG
+  // TODO: Define la direferencia entre Ofertas y variaciones propias
+  const onSubmit = async () => {
+    const { name, lastName, phone, email } = formData;
+    console.log("first", name, lastName, phone, email);
+    if (name && lastName && phone && email) {
+      await supabase.from("locations").upsert({
+        description: delivery.address,
+        municipality_id: delivery.municipality,
+        shipping_cost: 0,
+        amount_paid: subtotal / 2,
+      });
+      const client = await supabase
+        .from("clients")
+        .upsert({ name, lastName, phone, email })
+        .select("id")
+        .single();
 
+      const order = await supabase
+        .from("orders")
+        .upsert({
+          status: 1,
+          total: totalPrice,
+          shop_id: shopId,
+          client_id: client.data.id,
+          seller_id: id,
+        })
+        .select("id")
+        .single();
+      //TODO: Hacerlo como un Array
+      await supabase.from("order_items").upsert({
+        order_id: order.data.id,
+        variation_id: shopId,
+        client_id: client.data.id,
+        price: 1,
+        quantity: 1,
+      });
+      /* 
+    selected_image text null,
+    custom_description text null,
+     */
+    } else {
+      handleError("Tienes un campo en CONTACTO sin llenar.");
+    }
+  };
   const renderProduct = (item: ProductVariation, index: number) => {
     const { pictures, price, name } = item;
 
@@ -179,7 +228,7 @@ const CheckoutPage = () => {
           </div>
 
           <div className="flex mt-auto pt-4 items-end justify-between text-sm">
-            <div className="hidden sm:block relative">
+            <div className="sm:block relative">
               <Label>Cant. a Comprar</Label>
 
               <NcInputNumber className="relative z-10" />
@@ -208,8 +257,7 @@ const CheckoutPage = () => {
               handleScrollToEl("ContactInfo");
             }}
             onCloseActive={() => {
-              formSubmit.hasDelivery && setTabActive("ShippingAddress");
-
+              formData.hasDelivery && setTabActive("ShippingAddress");
               handleScrollToEl("ShippingAddress");
             }}
             formSubmit={formData}
@@ -221,13 +269,13 @@ const CheckoutPage = () => {
           <ShippingAddress
             isActive={tabActive === "ShippingAddress"}
             onOpenActive={() => {
-              setTabActive("ShippingAddress")
-              handleScrollToEl("ShippingAddress")
+              setTabActive("ShippingAddress");
+              handleScrollToEl("ShippingAddress");
             }}
             onCloseActive={() => {
               setTabActive("ShippingAddress");
             }}
-            formData= {formData}
+            formData={formData}
             delivery={delivery}
             setFormSubmit={setDelivery}
           />
@@ -306,6 +354,9 @@ const CheckoutPage = () => {
             <Button
               //href="/account-my-order"
               className="mt-8 w-full"
+              variant="solid"
+              onClick={onSubmit}
+              type="submit"
             >
               Confirmar Orden
             </Button>
