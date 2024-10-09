@@ -9,7 +9,7 @@ import { apiGetDelievery, apiPostDelievery } from '@/services/SalesService'
 
 const DelieveryWrapper = () => {
     const [isLoading, setIsLoading] = useState(false)
-    const [delieveyData, setDelieveyData] = useState({messagerPricingList:""})
+    const [delieveyData, setDelieveyData] = useState({description:""})
 
     const fetchData = () => {
         apiGetDelievery()

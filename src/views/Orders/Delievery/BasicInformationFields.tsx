@@ -4,7 +4,7 @@ import { FormItem } from '@/components/ui/Form'
 import { Field, FormikErrors, FormikTouched, FieldProps } from 'formik'
 
 type FormFieldsName = {
-    messagerPricingList: string
+    description: string
 }
 
 type BasicInformationFields = {
@@ -23,10 +23,10 @@ const BasicInformationFields = (props: BasicInformationFields) => {
             <FormItem
                 label="Lista de Precios de Mensajería"
                 labelClass="!justify-start"
-                invalid={(errors.messagerPricingList && touched.messagerPricingList) as boolean}
-                errorMessage={errors.messagerPricingList}
+                invalid={(errors.description && touched.description) as boolean}
+                errorMessage={errors.description}
             >
-                <Field name="messagerPricingList">
+                <Field name="description">
                     {({ field, form }: FieldProps) => (
                         <RichTextEditor
                             value={field.value}

@@ -14,7 +14,7 @@ import { apiDelieveryBasic } from '@/services/DelieveryCreateService' */
 
 type FormikRef = FormikProps<any>
 export type DelieveryData = {
-    messagerPricingList: string;
+    description: string;
   };
 
 
@@ -32,18 +32,18 @@ type OnDelete = (callback: OnDeleteCallback) => void
     type: 'edit' | 'new'
     onDiscard?: () => void
     onDelete?: OnDelete
-    onFormSubmit: (formData: FormModel, setSubmitting: SetSubmitting) => void
+    onFormSubmit: (formData) => void
 }
 
 const DelieverySchema = Yup.object().shape({
-    messagerPricingList: Yup.string().required('La Lista de Precios es requerida'),
+    description: Yup.string().required('La Lista de Precios es requerida'),
 });
 
 const DelieveryForm = forwardRef<FormikRef, DelieveryForm>((props, ref) => {
     const {
         type,
         initialData = {
-            messagerPricingList: 'This is an example Delievery for testing purposes.',
+            description: '',
         },
         onFormSubmit,
     } = props
@@ -56,11 +56,12 @@ const DelieveryForm = forwardRef<FormikRef, DelieveryForm>((props, ref) => {
                     ...initialData
                 }}
                 validationSchema={DelieverySchema}
-                onSubmit={async (values: FormModel, { setSubmitting }) => {
-                    onFormSubmit?.(values, setSubmitting)                     
+                onSubmit={async (values) => {
+                    console.log("sa")
+                    onFormSubmit?.(values)                     
                 }}
             >
-                {({ values, touched, errors, isSubmitting }) => (
+                {({ values, touched, errors }) => (
                     <Form>
                         <FormContainer>
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -71,23 +72,22 @@ const DelieveryForm = forwardRef<FormikRef, DelieveryForm>((props, ref) => {
                                     />
                                 </div>
                             </div>
-                            <StickyFooter
+                            {/* <StickyFooter
                                 className="-mx-8 px-8 flex items-center justify-between py-4"
                                 stickyClass="border-t bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-                            >
-                                <div></div>
+                            > */}
                                 <div className="md:flex items-center">
                                     <Button
                                         size="sm"
                                         variant="solid"
-                                        loading={isSubmitting}
                                         icon={<AiOutlineSave />}
                                         type="submit"
+                                        onClick={()=>console.log("HOLA", values)}
                                     >
                                         Guardar
                                     </Button>
                                 </div>
-                            </StickyFooter>
+                            {/* </StickyFooter> */}
                         </FormContainer>
                     </Form>
                 )}

@@ -14,7 +14,7 @@ import { apiDelieveryBasic } from '@/services/DelieveryCreateService' */
 
 type FormikRef = FormikProps<any>
 export type DelieveryData = {
-    messagerPricingList: string;
+    description: string;
   };
 
 
@@ -36,14 +36,14 @@ type OnDelete = (callback: OnDeleteCallback) => void
 }
 
 const DelieverySchema = Yup.object().shape({
-    messagerPricingList: Yup.string().required('La Lista de Precios es requerida'),
+    description: Yup.string().required('La Lista de Precios es requerida'),
 });
 
 const DelieveryForm = forwardRef<FormikRef, DelieveryForm>((props, ref) => {
     const {
         type,
         initialData = {
-            messagerPricingList: 'This is an example Delievery for testing purposes.',
+            description: 'This is an example Delievery for testing purposes.',
         },
         onFormSubmit,
     } = props

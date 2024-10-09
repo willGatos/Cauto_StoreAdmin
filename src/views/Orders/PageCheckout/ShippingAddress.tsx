@@ -68,7 +68,7 @@ const ShippingAddress: FC<Props> = ({
 
           <div className="sm:ml-8">
             <h3 className=" text-slate-700 dark:text-slate-300 flex ">
-              <span className="uppercase">SHIPPING ADDRESS</span>
+              <span className="uppercase">DIRECCIÓN DE ENVÍO</span>
               <svg
                 fill="none"
                 viewBox="0 0 24 24"
@@ -85,7 +85,7 @@ const ShippingAddress: FC<Props> = ({
             </h3>
             <div className="font-semibold mt-1 text-sm">
               <span className="">
-                St. Paul's Road, Norris, SD 57560, Dakota, USA
+                DIRECCION
               </span>
             </div>
           </div>
@@ -93,7 +93,7 @@ const ShippingAddress: FC<Props> = ({
             className="bg-slate-50 dark:bg-slate-800 mt-5 sm:mt-0 sm:ml-auto !rounded-lgpy-2 px-4 text-sm font-medium"
             onClick={onOpenActive}
           >
-            Change
+            Cambiar
           </ButtonSecondary>
         </div>
         <div
@@ -142,13 +142,13 @@ const ShippingAddress: FC<Props> = ({
               className="sm:!px-7 shadow-none"
               onClick={onCloseActive}
             >
-              Save and next to Payment
+              Guardar
             </ButtonPrimary>
             <ButtonSecondary
               className="mt-3 sm:mt-0 sm:ml-3"
               onClick={onCloseActive}
             >
-              Cancel
+              Cancelar
             </ButtonSecondary>
           </div>
         </div>
