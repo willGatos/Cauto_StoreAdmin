@@ -10,6 +10,7 @@ import ContactInfo from "./ContactInfo";
 import ShippingAddress from "./ShippingAddress";
 import HandleFeedback from "@/components/ui/FeedBack";
 import supabase from "@/services/Supabase/BaseClient";
+import { Input } from "@/components/ui";
 
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
@@ -18,12 +19,14 @@ const CheckoutPage = () => {
 
   const { handleError } = HandleFeedback();
   const { shopId, id } = useAppSelector((state) => state.auth.user);
-  const [delivery, setDelivery] = useState({
-    municipality: "",
-    province: "",
-    address: "",
-    price: 0,
-  });
+  const [orderItems, setOrderItems] = useState([
+    {
+      variation_id: 0,
+      client_id: 0,
+      price: 0,
+      quantity: 0,
+    },
+  ]);
 
   const [delivery, setDelivery] = useState({
     municipality: "",
@@ -32,6 +35,15 @@ const CheckoutPage = () => {
     price: 0,
   });
   const { productsSelected } = useAppSelector((state) => state.products);
+  useEffect(() => {
+    const newOrderItems = productsSelected.map((product) => ({
+      variation_id: product.id,
+      client_id: 0, // Asumiendo que el client_id se maneja de otra manera
+      price: product.price,
+      quantity: 1, // Asumiendo una cantidad inicial de 1
+    }));
+    setOrderItems(newOrderItems);
+  }, []);
   // State for form fields
   const [formData, setFormData] = useState({
     name: "",
@@ -49,9 +61,9 @@ const CheckoutPage = () => {
   const subtotal = productsSelected.reduce((acc, curr) => acc + curr.price, 0);
   // const taxAmount = subtotal * 0.24; // Assuming 24% tax rate
   const totalPrice = subtotal; // + taxAmount;
-  // TODO: HACER QUE SE CAMBIE EL TOTAL EN AUTOMATICO
-  // TODO: Descripcion y IMG
-  // TODO: Define la direferencia entre Ofertas y variaciones propias
+  // TODO: HACER QUE SE CAMBIE EL TOTAL EN AUTOMATICO y agregar el campo de shipping
+  // TODO: Descripcion y IMG, crear los campos al final de los productos.
+
   const onSubmit = async () => {
     const { name, lastName, phone, email } = formData;
     console.log("first", name, lastName, phone, email);
@@ -97,7 +109,19 @@ const CheckoutPage = () => {
   };
   const renderProduct = (item: ProductVariation, index: number) => {
     const { pictures, price, name } = item;
-
+    const equalOnOrderItems = orderItems.find(
+      (oi) => oi.variation_id == item.id
+    );
+    const handleQuantityChange = (variationId, newQuantity) => {
+      setOrderItems((prevItems) =>
+        prevItems.map((item) =>
+          item.variation_id === variationId
+            ? { ...item, quantity: parseInt(newQuantity, 10) }
+            : item
+        )
+      );
+      console.log(orderItems)
+    };
     return (
       <div key={index} className="relative flex py-7 first:pt-0 last:pb-0">
         <div className="relative h-36 w-24 sm:w-28 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
@@ -231,7 +255,19 @@ const CheckoutPage = () => {
             <div className="sm:block relative">
               <Label>Cant. a Comprar</Label>
 
-              <NcInputNumber className="relative z-10" />
+              <Input
+                value={equalOnOrderItems?.quantity}
+                onChange={(e) =>
+                  handleQuantityChange(
+                    equalOnOrderItems.variation_id,
+                    e.target.value
+                  )
+                }
+                className="mt-1.5"
+                name="quantity"
+                type="number"
+                min="0"
+              />
             </div>
 
             <a
@@ -326,6 +362,22 @@ const CheckoutPage = () => {
                 </div>
               </div> */}
 
+              <div>
+                <Label className="text-sm">
+                  Descripción de Orden Personalizada
+                </Label>
+                <Input textArea className="mt-1.5" defaultValue="" />
+              </div>
+              <div className="flex gap-5">
+                <div>
+                  <Label className="text-sm">Cantidad</Label>
+                  <Input className="mt-1.5" />
+                </div>
+                <div>
+                  <Label className="text-sm">Precio a Pagar</Label>
+                  <Input className="mt-1.5" />
+                </div>
+              </div>
               <div className="mt-4 flex justify-between py-2.5">
                 <span>Subtotal</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
