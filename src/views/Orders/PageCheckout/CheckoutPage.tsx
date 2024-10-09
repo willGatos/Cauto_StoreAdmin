@@ -11,6 +11,7 @@ import ShippingAddress from "./ShippingAddress";
 import HandleFeedback from "@/components/ui/FeedBack";
 import supabase from "@/services/Supabase/BaseClient";
 import { Input } from "@/components/ui";
+import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
 
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
@@ -27,14 +28,14 @@ const CheckoutPage = () => {
       quantity: 0,
     },
   ]);
-
-  const [personalized_order, setPersonalizedOrders] = useState([
-    {
-      order_id: 0,
-      custom_description: 0,
-      images: [],
-    },
-  ]);
+  const [hasPersonalizedOrder, setHasPersonalizedOrder] = useState(false);
+  const [personalized_order, setPersonalizedOrders] = useState({
+    order_id: 0,
+    custom_description: 0,
+    images: [],
+    price: 0,
+    quantity : 0,
+  });
 
   const [delivery, setDelivery] = useState({
     municipality: "",
@@ -65,6 +66,18 @@ const CheckoutPage = () => {
     setTimeout(() => {
       element?.scrollIntoView({ behavior: "smooth" });
     }, 80);
+  };
+  const handleImageUpload = async (error, result, widget) => {
+    console.log("VIDEO");
+    console.log(result, error);
+
+    if (error) {
+      widget.close({
+        quiet: true,
+      });
+      return;
+    }
+    setPersonalizedOrders((po) => ({...po, images: [...po.images, result]}));
   };
   const subtotal = productsSelected.reduce((acc, curr) => acc + curr.price, 0);
   // const taxAmount = subtotal * 0.24; // Assuming 24% tax rate
@@ -116,18 +129,10 @@ const CheckoutPage = () => {
   };
 
   const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    index: number
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = event.target;
-    setPersonalizedOrders((prevOrders) =>
-      prevOrders.map((order, i) => {
-        if (i === index) {
-          return { ...order, [name]: value };
-        }
-        return order;
-      })
-    );
+    setPersonalizedOrders((prevOrders) => ({ ...prevOrders, [name]: value }));
   };
   const renderProduct = (item: ProductVariation, index: number) => {
     const { pictures, price, name } = item;
@@ -374,41 +379,67 @@ const CheckoutPage = () => {
             </div>
 
             <div className="mt-10 pt-6 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200/70 dark:border-slate-700 ">
-              {personalized_order.map((po, index) => (
+              <div>
                 <div>
+                  <Label className="text-sm">
+                    Descripción de Orden Personalizada
+                  </Label>
+                  <Input
+                    value={personalized_order.custom_description}
+                    onChange={(e) => handleChange(e)}
+                    className="mt-1.5"
+                    name="custom_description"
+                    defaultValue=""
+                    textArea
+                  />
+                </div>
+                <div className="flex gap-5">
                   <div>
-                    <Label className="text-sm">
-                      Descripción de Orden Personalizada
-                    </Label>
+                    <Label className="text-sm">Cantidad</Label>
                     <Input
-                      value={po.custom_description}
-                      onChange={(e) => handleChange(e, index)}
+                      onChange={(e) => handleChange(e)}
                       className="mt-1.5"
-                      name="custom_description"
-                      defaultValue=""
-                      textArea
+                      name="quantiy"
+                      value={personalized_order.quantity}
                     />
                   </div>
-                  <div className="flex gap-5">
-                    <div>
-                      <Label className="text-sm">Cantidad</Label>
-                      <Input
-                        onChange={(e) => handleChange(e, index)}
-                        className="mt-1.5"
-                        name="quantiy"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm">Precio a Pagar</Label>
-                      <Input
-                        onChange={(e) => handleChange(e, index)}
-                        className="mt-1.5"
-                        name="price"
-                      />
-                    </div>
+                  <div>
+                    <Label className="text-sm">Precio a Pagar</Label>
+                    <Input
+                      onChange={(e) => handleChange(e)}
+                      className="mt-1.5"
+                      name="price"
+                      value={personalized_order.price}
+                    />
                   </div>
                 </div>
-              ))}
+                <UploadWidget
+                  onUpload={(error, result, widget) => {
+                    const img = result?.info?.secure_url;
+                    handleImageUpload(error, img, widget);
+                  }}
+                >
+                  {({ open }) => {
+                    function handleOnClick(e) {
+                      e.preventDefault();
+                      open();
+                    }
+                    return (
+                      <Button
+                        type="button"
+                        className="mt-2"
+                        onClick={handleOnClick}
+                      >
+                        Agregar Imagen
+                      </Button>
+                    );
+                  }}
+                </UploadWidget>
+                <div>
+                  {personalized_order.images.map(image =>(<img src={image}/>))}
+                  
+                </div>
+              </div>
 
               <div className="mt-4 flex justify-between py-2.5">
                 <span>Subtotal</span>
