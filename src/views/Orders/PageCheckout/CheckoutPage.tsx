@@ -61,19 +61,19 @@ const CheckoutPage = () => {
   }, []);
 
   useEffect(() => {
-    const ps = productsSelected?.reduce((acc, curr) => {
+    const ps = (productsSelected?.reduce((acc, curr) => {
       // For each product, multiply its price by the quantity ordered
       const quantity =
         orderItems.find((oi) => oi.variation_id === curr.id)?.quantity || 0;
       return acc + curr.price * quantity;
-    }, 0);
+    }, 0) || 0) + (+personalizedOrder.price);
 
     setOrder({
       subtotal: ps,
-      shipping: delivery.shipping_cost,
-      total: ps + delivery.shipping_cost,
+      shipping: (+delivery.shipping_cost),
+      total: ps + (+delivery.shipping_cost),
     });
-  }, [personalizedOrder.quantity, productsSelected, delivery.shipping_cost, orderItems]);
+  }, [personalizedOrder.quantity, personalizedOrder.price,productsSelected, delivery.shipping_cost, orderItems]);
   // State for form fields
   const [formData, setFormData] = useState({
     name: "",
@@ -500,7 +500,7 @@ const CheckoutPage = () => {
                   {/* Tomar lo precios teniendo en cuenta los personzalizados,
                    el boton normal de la pagina del catalogo de los esos */}
                   {/* Calculate the total price of all selected products */}
-                  {order.subtotal + (+delivery?.shipping_cost || 0)}
+                  {order.total}
                 </span>
               </div>
             </div>
