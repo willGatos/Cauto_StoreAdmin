@@ -49,8 +49,8 @@ const ShippingAddress: FC<Props> = ({
     });
   }, []);
   const handleChangeDeliver = (e) => {
-    const {name, value} = e.target
-    console.log(delivery)
+    const { name, value } = e.target;
+    console.log(delivery);
     setFormSubmit((prev) => ({ ...prev, [name]: value }));
   };
   const handleChange = (e) => {
@@ -130,9 +130,6 @@ const ShippingAddress: FC<Props> = ({
                 />
               </svg>
             </h3>
-            <div className="font-semibold mt-1 text-sm">
-              <span className="">DIRECCION</span>
-            </div>
           </div>
           <ButtonSecondary
             className="bg-slate-50 dark:bg-slate-800 mt-5 sm:mt-0 sm:ml-auto !rounded-lgpy-2 px-4 text-sm font-medium"

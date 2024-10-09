@@ -37,6 +37,12 @@ const CheckoutPage = () => {
     quantity: 0,
   });
 
+  const [order, setOrder] = useState({
+    subtotal: 0,
+    shipping: 0,
+    total: 0,
+  });
+
   const [delivery, setDelivery] = useState({
     municipality: "",
     province: "",
@@ -53,6 +59,21 @@ const CheckoutPage = () => {
     }));
     setOrderItems(newOrderItems);
   }, []);
+
+  useEffect(() => {
+    const ps = productsSelected?.reduce((acc, curr) => {
+      // For each product, multiply its price by the quantity ordered
+      const quantity =
+        orderItems.find((oi) => oi.variation_id === curr.id)?.quantity || 0;
+      return acc + curr.price * quantity;
+    }, 0);
+
+    setOrder({
+      subtotal: ps,
+      shipping: delivery.shipping_cost,
+      total: ps + delivery.shipping_cost,
+    });
+  }, [personalizedOrder.quantity, productsSelected, delivery.shipping_cost, orderItems]);
   // State for form fields
   const [formData, setFormData] = useState({
     name: "",
@@ -76,9 +97,6 @@ const CheckoutPage = () => {
     }
     setPersonalizedOrders((po) => ({ ...po, images: [...po.images, result] }));
   };
-  const subtotal = productsSelected.reduce((acc, curr) => acc + curr.price, 0);
-  // const taxAmount = subtotal * 0.24; // Assuming 24% tax rate
-  const totalPrice = subtotal; // + taxAmount;
 
   // TODO: HACER QUE SE CAMBIE EL TOTAL EN AUTOMATICO y agregar el campo de shipping
 
@@ -88,7 +106,6 @@ const CheckoutPage = () => {
       await supabase.from("locations").upsert({
         description: delivery.address,
         municipality_id: delivery.municipality,
-        amount_paid: subtotal / 2,
       });
       const client = await supabase
         .from("clients")
@@ -100,11 +117,12 @@ const CheckoutPage = () => {
         .from("orders")
         .upsert({
           status: 1,
-          total: totalPrice,
+          total: order.total,
           shop_id: shopId,
           client_id: client.data.id,
           seller_id: id,
           shipping_cost: delivery.shipping_cost,
+          amount_paid: order.total / 2,
         })
         .select("id")
         .single();
@@ -117,13 +135,15 @@ const CheckoutPage = () => {
       }));
 
       await supabase.from("order_items").upsert(oiArray);
-      await supabase.from("personalized_orders").upsert({
-        order_id: orderData.id,
-        custom_description: personalizedOrder.custom_description,
-        images: personalizedOrder.images,
-        price: personalizedOrder.price,
-        quantity: personalizedOrder.quantity,
-      });
+
+      hasPersonalizedOrder &&
+        (await supabase.from("personalized_orders").upsert({
+          order_id: orderData.id,
+          custom_description: personalizedOrder.custom_description,
+          images: personalizedOrder.images,
+          price: personalizedOrder.price,
+          quantity: personalizedOrder.quantity,
+        }));
     } else {
       handleError("Tienes un campo en CONTACTO sin llenar.");
     }
@@ -454,14 +474,14 @@ const CheckoutPage = () => {
               <div className="mt-4 flex justify-between py-2.5">
                 <span>Subtotal</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
-                  ${subtotal}
+                  ${order.subtotal}
                 </span>
               </div>
               {formData.hasDelivery && (
                 <div className="flex justify-between py-2.5">
                   <span>Costo de Mensajería</span>
                   <span className="font-semibold text-slate-900 dark:text-slate-200">
-                    {delivery.shipping_cost}
+                    {order.shipping}
                   </span>
                 </div>
               )}
@@ -475,18 +495,12 @@ const CheckoutPage = () => {
               }
               <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-200 text-base pt-4">
                 <span>Orden Total</span>
-                {/* Calculate the total price of all selected products */}
-
                 <span>
                   {" "}
+                  {/* Tomar lo precios teniendo en cuenta los personzalizados,
+                   el boton normal de la pagina del catalogo de los esos */}
                   {/* Calculate the total price of all selected products */}
-                  {productsSelected.reduce((acc, curr) => {
-                    // For each product, multiply its price by the quantity ordered
-                    const quantity =
-                      orderItems.find((oi) => oi.variation_id === curr.id)
-                        ?.quantity || 0;
-                    return acc + curr.price * quantity;
-                  }, 0) + (+delivery.shipping_cost)}
+                  {order.subtotal + (+delivery?.shipping_cost || 0)}
                 </span>
               </div>
             </div>

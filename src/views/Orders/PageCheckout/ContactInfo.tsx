@@ -83,10 +83,6 @@ const ContactInfo: FC<Props> = ({
                 />
               </svg>
             </h3>
-            <div className="font-semibold mt-1 text-sm">
-              <span className="">Will Smith</span>
-              <span className="ml-3 tracking-tighter">+535 - 841 - 9139</span>
-            </div>
           </div>
           <ButtonSecondary
             className="bg-slate-50 dark:bg-slate-800 mt-5 sm:mt-0 sm:ml-auto !rounded-lgtext-sm font-medium py-2 px-4"
