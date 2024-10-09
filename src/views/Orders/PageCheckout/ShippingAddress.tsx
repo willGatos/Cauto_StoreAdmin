@@ -48,8 +48,12 @@ const ShippingAddress: FC<Props> = ({
       setDelieveyData(data[0]);
     });
   }, []);
+  const handleChangeDeliver = (e) => {
+    const {name, value} = e.target
+    console.log(delivery)
+    setFormSubmit((prev) => ({ ...prev, [name]: value }));
+  };
   const handleChange = (e) => {
-    console.log(e);
     setFormSubmit((prev) => ({ ...prev, municipality: e.value }));
   };
   const handleChangePro = (e) => {
@@ -175,7 +179,9 @@ const ShippingAddress: FC<Props> = ({
             <Input
               textArea
               className="mt-1.5"
-              defaultValue="Calles: <br/>Referencias: "
+              name="address"
+              value={delivery.address}
+              onChange={handleChangeDeliver}
             />
           </div>
 
@@ -183,6 +189,15 @@ const ShippingAddress: FC<Props> = ({
             <p dangerouslySetInnerHTML={{ __html: delieveyData.description }} />
           </div>
 
+          <div>
+            <Label className="text-sm">Costo de Mensajería</Label>
+            <Input
+              className="mt-1.5"
+              name="shipping_cost"
+              value={delivery.shipping_cost}
+              onChange={handleChangeDeliver}
+            />
+          </div>
           {/* ============ */}
           <div className="flex flex-col sm:flex-row pt-6">
             <ButtonPrimary

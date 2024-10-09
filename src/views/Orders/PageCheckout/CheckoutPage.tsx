@@ -41,7 +41,7 @@ const CheckoutPage = () => {
     municipality: "",
     province: "",
     address: "",
-    price: 0,
+    shipping_cost: 0,
   });
   const { productsSelected } = useAppSelector((state) => state.products);
   useEffect(() => {
@@ -81,7 +81,6 @@ const CheckoutPage = () => {
   const totalPrice = subtotal; // + taxAmount;
 
   // TODO: HACER QUE SE CAMBIE EL TOTAL EN AUTOMATICO y agregar el campo de shipping
-  // TODO: hacer que analice la cantidad, y las variaciones, en base a eso hacer
 
   const onSubmit = async () => {
     const { name, lastName, phone, email } = formData;
@@ -89,7 +88,6 @@ const CheckoutPage = () => {
       await supabase.from("locations").upsert({
         description: delivery.address,
         municipality_id: delivery.municipality,
-        shipping_cost: 0,
         amount_paid: subtotal / 2,
       });
       const client = await supabase
@@ -106,11 +104,10 @@ const CheckoutPage = () => {
           shop_id: shopId,
           client_id: client.data.id,
           seller_id: id,
+          shipping_cost: delivery.shipping_cost,
         })
         .select("id")
         .single();
-      //TODO: Hacerlo como un Array
-      //
       const oiArray = orderItems.map(async (oi) => ({
         order_id: orderData.id,
         variation_id: oi.variation_id,
@@ -159,7 +156,6 @@ const CheckoutPage = () => {
             alt={name}
             className="h-full w-full object-contain object-center"
           />
-          <Link to="/product-detail" className="absolute inset-0"></Link>
         </div>
 
         <div className="ml-3 sm:ml-6 flex flex-1 flex-col">
