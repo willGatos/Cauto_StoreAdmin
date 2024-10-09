@@ -457,12 +457,14 @@ const CheckoutPage = () => {
                   ${subtotal}
                 </span>
               </div>
-              <div className="flex justify-between py-2.5">
-                <span>Costo de Mensajería</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-200">
-                  $5.00
-                </span>
-              </div>
+              {formData.hasDelivery && (
+                <div className="flex justify-between py-2.5">
+                  <span>Costo de Mensajería</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-200">
+                    {delivery.shipping_cost}
+                  </span>
+                </div>
+              )}
               {
                 // <div className="flex justify-between py-2.5">
                 //   <span>Impuestos Estimados</span>
