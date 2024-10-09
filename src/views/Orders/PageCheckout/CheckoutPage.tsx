@@ -475,7 +475,19 @@ const CheckoutPage = () => {
               }
               <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-200 text-base pt-4">
                 <span>Orden Total</span>
-                <span>$276.00</span>
+                {/* Calculate the total price of all selected products */}
+
+                <span>
+                  {" "}
+                  {/* Calculate the total price of all selected products */}
+                  {productsSelected.reduce((acc, curr) => {
+                    // For each product, multiply its price by the quantity ordered
+                    const quantity =
+                      orderItems.find((oi) => oi.variation_id === curr.id)
+                        ?.quantity || 0;
+                    return acc + curr.price * quantity;
+                  }, 0) + (+delivery.shipping_cost)}
+                </span>
               </div>
             </div>
             <Button
