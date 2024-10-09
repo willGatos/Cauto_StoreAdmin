@@ -8,6 +8,10 @@ import { apiGetDelievery, apiPostDelievery } from "@/services/SalesService";
 import supabase from "@/services/Supabase/BaseClient";
 import { useAppSelector } from "@/store";
 
+export const getDelivery = (shopId) => {
+  return supabase.from("delivery_cost").select("*").eq("shop_id", shopId);
+};
+
 const DelieveryWrapper = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [delieveyData, setDelieveyData] = useState({
@@ -28,7 +32,7 @@ const DelieveryWrapper = () => {
       success = await supabase
         .from("delivery_cost")
         .update({ description, shop_id, created_at })
-        .eq('id' , id)
+        .eq("id", id)
         .select("*");
     } else {
       success = await supabase.from("delivery_cost").upsert(values);
@@ -56,14 +60,10 @@ const DelieveryWrapper = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    supabase
-      .from("delivery_cost")
-      .select("*")
-      .eq("shop_id", shopId)
-      .then(({ data }) => {
-        console.log(data[0]);
-        setDelieveyData(data[0]);
-      });
+    getDelivery(shopId).then(({ data }) => {
+      console.log(data[0]);
+      setDelieveyData(data[0]);
+    });
     setIsLoading(false);
     // fetchData()
   }, []);

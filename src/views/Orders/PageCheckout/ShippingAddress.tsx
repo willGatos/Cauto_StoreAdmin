@@ -1,23 +1,66 @@
 import Label from "@/components/ui/Label";
-import React, { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 import ButtonPrimary from "@/components/ui/Button";
 import ButtonSecondary from "@/components/ui/Button";
 import Input from "@/components/ui/Input/Input";
 import Radio from "@/components/ui/Radio/Radio";
 import Select from "@/components/ui/Select/Select";
-
+import { getDelivery } from "../Delievery/DeliveryWrapper";
+import { useAppSelector } from "@/store";
+import supabase from "@/services/Supabase/BaseClient";
+import HandleFeedback from "@/components/ui/FeedBack";
 interface Props {
   isActive: boolean;
   onCloseActive: () => void;
   onOpenActive: () => void;
+  delivery;
+  formData;
+  setFormSubmit;
 }
-
+const getProvinces = () => {
+  return supabase.from("provinces").select("*, municipalities('*')");
+};
+const getMunicipality = () => {
+  return supabase.from("municipalities").select("*").eq("province_id", 1);
+};
 const ShippingAddress: FC<Props> = ({
   isActive,
   onCloseActive,
   onOpenActive,
+  delivery,
+  formData,
+  setFormSubmit,
 }) => {
+  const { shopId } = useAppSelector((state) => state.auth.user);
+  const [delieveyData, setDelieveyData] = useState({
+    id: null,
+    description: "",
+    shop_id: 0,
+    created_at: Date.now(),
+  });
+  const [municipality, setMunicipality] = useState([]);
+  const [province, setProvince] = useState([]);
+  useEffect(() => {
+    // getProvinces().then(console.log)
+    getMunicipality().then(({ data }) => setMunicipality(data));
+    getDelivery(shopId).then(({ data }) => {
+      console.log(data[0]);
+      setDelieveyData(data[0]);
+    });
+  }, []);
+  const handleChange = (e) => {
+    console.log(e);
+    setFormSubmit((prev) => ({ ...prev, municipality: e.value }));
+  };
+  const handleChangePro = (e) => {
+    console.log(e);
+    setFormSubmit((prev) => ({ ...prev, province: e.value }));
+  };
+  //  onChange = { handleCategoryChange };
+
   const renderShippingAddress = () => {
+    const { handleError } = HandleFeedback();
+
     return (
       <div className="border border-slate-200 dark:border-slate-700 rounded-xl ">
         <div className="p-6 flex flex-col sm:flex-row items-start">
@@ -84,14 +127,16 @@ const ShippingAddress: FC<Props> = ({
               </svg>
             </h3>
             <div className="font-semibold mt-1 text-sm">
-              <span className="">
-                DIRECCION
-              </span>
+              <span className="">DIRECCION</span>
             </div>
           </div>
           <ButtonSecondary
             className="bg-slate-50 dark:bg-slate-800 mt-5 sm:mt-0 sm:ml-auto !rounded-lgpy-2 px-4 text-sm font-medium"
-            onClick={onOpenActive}
+            onClick={() => {
+              formData.hasDelivery && onOpenActive();
+              !formData.hasDelivery &&
+                handleError("Si desea Mensajería debe habilitarla.");
+            }}
           >
             Cambiar
           </ButtonSecondary>
@@ -105,42 +150,46 @@ const ShippingAddress: FC<Props> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
             <div>
               <Label className="text-sm">Provincia</Label>
-              <Select className="mt-1.5" defaultValue="United States ">
-                <option value="United States">United States</option>
-                <option value="United States">Canada</option>
-                <option value="United States">Mexico</option>
-                <option value="United States">Israel</option>
-                <option value="United States">France</option>
-                <option value="United States">England</option>
-                <option value="United States">Laos</option>
-                <option value="United States">China</option>
-              </Select>
+              <Select
+                options={[{ value: 1, label: "La Habana" }]}
+                className="mt-1.5"
+                value={province.find((prov) => prov.id === delivery.province)}
+                onChange={handleChangePro}
+              />
             </div>
             <div>
               <Label className="text-sm">Municipio</Label>
-              <Select className="mt-1.5" defaultValue="United States ">
-                <option value="United States">United States</option>
-                <option value="United States">Canada</option>
-                <option value="United States">Mexico</option>
-                <option value="United States">Israel</option>
-                <option value="United States">France</option>
-                <option value="United States">England</option>
-                <option value="United States">Laos</option>
-                <option value="United States">China</option>
-              </Select>
+              <Select
+                options={municipality.map(({ id, name }) => ({
+                  value: id,
+                  label: name,
+                }))}
+                onChange={handleChange}
+                className="mt-1.5"
+              />
             </div>
           </div>
 
           <div>
             <Label className="text-sm">Dirección</Label>
-            <Input textArea className="mt-1.5" defaultValue="Calles: <br/>Referencias: " />
+            <Input
+              textArea
+              className="mt-1.5"
+              defaultValue="Calles: <br/>Referencias: "
+            />
+          </div>
+
+          <div>
+            <p dangerouslySetInnerHTML={{ __html: delieveyData.description }} />
           </div>
 
           {/* ============ */}
           <div className="flex flex-col sm:flex-row pt-6">
             <ButtonPrimary
               className="sm:!px-7 shadow-none"
-              onClick={onCloseActive}
+              onClick={() => {
+                onCloseActive();
+              }}
             >
               Guardar
             </ButtonPrimary>

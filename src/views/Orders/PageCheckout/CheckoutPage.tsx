@@ -4,10 +4,11 @@ import Button from "@/components/ui/Button";
 import Label from "@/components/ui/Label";
 import Prices from "@/components/ui/Prices";
 import { useAppSelector } from "@/store";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ContactInfo from "./ContactInfo";
 import ShippingAddress from "./ShippingAddress";
+import HandleFeedback from "@/components/ui/FeedBack";
 
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
@@ -21,10 +22,12 @@ const CheckoutPage = () => {
     email: "",
     hasDelivery: false,
   });
+
   const [delivery, setDelivery] = useState({
     municipality: "",
     province: "",
     address: "",
+    price: 0,
   });
   const { productsSelected } = useAppSelector((state) => state.products);
   // State for form fields
@@ -33,7 +36,6 @@ const CheckoutPage = () => {
     email: "",
     message: "",
   });
-  console.log(productsSelected);
   const handleScrollToEl = (id: string) => {
     const element = document.getElementById(id);
     setTimeout(() => {
@@ -206,11 +208,12 @@ const CheckoutPage = () => {
               handleScrollToEl("ContactInfo");
             }}
             onCloseActive={() => {
-              setTabActive("ShippingAddress");
+              formSubmit.hasDelivery && setTabActive("ShippingAddress");
+
               handleScrollToEl("ShippingAddress");
             }}
-            formSubmit={formSubmit}
-            setFormSubmit={setFormSubmit}
+            formSubmit={formData}
+            setFormSubmit={setFormData}
           />
         </div>
 
@@ -218,12 +221,15 @@ const CheckoutPage = () => {
           <ShippingAddress
             isActive={tabActive === "ShippingAddress"}
             onOpenActive={() => {
-              setTabActive("ShippingAddress");
-              handleScrollToEl("ShippingAddress");
+              setTabActive("ShippingAddress")
+              handleScrollToEl("ShippingAddress")
             }}
             onCloseActive={() => {
               setTabActive("ShippingAddress");
             }}
+            formData= {formData}
+            delivery={delivery}
+            setFormSubmit={setDelivery}
           />
         </div>
 

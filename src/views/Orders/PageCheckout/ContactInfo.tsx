@@ -26,8 +26,9 @@ const ContactInfo: FC<Props> = ({
   };
 
   const onCheck = (value: boolean, e) => {
-    console.log(value, e);
-    setFormSubmit((prev) => ({ ...prev, hasDelivery: e.target.value }));
+    console.log(value, e, formSubmit);
+
+    setFormSubmit((prev) => ({ ...prev, hasDelivery: value}));
   };
   const renderAccount = () => {
     return (
@@ -91,7 +92,7 @@ const ContactInfo: FC<Props> = ({
             className="bg-slate-50 dark:bg-slate-800 mt-5 sm:mt-0 sm:ml-auto !rounded-lgtext-sm font-medium py-2 px-4"
             onClick={() => onOpenActive()}
           >
-            Change
+            Cambiar
           </ButtonSecondary>
         </div>
         <div
@@ -152,7 +153,6 @@ const ContactInfo: FC<Props> = ({
               onChange={onCheck}
               className="!text-sm"
               name="hasDelivery"
-              defaultChecked
             />
             <Label className="text-sm">Desea Mensajería</Label>
           </div>
@@ -164,7 +164,7 @@ const ContactInfo: FC<Props> = ({
               onClick={() => onCloseActive()}
             >
               Guardar
-              {" " + formSubmit.hasDelivery ? "y seguir a Mensajería" : ""}
+              { formSubmit.hasDelivery ? " y seguir a Mensajería" : ""}
             </ButtonPrimary>
             <ButtonSecondary
               className="mt-3 sm:mt-0 sm:ml-3"
