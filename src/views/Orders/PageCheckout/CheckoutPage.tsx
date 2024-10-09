@@ -10,7 +10,7 @@ import ContactInfo from "./ContactInfo";
 import ShippingAddress from "./ShippingAddress";
 import HandleFeedback from "@/components/ui/FeedBack";
 import supabase from "@/services/Supabase/BaseClient";
-import { Input } from "@/components/ui";
+import { Checkbox, Input } from "@/components/ui";
 import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
 
 const CheckoutPage = () => {
@@ -34,7 +34,7 @@ const CheckoutPage = () => {
     custom_description: 0,
     images: [],
     price: 0,
-    quantity : 0,
+    quantity: 0,
   });
 
   const [delivery, setDelivery] = useState({
@@ -68,22 +68,18 @@ const CheckoutPage = () => {
     }, 80);
   };
   const handleImageUpload = async (error, result, widget) => {
-    console.log("VIDEO");
-    console.log(result, error);
-
     if (error) {
       widget.close({
         quiet: true,
       });
       return;
     }
-    setPersonalizedOrders((po) => ({...po, images: [...po.images, result]}));
+    setPersonalizedOrders((po) => ({ ...po, images: [...po.images, result] }));
   };
   const subtotal = productsSelected.reduce((acc, curr) => acc + curr.price, 0);
   // const taxAmount = subtotal * 0.24; // Assuming 24% tax rate
   const totalPrice = subtotal; // + taxAmount;
   // TODO: HACER QUE SE CAMBIE EL TOTAL EN AUTOMATICO y agregar el campo de shipping
-  // TODO: Descripcion y IMG, crear los campos al final de los productos.
 
   const onSubmit = async () => {
     const { name, lastName, phone, email } = formData;
@@ -128,9 +124,7 @@ const CheckoutPage = () => {
     }
   };
 
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setPersonalizedOrders((prevOrders) => ({ ...prevOrders, [name]: value }));
   };
@@ -379,67 +373,79 @@ const CheckoutPage = () => {
             </div>
 
             <div className="mt-10 pt-6 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200/70 dark:border-slate-700 ">
-              <div>
-                <div>
-                  <Label className="text-sm">
-                    Descripción de Orden Personalizada
-                  </Label>
-                  <Input
-                    value={personalized_order.custom_description}
-                    onChange={(e) => handleChange(e)}
-                    className="mt-1.5"
-                    name="custom_description"
-                    defaultValue=""
-                    textArea
-                  />
-                </div>
-                <div className="flex gap-5">
-                  <div>
-                    <Label className="text-sm">Cantidad</Label>
-                    <Input
-                      onChange={(e) => handleChange(e)}
-                      className="mt-1.5"
-                      name="quantiy"
-                      value={personalized_order.quantity}
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm">Precio a Pagar</Label>
-                    <Input
-                      onChange={(e) => handleChange(e)}
-                      className="mt-1.5"
-                      name="price"
-                      value={personalized_order.price}
-                    />
-                  </div>
-                </div>
-                <UploadWidget
-                  onUpload={(error, result, widget) => {
-                    const img = result?.info?.secure_url;
-                    handleImageUpload(error, img, widget);
-                  }}
-                >
-                  {({ open }) => {
-                    function handleOnClick(e) {
-                      e.preventDefault();
-                      open();
-                    }
-                    return (
-                      <Button
-                        type="button"
-                        className="mt-2"
-                        onClick={handleOnClick}
-                      >
-                        Agregar Imagen
-                      </Button>
-                    );
-                  }}
-                </UploadWidget>
-                <div>
-                  {personalized_order.images.map(image =>(<img src={image}/>))}
-                  
-                </div>
+              <div className="flex justify-center text-center mb-5">
+                <Checkbox
+                  checked={hasPersonalizedOrder}
+                  onChange={(value: boolean) => setHasPersonalizedOrder(value)}
+                  className="!text-sm"
+                  name="hasDelivery"
+                />
+                <Label className="text-sm">Agregar Orden Personalizada</Label>
               </div>
+              {hasPersonalizedOrder && (
+                <div>
+                  <div>
+                    <Label className="text-sm">
+                      Descripción de Orden Personalizada
+                    </Label>
+                    <Input
+                      value={personalized_order.custom_description}
+                      onChange={(e) => handleChange(e)}
+                      className="mt-1.5"
+                      name="custom_description"
+                      defaultValue=""
+                      textArea
+                    />
+                  </div>
+                  <div className="flex gap-5">
+                    <div>
+                      <Label className="text-sm">Cantidad</Label>
+                      <Input
+                        onChange={(e) => handleChange(e)}
+                        className="mt-1.5"
+                        name="quantiy"
+                        value={personalized_order.quantity}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Precio a Pagar</Label>
+                      <Input
+                        onChange={(e) => handleChange(e)}
+                        className="mt-1.5"
+                        name="price"
+                        value={personalized_order.price}
+                      />
+                    </div>
+                  </div>
+                  <UploadWidget
+                    onUpload={(error, result, widget) => {
+                      const img = result?.info?.secure_url;
+                      handleImageUpload(error, img, widget);
+                    }}
+                  >
+                    {({ open }) => {
+                      function handleOnClick(e) {
+                        e.preventDefault();
+                        open();
+                      }
+                      return (
+                        <Button
+                          type="button"
+                          className="mt-2"
+                          onClick={handleOnClick}
+                        >
+                          Agregar Imagen
+                        </Button>
+                      );
+                    }}
+                  </UploadWidget>
+                  <div>
+                    {personalized_order.images.map((image) => (
+                      <img src={image} />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-4 flex justify-between py-2.5">
                 <span>Subtotal</span>
