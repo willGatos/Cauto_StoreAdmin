@@ -9,12 +9,30 @@ import supabase from "@/services/Supabase/BaseClient";
 import { useAppSelector } from "@/store";
 
 const DelieveryWrapper = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [delieveyData, setDelieveyData] = useState({ description: "" });
+  const [isLoading, setIsLoading] = useState(true);
+  const [delieveyData, setDelieveyData] = useState({
+    id: null,
+    description: "",
+    shop_id: 0,
+    created_at: Date.now(),
+  });
   const { shopId } = useAppSelector((state) => state.auth.user);
-  const handleFormSubmit = async (values: string) => {
-    console.log("SUBMIUT", values, shopId)
-    const success = await supabase.from("delivery_cost").upsert(values);
+  const handleFormSubmit = async (values) => {
+    values.shop_id = shopId;
+    let success = null;
+
+    if (values.id) {
+      const id = values.id;
+      const { description, shop_id, created_at } = delieveyData;
+
+      success = await supabase
+        .from("delivery_cost")
+        .update({ description, shop_id, created_at })
+        .eq('id' , id)
+        .select("*");
+    } else {
+      success = await supabase.from("delivery_cost").upsert(values);
+    }
     if (success) {
       popNotification("Guardada");
     }
@@ -37,25 +55,31 @@ const DelieveryWrapper = () => {
   };
 
   useEffect(() => {
-    setIsLoading(false);
+    setIsLoading(true);
     supabase
       .from("delivery_cost")
-      .select("description")
+      .select("*")
       .eq("shop_id", shopId)
-      .then(({ data }) => setDelieveyData(data[0]));
+      .then(({ data }) => {
+        console.log(data[0]);
+        setDelieveyData(data[0]);
+      });
+    setIsLoading(false);
     // fetchData()
   }, []);
 
   return (
     <>
       <Loading loading={isLoading}>
-        <>
-          <DelieveryForm
-            type="edit"
-            initialData={delieveyData}
-            onFormSubmit={handleFormSubmit}
-          />
-        </>
+        {!isEmpty(delieveyData.description) && (
+          <>
+            <DelieveryForm
+              type="edit"
+              initialData={delieveyData}
+              onFormSubmit={handleFormSubmit}
+            />
+          </>
+        )}
       </Loading>
     </>
   );
