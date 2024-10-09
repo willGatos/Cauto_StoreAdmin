@@ -28,6 +28,14 @@ const CheckoutPage = () => {
     },
   ]);
 
+  const [personalized_order, setPersonalizedOrders] = useState([
+    {
+      order_id: 0,
+      custom_description: 0,
+      images: [],
+    },
+  ]);
+
   const [delivery, setDelivery] = useState({
     municipality: "",
     province: "",
@@ -66,7 +74,6 @@ const CheckoutPage = () => {
 
   const onSubmit = async () => {
     const { name, lastName, phone, email } = formData;
-    console.log("first", name, lastName, phone, email);
     if (name && lastName && phone && email) {
       await supabase.from("locations").upsert({
         description: delivery.address,
@@ -107,6 +114,21 @@ const CheckoutPage = () => {
       handleError("Tienes un campo en CONTACTO sin llenar.");
     }
   };
+
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const { name, value } = event.target;
+    setPersonalizedOrders((prevOrders) =>
+      prevOrders.map((order, i) => {
+        if (i === index) {
+          return { ...order, [name]: value };
+        }
+        return order;
+      })
+    );
+  };
   const renderProduct = (item: ProductVariation, index: number) => {
     const { pictures, price, name } = item;
     const equalOnOrderItems = orderItems.find(
@@ -120,8 +142,8 @@ const CheckoutPage = () => {
             : item
         )
       );
-      console.log(orderItems)
     };
+
     return (
       <div key={index} className="relative flex py-7 first:pt-0 last:pb-0">
         <div className="relative h-36 w-24 sm:w-28 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
@@ -352,32 +374,42 @@ const CheckoutPage = () => {
             </div>
 
             <div className="mt-10 pt-6 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200/70 dark:border-slate-700 ">
-              {/* <div>
-                <Label className="text-sm">Código de Descuento</Label>
-                <div className="flex mt-1.5">
-                  <Input className="flex-1 h-10 px-4 py-3" />
-                  <button className="text-neutral-700 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 rounded-2xl px-4 ml-3 font-medium text-sm bg-neutral-200/70 dark:bg-neutral-700 dark:hover:bg-neutral-800 w-24 flex justify-center items-center transition-colors">
-                    Aplicar
-                  </button>
+              {personalized_order.map((po, index) => (
+                <div>
+                  <div>
+                    <Label className="text-sm">
+                      Descripción de Orden Personalizada
+                    </Label>
+                    <Input
+                      value={po.custom_description}
+                      onChange={(e) => handleChange(e, index)}
+                      className="mt-1.5"
+                      name="custom_description"
+                      defaultValue=""
+                      textArea
+                    />
+                  </div>
+                  <div className="flex gap-5">
+                    <div>
+                      <Label className="text-sm">Cantidad</Label>
+                      <Input
+                        onChange={(e) => handleChange(e, index)}
+                        className="mt-1.5"
+                        name="quantiy"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Precio a Pagar</Label>
+                      <Input
+                        onChange={(e) => handleChange(e, index)}
+                        className="mt-1.5"
+                        name="price"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div> */}
+              ))}
 
-              <div>
-                <Label className="text-sm">
-                  Descripción de Orden Personalizada
-                </Label>
-                <Input textArea className="mt-1.5" defaultValue="" />
-              </div>
-              <div className="flex gap-5">
-                <div>
-                  <Label className="text-sm">Cantidad</Label>
-                  <Input className="mt-1.5" />
-                </div>
-                <div>
-                  <Label className="text-sm">Precio a Pagar</Label>
-                  <Input className="mt-1.5" />
-                </div>
-              </div>
               <div className="mt-4 flex justify-between py-2.5">
                 <span>Subtotal</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-200">
