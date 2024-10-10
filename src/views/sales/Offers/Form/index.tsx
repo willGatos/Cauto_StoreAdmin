@@ -17,6 +17,7 @@ interface ProductVariation {
   id: number;
   name: string;
   offer_price: number;
+  price: number;
 }
 
 interface Currency {
@@ -59,7 +60,7 @@ export default function OfferForm() {
   const [offer, setOffer] = useState<Offer>({
     name: "",
     description: "",
-    long_description: '',
+    long_description: "",
     general_offer_price: 0,
     startDate: "",
     endDate: "",
@@ -90,7 +91,8 @@ export default function OfferForm() {
         name,
         variations:product_variations (
           id,
-          name
+          name,
+          price
         )
       `);
     if (error) {
@@ -170,7 +172,10 @@ export default function OfferForm() {
     setExpandedProducts((prev) => ({ ...prev, [productId]: !prev[productId] }));
   };
 
-  const handleProductSelection = (productId: number, isChecked: boolean) => {
+  const handleProductSelection = async (
+    productId: number,
+    isChecked: boolean
+  ) => {
     setSelectedProducts((prev) => ({ ...prev, [productId]: isChecked }));
     if (isChecked) {
       setOffer((prev) => ({
@@ -185,33 +190,30 @@ export default function OfferForm() {
     }
   };
 
-  const handleVariationPriceChange = (
+  const [selectedVariations, setSelectedVariations] = useState({});
+  const [offersVariations, setOffersVariations] = useState([]);
+  const handleVariationSelection = async (
     productId: number,
     variationId: number,
-    price: string,
-    currencyId: any
+    isChecked: boolean
   ) => {
-    setOffer((prev) => {
-      const dat = {
+    setSelectedVariations((prev) => ({ ...prev, [variationId]: isChecked }));
+    console.log(selectedVariations, offersVariations);
+    if (isChecked) {
+      setOffersVariations((prev) => [
         ...prev,
-        products: prev.products.map((p) =>
-          p.productId === productId
-            ? {
-                ...p,
-                variations: [
-                  {
-                    variationId,
-                    offer_price: parseFloat(price) || 0,
-                    currencyId: parseFloat(currencyId),
-                  },
-                  ...p.variations.filter((v) => v.variationId !== variationId),
-                ],
-              }
-            : p
-        ),
-      };
-      return dat;
-    });
+        {
+          variationId,
+          offer_price: 0,
+          currencyId: 1,
+          required_quantity: 0,
+        },
+      ]);
+    } else {
+      setOffersVariations((prev) =>
+        prev.filter((v) => v.variationId !== variationId)
+      );
+    }
   };
 
   const getPriceRange = (productId: number) => {
@@ -227,13 +229,23 @@ export default function OfferForm() {
     const minPrice = Math.min(...pricesInCUP);
     const maxPrice = Math.max(...pricesInCUP);
 
-    setOffer((prev) => ({ ...prev, general_offer_price: minPrice }))
+    setOffer((prev) => ({ ...prev, general_offer_price: minPrice }));
     if (minPrice === maxPrice) {
       return `${maxPrice.toFixed(2)} CUP`;
     }
     return `${maxPrice.toFixed(2)} - ${minPrice.toFixed(2)} CUP`;
   };
 
+  const handleUpdate = (variationId: number, target) => {
+    console.log(offersVariations, { [target.name]: target.value });
+    setOffersVariations((prev) =>
+      prev.map((v) => {
+        return v.variationId === variationId
+          ? { ...v, [target.name]: parseFloat(target.value) || 0 }
+          : v;
+      })
+    );
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -547,8 +559,24 @@ export default function OfferForm() {
                             <th
                               scope="col"
                               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            />
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Seleccionar
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                             >
                               Variación
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Precio de Variación{" "}
                             </th>
                             <th
                               scope="col"
@@ -560,70 +588,94 @@ export default function OfferForm() {
                               scope="col"
                               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                             >
+                              Cantidad Límite a Comprar
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
                               Moneda
                             </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {product.variations.map((variation, key) => (
-                            <tr key={variation.id}>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                {variation.name}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <input
-                                  type="number"
-                                  //value={offer.products[pkey].variations[key].offer_price || 0}
-                                  disabled={!selectedProducts[product.id]}
-                                  onChange={(e) => {
-                                    handleVariationPriceChange(
-                                      product.id,
-                                      variation.id,
-                                      e.target.value,
-                                      currency.find((curren) => {
-                                        const currencyF = offer.products[
-                                          pkey
-                                        ].variations.find(
-                                          (vars) => (vars.id = variation.id)
-                                        ).currencyId;
-                                        if (currencyF)
-                                          return currencyF == curren.id;
-                                        else {
-                                          return curren.id == 5;
-                                        }
-                                      }).id
-                                    );
-                                  }}
-                                  className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                />
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <select
-                                  disabled={!selectedProducts[product.id]}
-                                  //value={offer.products[pkey].variations[key].currencyId}
-                                  onChange={(e) => {
-                                    console.log("vas", e.target.value);
-                                    handleVariationPriceChange(
-                                      product.id,
-                                      variation.id,
-                                      "0",
-                                      e.target.value
-                                    );
-                                  }}
-                                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                >
-                                  {currency.map((currency) => (
-                                    <option
-                                      key={currency.id}
-                                      value={currency.id}
-                                    >
-                                      {currency.name}
-                                    </option>
-                                  ))}
-                                </select>
-                              </td>
-                            </tr>
-                          ))}
+                          {product.variations.map((variation, key) => {
+                            const ov = offersVariations.find(
+                              (ov) => ov.variationId == variation.id
+                            );
+                            return (
+                              <tr key={variation.id}>
+                                <td className="px-6 py-4 whitespace-nowrap"/>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <input
+                                    type="checkbox"
+                                    checked={
+                                      selectedVariations[variation.id] || false
+                                    }
+                                    onChange={(e) =>
+                                      handleVariationSelection(
+                                        product.id,
+                                        variation.id,
+                                        e.target.checked
+                                      )
+                                    }
+                                    className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                  />
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {variation.name}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {variation.price}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <input
+                                    type="number"
+                                    disabled={!selectedVariations[variation.id]}
+                                    onChange={(e) =>
+                                      handleUpdate(variation.id, e.target)
+                                    }
+                                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                    value={ov?.offer_price}
+                                    name="offer_price"
+                                  />
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <input
+                                    type="number"
+                                    name="required_quantity"
+                                    disabled={!selectedVariations[variation.id]}
+                                    onChange={(e) =>
+                                      handleUpdate(variation.id, e.target)
+                                    }
+                                    value={ov?.required_quantity}
+                                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                  />
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <select
+                                    disabled={!selectedVariations[variation.id]}
+                                    //value={offer.products[pkey].variations[key].currencyId}
+                                    onChange={(e) =>
+                                      handleUpdate(variation.id, e.target)
+                                    }
+                                    value={ov?.currencyId}
+                                    name="currencyId"
+                                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                  >
+                                    {currency.map((currency) => (
+                                      <option
+                                        key={currency.id}
+                                        value={currency.id}
+                                      >
+                                        {currency.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </td>
