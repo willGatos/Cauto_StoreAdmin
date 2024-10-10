@@ -193,7 +193,6 @@ export default function OfferForm() {
   const [selectedVariations, setSelectedVariations] = useState({});
   const [offersVariations, setOffersVariations] = useState([]);
   const handleVariationSelection = async (
-    productId: number,
     variationId: number,
     isChecked: boolean
   ) => {
@@ -215,36 +214,36 @@ export default function OfferForm() {
       );
     }
   };
+  const calculateTotalOfferPrice = () => {
+    // Filter offersVariations to get only the selected variations
+    const selectedVariations2 = Object.keys(selectedVariations)
+      .filter((variationId) => selectedVariations[variationId])
+      .map(Number);
 
-  const getPriceRange = (productId: number) => {
-    const product = offer.products.find((p) => p.productId === productId);
-    if (!product || product.variations.length === 0) return "N/A";
+    const selectedOffersVariations = offersVariations.filter((v) =>
+      selectedVariations2.includes(v.variationId)
+    );
 
-    const pricesInCUP = product.variations.map((v) => {
-      const currencyMain = currency.find((c) => c.id === v.currencyId);
-      if (!currencyMain) return 0;
-      return v.offer_price * currencyMain.exchange_rate; // Convert to CUP
-    });
+    // Calculate the sum of offer prices
+    const totalOfferPrice = selectedOffersVariations.reduce((acc, current) => {
+      // For each selected variation, add its offer price to the accumulator
+      return acc + current.offer_price;
+    }, 0);
 
-    const minPrice = Math.min(...pricesInCUP);
-    const maxPrice = Math.max(...pricesInCUP);
-
-    setOffer((prev) => ({ ...prev, general_offer_price: minPrice }));
-    if (minPrice === maxPrice) {
-      return `${maxPrice.toFixed(2)} CUP`;
-    }
-    return `${maxPrice.toFixed(2)} - ${minPrice.toFixed(2)} CUP`;
+    // Return the total offer price
+    return totalOfferPrice;
   };
 
   const handleUpdate = (variationId: number, target) => {
     console.log(offersVariations, { [target.name]: target.value });
-    setOffersVariations((prev) =>
-      prev.map((v) => {
+    let price = null;
+    setOffersVariations((prev) => {
+      return prev.map((v) => {
         return v.variationId === variationId
           ? { ...v, [target.name]: parseFloat(target.value) || 0 }
           : v;
-      })
-    );
+      });
+    });
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -506,12 +505,6 @@ export default function OfferForm() {
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Rango de precios (CUP)
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
                 Expandir
               </th>
             </tr>
@@ -533,9 +526,7 @@ export default function OfferForm() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {product.name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getPriceRange(product.id)}
-                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
                       type="button"
@@ -603,9 +594,13 @@ export default function OfferForm() {
                             const ov = offersVariations.find(
                               (ov) => ov.variationId == variation.id
                             );
+                            console.log(
+                              !selectedVariations[variation.id],
+                              !selectedProducts[product.id]
+                            );
                             return (
                               <tr key={variation.id}>
-                                <td className="px-6 py-4 whitespace-nowrap"/>
+                                <td className="px-6 py-4 whitespace-nowrap" />
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <input
                                     type="checkbox"
@@ -614,7 +609,6 @@ export default function OfferForm() {
                                     }
                                     onChange={(e) =>
                                       handleVariationSelection(
-                                        product.id,
                                         variation.id,
                                         e.target.checked
                                       )
@@ -631,7 +625,10 @@ export default function OfferForm() {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <input
                                     type="number"
-                                    disabled={!selectedVariations[variation.id]}
+                                    disabled={
+                                      !selectedVariations[variation.id] &&
+                                      !selectedProducts[product.id]
+                                    }
                                     onChange={(e) =>
                                       handleUpdate(variation.id, e.target)
                                     }
@@ -644,7 +641,10 @@ export default function OfferForm() {
                                   <input
                                     type="number"
                                     name="required_quantity"
-                                    disabled={!selectedVariations[variation.id]}
+                                    disabled={
+                                      !selectedVariations[variation.id] &&
+                                      !selectedProducts[product.id]
+                                    }
                                     onChange={(e) =>
                                       handleUpdate(variation.id, e.target)
                                     }
@@ -654,7 +654,10 @@ export default function OfferForm() {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <select
-                                    disabled={!selectedVariations[variation.id]}
+                                    disabled={
+                                      !selectedVariations[variation.id] &&
+                                      !selectedProducts[product.id]
+                                    }
                                     //value={offer.products[pkey].variations[key].currencyId}
                                     onChange={(e) =>
                                       handleUpdate(variation.id, e.target)
@@ -686,7 +689,16 @@ export default function OfferForm() {
           </tbody>
         </table>
       </div>
-
+      <Button
+        onClick={() =>
+          setOffer((prev) => ({ ...prev, general_offer_price: calculateTotalOfferPrice() }))
+        }
+      >
+        Ver Precio Final
+      </Button>
+      <div>
+        <p>{offer.general_offer_price}</p>
+      </div>
       <Button type="submit" disabled={loading}>
         {id ? "Actualizar Oferta" : "Crear Oferta"}
       </Button>
