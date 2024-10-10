@@ -459,6 +459,7 @@ const CheckoutPage = () => {
                         className="mt-1.5"
                         name="quantity"
                         value={personalizedOrder.quantity}
+                        type="number"
                       />
                     </div>
                     <div>
@@ -468,6 +469,7 @@ const CheckoutPage = () => {
                         className="mt-1.5"
                         name="price"
                         value={personalizedOrder.price}
+                        type="number"
                       />
                     </div>
                   </div>
@@ -525,13 +527,7 @@ const CheckoutPage = () => {
               }
               <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-200 text-base pt-4">
                 <span>Orden Total</span>
-                <span>
-                  {" "}
-                  {/* Tomar lo precios teniendo en cuenta los personzalizados,
-                   el boton normal de la pagina del catalogo de los esos */}
-                  {/* Calculate the total price of all selected products */}
-                  {order.total}
-                </span>
+                <span> {order.total}</span>
               </div>
             </div>
             <Button

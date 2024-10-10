@@ -193,6 +193,7 @@ const ShippingAddress: FC<Props> = ({
               name="shipping_cost"
               value={delivery.shipping_cost}
               onChange={handleChangeDeliver}
+              type="number"
             />
           </div>
           {/* ============ */}
