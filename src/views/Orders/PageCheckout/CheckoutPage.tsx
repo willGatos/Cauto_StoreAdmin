@@ -12,6 +12,7 @@ import HandleFeedback from "@/components/ui/FeedBack";
 import supabase from "@/services/Supabase/BaseClient";
 import { Checkbox, Input } from "@/components/ui";
 import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
+import { setProductsSelected, useAppDispatch } from "@/store";
 
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
@@ -61,19 +62,26 @@ const CheckoutPage = () => {
   }, []);
 
   useEffect(() => {
-    const ps = (productsSelected?.reduce((acc, curr) => {
-      // For each product, multiply its price by the quantity ordered
-      const quantity =
-        orderItems.find((oi) => oi.variation_id === curr.id)?.quantity || 0;
-      return acc + curr.price * quantity;
-    }, 0) || 0) + (+personalizedOrder.price);
+    const ps =
+      (productsSelected?.reduce((acc, curr) => {
+        // For each product, multiply its price by the quantity ordered
+        const quantity =
+          orderItems.find((oi) => oi.variation_id === curr.id)?.quantity || 0;
+        return acc + curr.price * quantity;
+      }, 0) || 0) + +personalizedOrder.price;
 
     setOrder({
       subtotal: ps,
-      shipping: (+delivery.shipping_cost),
-      total: ps + (+delivery.shipping_cost),
+      shipping: +delivery.shipping_cost,
+      total: ps + +delivery.shipping_cost,
     });
-  }, [personalizedOrder.quantity, personalizedOrder.price,productsSelected, delivery.shipping_cost, orderItems]);
+  }, [
+    personalizedOrder.quantity,
+    personalizedOrder.price,
+    productsSelected,
+    delivery.shipping_cost,
+    orderItems,
+  ]);
   // State for form fields
   const [formData, setFormData] = useState({
     name: "",
@@ -102,14 +110,16 @@ const CheckoutPage = () => {
 
   const onSubmit = async () => {
     const { name, lastName, phone, email } = formData;
+    const hasDel = formData.hasDelivery;
     if (name && lastName && phone && email) {
-      await supabase.from("locations").upsert({
-        description: delivery.address,
-        municipality_id: delivery.municipality,
-      });
+      hasDel &&
+        (await supabase.from("locations").upsert({
+          description: delivery.address,
+          municipality_id: delivery.municipality,
+        }));
       const client = await supabase
         .from("clients")
-        .upsert({ name, lastName, phone, email })
+        .upsert({ name, lastname: lastName, phone, email })
         .select("id")
         .single();
 
@@ -121,20 +131,21 @@ const CheckoutPage = () => {
           shop_id: shopId,
           client_id: client.data.id,
           seller_id: id,
-          shipping_cost: delivery.shipping_cost,
+          shipping_cost: hasDel ? delivery.shipping_cost : 0,
           amount_paid: order.total / 2,
         })
         .select("id")
         .single();
-      const oiArray = orderItems.map(async (oi) => ({
+      const oiArray = orderItems.map((oi) => ({
         order_id: orderData.id,
         variation_id: oi.variation_id,
-        client_id: client.data.id,
         price: oi.price,
         quantity: oi.quantity,
       }));
 
-      await supabase.from("order_items").upsert(oiArray);
+      console.log(oiArray);
+
+      await supabase.from("order_items").insert(oiArray);
 
       hasPersonalizedOrder &&
         (await supabase.from("personalized_orders").upsert({
@@ -148,6 +159,7 @@ const CheckoutPage = () => {
       handleError("Tienes un campo en CONTACTO sin llenar.");
     }
   };
+  const dispatch = useAppDispatch();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -319,7 +331,20 @@ const CheckoutPage = () => {
               href="##"
               className="relative z-10 flex items-center mt-3 font-medium text-primary-6000 hover:text-primary-500 text-sm "
             >
-              <span>Remover</span>
+              <span
+                onClick={() => {
+                  dispatch(
+                    setProductsSelected({
+                      ...productsSelected,
+                      productsSelected: productsSelected.filter(
+                        (item2) => item.id !== item2.id
+                      ),
+                    })
+                  );
+                }}
+              >
+                Remover
+              </span>
             </a>
           </div>
         </div>
