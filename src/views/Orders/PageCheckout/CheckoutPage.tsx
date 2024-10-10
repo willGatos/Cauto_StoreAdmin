@@ -109,54 +109,60 @@ const CheckoutPage = () => {
   // TODO: HACER QUE SE CAMBIE EL TOTAL EN AUTOMATICO y agregar el campo de shipping
 
   const onSubmit = async () => {
-    const { name, lastName, phone, email } = formData;
-    const hasDel = formData.hasDelivery;
-    if (name && lastName && phone && email) {
-      hasDel &&
-        (await supabase.from("locations").upsert({
-          description: delivery.address,
-          municipality_id: delivery.municipality,
-        }));
-      const client = await supabase
-        .from("clients")
-        .upsert({ name, lastname: lastName, phone, email })
-        .select("id")
-        .single();
+    try {
+      const { name, lastName, phone, email } = formData;
+      const hasDel = formData.hasDelivery;
+      if (name && lastName && phone && email) {
+        hasDel &&
+          (await supabase.from("locations").upsert({
+            description: delivery.address,
+            municipality_id: delivery.municipality,
+          }));
+        const client = await supabase
+          .from("clients")
+          .upsert({ name, lastname: lastName, phone, email })
+          .select("id")
+          .single();
 
-      const { data: orderData } = await supabase
-        .from("orders")
-        .upsert({
-          status: 1,
-          total: order.total,
-          shop_id: shopId,
-          client_id: client.data.id,
-          seller_id: id,
-          shipping_cost: hasDel ? delivery.shipping_cost : 0,
-          amount_paid: order.total / 2,
-        })
-        .select("id")
-        .single();
-      const oiArray = orderItems.map((oi) => ({
-        order_id: orderData.id,
-        variation_id: oi.variation_id,
-        price: oi.price,
-        quantity: oi.quantity,
-      }));
-
-      console.log(oiArray);
-
-      await supabase.from("order_items").insert(oiArray);
-
-      hasPersonalizedOrder &&
-        (await supabase.from("personalized_orders").upsert({
+        const { data: orderData, error: Oerror } = await supabase
+          .from("orders")
+          .upsert({
+            status: 1,
+            total: order.total,
+            shop_id: shopId,
+            client_id: client.data.id,
+            seller_id: id,
+            shipping_cost: hasDel ? delivery.shipping_cost : 0,
+            amount_paid: order.total / 2,
+          })
+          .select("id")
+          .single();
+        const oiArray = orderItems.map((oi) => ({
           order_id: orderData.id,
-          custom_description: personalizedOrder.custom_description,
-          images: personalizedOrder.images,
-          price: personalizedOrder.price,
-          quantity: personalizedOrder.quantity,
+          variation_id: oi.variation_id,
+          price: oi.price,
+          quantity: oi.quantity,
         }));
-    } else {
-      handleError("Tienes un campo en CONTACTO sin llenar.");
+
+        console.log(oiArray);
+
+        const { error: OIError } = await supabase
+          .from("order_items")
+          .insert(oiArray);
+
+        hasPersonalizedOrder &&
+          (await supabase.from("personalized_orders").upsert({
+            order_id: orderData.id,
+            custom_description: personalizedOrder.custom_description,
+            images: personalizedOrder.images,
+            price: personalizedOrder.price,
+            quantity: personalizedOrder.quantity,
+          }));
+      } else {
+        handleError("Tienes un campo en CONTACTO sin llenar.");
+      }
+    } catch (error) {
+      handleError(error);
     }
   };
   const dispatch = useAppDispatch();
@@ -489,7 +495,7 @@ const CheckoutPage = () => {
                   </UploadWidget>
                   <div>
                     {personalizedOrder.images.map((image) => (
-                      <img src={image}key={image}/>
+                      <img src={image} key={image} />
                     ))}
                   </div>
                 </div>
