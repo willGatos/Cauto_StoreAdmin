@@ -439,10 +439,9 @@ const CheckoutPage = () => {
                     </Label>
                     <Input
                       value={personalizedOrder.custom_description}
-                      onChange={(e) => handleChange(e)}
+                      onChange={handleChange}
                       className="mt-1.5"
                       name="custom_description"
-                      defaultValue=""
                       textArea
                     />
                   </div>
@@ -450,16 +449,16 @@ const CheckoutPage = () => {
                     <div>
                       <Label className="text-sm">Cantidad</Label>
                       <Input
-                        onChange={(e) => handleChange(e)}
+                        onChange={handleChange}
                         className="mt-1.5"
-                        name="quantiy"
+                        name="quantity"
                         value={personalizedOrder.quantity}
                       />
                     </div>
                     <div>
                       <Label className="text-sm">Precio a Pagar</Label>
                       <Input
-                        onChange={(e) => handleChange(e)}
+                        onChange={handleChange}
                         className="mt-1.5"
                         name="price"
                         value={personalizedOrder.price}
@@ -490,7 +489,7 @@ const CheckoutPage = () => {
                   </UploadWidget>
                   <div>
                     {personalizedOrder.images.map((image) => (
-                      <img src={image} />
+                      <img src={image}key={image}/>
                     ))}
                   </div>
                 </div>
