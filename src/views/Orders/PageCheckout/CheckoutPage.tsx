@@ -13,6 +13,7 @@ import supabase from "@/services/Supabase/BaseClient";
 import { Checkbox, Input } from "@/components/ui";
 import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
 import { setProductsSelected, useAppDispatch } from "@/store";
+import FetchButton from "@/components/email";
 
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
@@ -590,6 +591,7 @@ const CheckoutPage = () => {
                 </a>
                 {` `} Información
               </p>
+              <FetchButton/>
             </div>
           </div>
         </div>
