@@ -14,6 +14,7 @@ import { Checkbox, Input } from "@/components/ui";
 import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
 import { setProductsSelected, useAppDispatch } from "@/store";
 import FetchButton from "@/components/email";
+import handleEmail from "@/components/email";
 
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
@@ -159,9 +160,12 @@ const CheckoutPage = () => {
             price: personalizedOrder.price,
             quantity: personalizedOrder.quantity,
           }));
+
+          handleEmail(0, email)
       } else {
         handleError("Tienes un campo en CONTACTO sin llenar.");
       }
+
     } catch (error) {
       handleError(error);
     }
@@ -591,7 +595,6 @@ const CheckoutPage = () => {
                 </a>
                 {` `} Información
               </p>
-              <FetchButton/>
             </div>
           </div>
         </div>
