@@ -1,37 +1,39 @@
-import React, { useState, useEffect } from 'react'
-import { ChevronDown, ChevronRight, Edit, Trash2 } from 'lucide-react'
-import { Button } from "@/components/ui/Button"
-import { Table } from '@/components/ui'
-import supabase from '@/services/Supabase/BaseClient'
-const {TBody, THead, Td,Tr, Th} = Table
+import React, { useState, useEffect } from "react";
+import { ChevronDown, ChevronRight, Edit, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Table } from "@/components/ui";
+import supabase from "@/services/Supabase/BaseClient";
+import { useAppSelector } from "@/store";
+const { TBody, THead, Td, Tr, Th } = Table;
 interface Offer {
-  id: number
-  name: string
-  description: string
-  startDate: string
-  endDate: string
-  products: OfferProduct[]
+  id: number;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  products: OfferProduct[];
 }
 
 interface OfferProduct {
-  id: number
-  name: string
-  variations: OfferProductVariation[]
+  id: number;
+  name: string;
+  variations: OfferProductVariation[];
 }
 
 interface OfferProductVariation {
-  id: number
-  name: string
-  offerPrice: number
-  currency: string
+  id: number;
+  name: string;
+  offerPrice: number;
+  currency: string;
 }
 
 // Mock data service
 const mockDataService = {
-    getOffers: async (): Promise<Offer[]> => {
-        const { data, error } = await supabase
-          .from('offers')
-          .select(`
+  getOffers: async (shopId): Promise<Offer[]> => {
+    const { data, error } = await supabase
+      .from("offers")
+      .select(
+        `
             id,
             name,
             description,
@@ -56,80 +58,80 @@ const mockDataService = {
                 )
               )
             )
-          `)
-          .order('start_date', { ascending: false })
-    
+          `
+      )
+      .order("start_date", { ascending: false })
+      .eq("shop_id", shopId);
 
-        if (error) {
-          console.error('Error fetching offers:', error)
-          return []
-        }
+    if (error) {
+      console.error("Error fetching offers:", error);
+      return [];
+    }
 
-        //Simple
+    //Simple
 
-        return data.map(offer => ({
-          ...offer,
-          startDate: offer.start_date,
-          endDate: offer.end_date,
-          products: offer.products.map(p => ({
-            id: p.product.id,
-            name: p.product.name,
-            variations: p.variations.map(v => ({
-              id: v.variation.id,
-              name: v.variation.name,
-              offerPrice: v.offer_price,
-              currency: v.currency.name,
-            })),
-          })),
-        }))
-      },
-      deleteOffer: async (id: number): Promise<void> => {
-        const { error } = await supabase
-          .from('offers')
-          .delete()
-          .eq('id', id)
-    
-        if (error) {
-          console.error('Error deleting offer:', error)
-        }
-      },
-}
+    return data.map((offer) => ({
+      ...offer,
+      startDate: offer.start_date,
+      endDate: offer.end_date,
+      products: offer.products.map((p) => ({
+        id: p.product.id,
+        name: p.product.name,
+        variations: p.variations.map((v) => ({
+          id: v.variation.id,
+          name: v.variation.name,
+          offerPrice: v.offer_price,
+          currency: v.currency.name,
+        })),
+      })),
+    }));
+  },
+  deleteOffer: async (id: number): Promise<void> => {
+    const { error } = await supabase.from("offers").delete().eq("id", id);
 
+    if (error) {
+      console.error("Error deleting offer:", error);
+    }
+  },
+};
 
 export default function OfferTable() {
-  const [offers, setOffers] = useState<Offer[]>([])
-  const [expandedOffers, setExpandedOffers] = useState<Record<number, boolean>>({})
-  const [loading, setLoading] = useState(true)
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [expandedOffers, setExpandedOffers] = useState<Record<number, boolean>>(
+    {}
+  );
+  const [loading, setLoading] = useState(true);
+  const { shopId } = useAppSelector((state) => state.auth.user);
 
   useEffect(() => {
-    fetchOffers()
-  }, [])
+    fetchOffers();
+  }, []);
 
   const fetchOffers = async () => {
-    setLoading(true)
-    const fetchedOffers = await mockDataService.getOffers()
-    setOffers(fetchedOffers)
-    setLoading(false)
-  }
+    setLoading(true);
+    const fetchedOffers = await mockDataService.getOffers(shopId);
+    setOffers(fetchedOffers);
+    setLoading(false);
+  };
 
   const toggleOfferExpansion = (offerId: number) => {
-    setExpandedOffers(prev => ({ ...prev, [offerId]: !prev[offerId] }))
-  }
+    setExpandedOffers((prev) => ({ ...prev, [offerId]: !prev[offerId] }));
+  };
 
   const handleEdit = (offerId: number) => {
     // Implement edit functionality (e.g., navigate to edit page)
-    console.log(`Edit offer with id ${offerId}`)
-  }
+    console.log(`Edit offer with id ${offerId}`);
+  };
 
   const handleDelete = async (offerId: number) => {
-    if (window.confirm('Are you sure you want to delete this offer?')) {
-      await mockDataService.deleteOffer(offerId)
-      fetchOffers() // Refresh the list after deletion
+    if (window.confirm("Are you sure you want to delete this offer?")) {
+      await mockDataService.deleteOffer(offerId);
+      fetchOffers(); // Refresh the list after deletion
     }
-  }
+  };
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -144,7 +146,7 @@ export default function OfferTable() {
         </Tr>
       </THead>
       <TBody>
-        {offers.map(offer => (
+        {offers.map((offer) => (
           <React.Fragment key={offer.id}>
             <Tr>
               <Td>
@@ -185,13 +187,14 @@ export default function OfferTable() {
                 <Td colSpan={5}>
                   <div className="p-4 bg-gray-50">
                     <h4 className="font-semibold mb-2">Products:</h4>
-                    {offer.products.map(product => (
+                    {offer.products.map((product) => (
                       <div key={product.id} className="mb-4">
                         <h5 className="font-medium">{product.name}</h5>
                         <ul className="list-disc list-inside">
-                          {product.variations.map(variation => (
+                          {product.variations.map((variation) => (
                             <li key={variation.id}>
-                              {variation.name}: {variation.offerPrice} {variation.currency}
+                              {variation.name}: {variation.offerPrice}{" "}
+                              {variation.currency}
                             </li>
                           ))}
                         </ul>
@@ -205,5 +208,5 @@ export default function OfferTable() {
         ))}
       </TBody>
     </Table>
-  )
+  );
 }

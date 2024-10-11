@@ -6,6 +6,8 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import supabase from "@/services/Supabase/BaseClient";
 import { supabaseService } from "@/services/Supabase/AttributeService";
 import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
+import Prices from "@/components/ui/Prices";
+import { useAppSelector } from "@/store";
 
 interface Product {
   id: number;
@@ -49,6 +51,7 @@ interface OfferProductVariation {
   variationId: number;
   offer_price: number;
   currencyId: number;
+  required_quantity: number;
 }
 
 export default function OfferForm() {
@@ -189,7 +192,7 @@ export default function OfferForm() {
       }));
     }
   };
-
+  const { shopId } = useAppSelector((state) => state.auth.user);
   const [selectedVariations, setSelectedVariations] = useState({});
   const [offersVariations, setOffersVariations] = useState([]);
   const handleVariationSelection = async (
@@ -256,7 +259,7 @@ export default function OfferForm() {
       general_offer_price: offer.general_offer_price,
       start_date: offer.startDate,
       end_date: offer.endDate,
-      shop_id: offer.shopId,
+      shop_id: shopId,
       images: localImages,
     };
 
@@ -291,6 +294,7 @@ export default function OfferForm() {
       offerId = data![0].id;
     }
 
+    // Evitando Repeticiones
     const { data: offersProducts } = await supabase
       .from("offer_products")
       .select("id")
@@ -321,32 +325,35 @@ export default function OfferForm() {
 
       const offerProductId = offerProductData![0].id;
 
-      const variations = product.variations.map((variation) => ({
-        offer_product_id: offerProductId,
-        product_variation_id: variation.variationId,
-        offer_price: variation.offer_price,
-        currency_id: variation.currencyId,
-      }));
+      // Insertar nuevas variaciones
+      const selectedVariations2 = Object.keys(selectedVariations)
+        .filter((variationId) => selectedVariations[variationId])
+        .map(Number);
 
-      const { error: variationError } = await supabase
+      const variationsToInsert = offersVariations.filter((v) =>
+        selectedVariations2.includes(v.variationId)
+      );
+
+      const { error: insertError } = await supabase
         .from("offer_product_variations")
-        .insert(variations);
-
-      if (variationError) {
-        console.error(
-          "Error inserting offer product variations:",
-          variationError
+        .insert(
+          variationsToInsert.map((v) => ({
+            product_variation_id: v.variationId,
+            offer_price: v.offer_price,
+            currency_id: v.currencyId,
+            offer_product_id: offerProductId,
+            required_quantity: v.required_quantity || 0,
+          }))
         );
+
+      if (insertError) {
+        console.error("Error inserting offer product variations:", insertError);
       }
     }
 
     setLoading(false);
     // Redirect or show success message
   };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
 
   const handleImageUpload = async (error, result, widget) => {
     console.log("VIDEO");
@@ -363,6 +370,10 @@ export default function OfferForm() {
 
     // Actualizar el estado con una imagen de carga
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -567,7 +578,7 @@ export default function OfferForm() {
                               scope="col"
                               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                             >
-                              Precio de Variación{" "}
+                              Precio por Unidad{" "}
                             </th>
                             <th
                               scope="col"
@@ -690,14 +701,18 @@ export default function OfferForm() {
         </table>
       </div>
       <Button
+        type="button"
         onClick={() =>
-          setOffer((prev) => ({ ...prev, general_offer_price: calculateTotalOfferPrice() }))
+          setOffer((prev) => ({
+            ...prev,
+            general_offer_price: calculateTotalOfferPrice(),
+          }))
         }
       >
         Ver Precio Final
       </Button>
-      <div>
-        <p>{offer.general_offer_price}</p>
+      <div className="flex">
+        <Prices price={offer.general_offer_price} />
       </div>
       <Button type="submit" disabled={loading}>
         {id ? "Actualizar Oferta" : "Crear Oferta"}

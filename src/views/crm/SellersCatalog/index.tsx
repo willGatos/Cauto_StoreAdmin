@@ -4,6 +4,7 @@ import HandleFeedback from "@/components/ui/FeedBack";
 import supabase from "@/services/Supabase/BaseClient";
 import { setProductsSelected, useAppDispatch, useAppSelector } from "@/store";
 import { useEffect, useState } from "react";
+import OfferDisplay from "./components/OffersCards";
 type Currency = {
   id: number;
   name: string;
@@ -131,6 +132,7 @@ export default function ProductsVariations() {
           </Button>
         </a>
       </div>
+      <OfferDisplay/>
       {products.map((product, key) => (
         <section key={key}>
           <h1 className="text-3xl font-bold mb-6">{product.name}</h1>
