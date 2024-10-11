@@ -19,12 +19,13 @@ export type RootState = CombinedState<{
 export interface AsyncReducers {
   [key: string]: Reducer<any, AnyAction>;
 }
-
+// Debes reiniciarlo quitando, y volviendo a poner el elemento padre que quieres agregar
+// si deseas que se actualice el estado desde 0.
 const staticReducers = {
   auth,
   base,
-  products,
   locale,
+  products,
   theme,
   [RtkQueryService.reducerPath]: RtkQueryService.reducer,
 };

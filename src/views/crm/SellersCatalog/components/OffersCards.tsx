@@ -1,5 +1,7 @@
+import { Button } from "@/components/ui";
+import HandleFeedback from "@/components/ui/FeedBack";
 import supabase from "@/services/Supabase/BaseClient";
-import { useAppSelector } from "@/store";
+import { setProductsSelected, useAppDispatch, useAppSelector } from "@/store";
 import { useState, useEffect } from "react";
 
 type ProductVariation = {
@@ -9,7 +11,7 @@ type ProductVariation = {
   required_quantity: number;
 };
 
-type Offer = {
+export type Offer = {
   id: number;
   name: string;
   price: number;
@@ -130,7 +132,12 @@ async function fetchOffers(shopId) {
 
 export default function OfferDisplay() {
   const [offers, setOffers] = useState<Offer[]>([]);
-  const { shopId, id } = useAppSelector((state) => state.auth.user);
+  const { shopId } = useAppSelector((state) => state.auth.user);
+  const { productsSelected, offersSelected } = useAppSelector(
+    (state) => state.products
+  );
+  const dispatch = useAppDispatch();
+  const { handleSuccess } = HandleFeedback();
 
   useEffect(() => {
     // Simula la carga de datos
@@ -145,50 +152,97 @@ export default function OfferDisplay() {
       });
   }, []);
 
+  // Function to add or update a product variation
+  const addOrUpdateItem = (item) => {
+    // Find if the item already exists in productsSelected
+    const existingItem = offersSelected.find((i) => i.id === item.id);
+    if (existingItem) {
+      // Dispatch action to update redux state
+
+      dispatch(
+        setProductsSelected({
+          productsSelected: productsSelected,
+          offersSelected: offersSelected.filter(
+            (item2) => item.id !== item2.id
+          ),
+        })
+      );
+      handleSuccess("Éxito sacar el Producto");
+    } else {
+      dispatch(
+        setProductsSelected({
+          productsSelected: productsSelected,
+          offersSelected: [...offersSelected, item],
+        })
+      );
+      handleSuccess("Éxito introducir el Producto");
+    }
+  };
+
   if (offers.length === 0) {
     return <div>Cargando ofertas...</div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {offers.map((offer) => (
-        <section key={offer.id} className="mb-12 border-b pb-8">
-          <div className="flex items-center mb-6">
-            <img
-              src={offer.image}
-              alt={offer.name}
-              width={100}
-              height={100}
-              className="rounded-lg object-cover mr-4"
-            />
-            <div>
-              <h2 className="text-2xl font-bold">{offer.name}</h2>
-              <p className="text-xl font-semibold text-blue-600">
-                ${offer.price.toFixed(2)}
-              </p>
+      {offers.map((offer) => {
+        console.log('SO',offersSelected, productsSelected)
+        //const psfinded = offersSelected.find((PS) => PS.id === offer.id);
+        return (
+          <section key={offer.id} className="mb-12 border-b pb-8">
+            <div className="flex items-center mb-6">
+              <img
+                src={offer.image}
+                alt={offer.name}
+                width={100}
+                height={100}
+                className="rounded-lg object-cover mr-4"
+              />
+              <div>
+                <h2 className="text-2xl font-bold">{offer.name}</h2>
+                <p className="text-xl font-semibold text-blue-600">
+                  ${offer.price.toFixed(2)}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="overflow-x-auto">
-            <div className="flex space-x-4 pb-4">
-              {offer.variations.map((variation) => (
-                <div
-                  key={variation.id}
-                  className="flex-shrink-0 w-48 border rounded-lg p-4 shadow-md"
-                >
-                  <h3 className="text-lg font-medium mb-2">{variation.name}</h3>
-                  <p className="text-sm mb-1">
-                    Precio: ${variation.offer_price.toFixed(2)}
-                  </p>
-                  <p className="text-sm font-semibold">
-                    Cantidad requerida: {variation.required_quantity}
-                  </p>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <div className="flex space-x-4 pb-4">
+                {offer.variations.map((variation) => (
+                  <div
+                    key={variation.id}
+                    className="flex-shrink-0 w-48 border rounded-lg p-4 shadow-md"
+                  >
+                    <h3 className="text-lg font-medium mb-2">
+                      {variation.name}
+                    </h3>
+                    <p className="text-sm mb-1">
+                      Precio: ${variation.offer_price.toFixed(2)}
+                    </p>
+                    <p className="text-sm font-semibold">
+                      Cantidad requerida: {variation.required_quantity}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
-      ))}
+
+            <div>
+              <Button
+                style={{ width: "200px" }}
+                type="button"
+                //variant={psfinded ? "twoTone" : "solid"}
+                size="md"
+                onClick={() => {
+                  addOrUpdateItem(offer);
+                }}
+              >
+                Agregar Oferta
+              </Button>
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }

@@ -55,13 +55,15 @@ export default function ProductsVariations() {
   const dispatch = useAppDispatch();
 
   // Get selected products from redux state
-  const { productsSelected } = useAppSelector((state) => state.products);
+  const { productsSelected, offersSelected } = useAppSelector((state) => state.products);
   
   // Flag to control button disablement
   const [isDisabled, setIsDisabled] = useState(true);
 
   // Effect to update isDisabled based on productsSelected length
   useEffect(() => {
+    console.log('as',offersSelected)
+
     // If there's only one or no product selected, disable the button
     if (productsSelected.length <= 1) {
       setIsDisabled(productsSelected.length > 0 ? false : true);
@@ -84,7 +86,7 @@ export default function ProductsVariations() {
     fetchProducts();
   }, []);
 
-  // Function to add or update a product variation
+ // Function to add or update a product variation
   const addOrUpdateItem = (item: ProductVariation) => {
     // Find if the item already exists in productsSelected
     const existingItem = productsSelected.find((i) => i.id === item.id);
@@ -97,6 +99,7 @@ export default function ProductsVariations() {
           productsSelected: productsSelected.filter(
             (item2) => item.id !== item2.id
           ),
+          offersSelected: offersSelected
         })
       );
       handleSuccess("Éxito sacar el Producto");
@@ -104,6 +107,7 @@ export default function ProductsVariations() {
       dispatch(
         setProductsSelected({
           productsSelected: [...productsSelected, item],
+          offersSelected: offersSelected
         })
       );
       handleSuccess("Éxito introducir el Producto");

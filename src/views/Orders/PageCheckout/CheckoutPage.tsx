@@ -52,7 +52,7 @@ const CheckoutPage = () => {
     address: "",
     shipping_cost: 0,
   });
-  const { productsSelected } = useAppSelector((state) => state.products);
+  const { productsSelected, offersSelected} = useAppSelector((state) => state.products);
   useEffect(() => {
     const newOrderItems = productsSelected.map((product) => ({
       variation_id: product.id,

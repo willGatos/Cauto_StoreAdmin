@@ -9,7 +9,6 @@ export const initialState: User = {
   phone: "",
   roles: [],
   shopId: "",
-  productsSelected: [],
 };
 
 const userSlice = createSlice({
@@ -22,10 +21,8 @@ const userSlice = createSlice({
       state.name = action.payload?.name;
       state.name = action.payload?.name;
       state.phone = action.payload?.phone;
-      //TODO: state.customizationSettings = action.payload?.customizationSettings
       state.roles = action.payload?.roles;
       state.shopId = action.payload?.shopId;
-      state.productsSelected = action.payload?.productsSelected;
     },
   },
 });

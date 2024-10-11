@@ -47,6 +47,5 @@ export interface User {
     phone: string;
     shopId: string | null;
     roles: string[];
-    productsSelected: Product[];
 
   }
