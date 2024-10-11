@@ -18,7 +18,7 @@ type ProductVariation = {
     stock: number
     createdAt: string
     thumbnail: string
-    pictures: string[]
+    images: string[]
     currency: string
 }
 
@@ -36,7 +36,7 @@ const ProductColumn = ({ row }: { row: ProductVariation }) => {
             <Avatar size={90} src={row.thumbnail} />
             <div className="ltr:ml-2 rtl:mr-2">
                 <h6 className="mb-2">{row.name}</h6>
-                {row.pictures.length > 0 && (
+                {row.images.length > 0 && (
                     <div className="mb-1">
                         <span>Pictures: </span>
                         {row.pictures.map((picture, index) => (
