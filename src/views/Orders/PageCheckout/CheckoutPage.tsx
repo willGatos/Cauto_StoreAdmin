@@ -66,6 +66,7 @@ const CheckoutPage = () => {
   }, []);
 
   useEffect(() => {
+    console.log(offersSelected)
     const ps =
       (productsSelected?.reduce((acc, curr) => {
         // For each product, multiply its price by the quantity ordered
@@ -110,6 +111,14 @@ const CheckoutPage = () => {
     setPersonalizedOrders((po) => ({ ...po, images: [...po.images, result] }));
   };
 
+  const createOrderItemsArray = (allVariations: any[], orderId: number) => {
+    return allVariations.map((variation) => ({
+      order_id: orderId,
+      variation_id: variation.id,
+      price: variation.offer_price,
+      quantity: variation.required_quantity || 1,
+    }));
+  };
   // TODO: HACER QUE SE CAMBIE EL TOTAL EN AUTOMATICO y agregar el campo de shipping
 
   const onSubmit = async () => {
@@ -148,11 +157,21 @@ const CheckoutPage = () => {
           quantity: oi.quantity,
         }));
 
-        console.log(oiArray);
+        console.log(offersSelected)
+        const allVariations = offersSelected.reduce((acc, os) => {
+          return acc.concat(os.variations);
+        }, []);
+
+        console.log(allVariations);
+        const oiArray2 = createOrderItemsArray(allVariations, orderData.id);
+        console.log(oiArray2);
+
+        
 
         const { error: OIError } = await supabase
           .from("order_items")
-          .insert(oiArray);
+          .insert([...oiArray, ...oiArray2])
+          .select('*');
 
         hasPersonalizedOrder &&
           (await supabase.from("personalized_orders").upsert({

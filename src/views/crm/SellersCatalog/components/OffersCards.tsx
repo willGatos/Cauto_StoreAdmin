@@ -96,6 +96,7 @@ async function fetchOffers(shopId) {
             offer_price,
             required_quantity,
             product_variations: product_variation_id(
+                id,
               name,
               pictures
             )
@@ -118,7 +119,7 @@ async function fetchOffers(shopId) {
     image: offer.images[0], // Asumimos que queremos la primera imagen
     variations: offer.offer_products.flatMap((product) =>
       product.offer_product_variations.map((variation) => ({
-        id: variation.id,
+        id: variation.product_variations.id,
         name: `${product.products.name} - ${variation.product_variations.name}`,
         pictures: variation.product_variations.pictures,
         offer_price: variation.offer_price,
@@ -208,9 +209,9 @@ export default function OfferDisplay() {
 
             <div className="overflow-x-auto">
               <div className="flex space-x-4 pb-4">
-                {offer.variations.map((variation) => (
+                {offer.variations.map((variation,key) => (
                   <div
-                    key={variation.id}
+                    key={key}
                     className="flex-shrink-0 w-48 border rounded-lg p-4 shadow-md"
                   >
                     <h3 className="text-lg font-medium mb-2">
@@ -238,7 +239,6 @@ export default function OfferDisplay() {
                 }}
               >
                 {psfinded ? <>Sacar Oferta </> : <>Agregar Oferta </>}
-                
               </Button>
             </div>
           </section>
