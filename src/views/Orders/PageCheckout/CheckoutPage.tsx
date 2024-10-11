@@ -293,20 +293,6 @@ const CheckoutPage = () => {
                 </div> */}
 
                 <div className=" flex justify-between w-full sm:hidden relative">
-                  {/* <select
-                    title="qty"
-                    name="qty"
-                    id="qty"
-                    className="form-select text-sm rounded-md py-1 border-slate-200 dark:border-slate-700 relative z-10 dark:bg-slate-800 "
-                  >
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                  </select> */}
                   <Prices
                     contentClass="py-1 px-2 md:py-1.5 md:px-2.5 text-sm font-medium h-full"
                     price={price}
@@ -339,25 +325,97 @@ const CheckoutPage = () => {
               />
             </div>
 
-            <a
-              href="##"
-              className="relative z-10 flex items-center mt-3 font-medium text-primary-6000 hover:text-primary-500 text-sm "
-            >
-              <span
-                onClick={() => {
-                  dispatch(
-                    setProductsSelected({
-                      ...productsSelected,
-                      productsSelected: productsSelected.filter(
-                        (item2) => item.id !== item2.id
-                      ),
-                    })
-                  );
-                }}
+            {item.offerPrice && (
+              <a
+                href="##"
+                className="relative z-10 flex items-center mt-3 font-medium text-primary-6000 hover:text-primary-500 text-sm "
               >
-                Remover
-              </span>
-            </a>
+                <span
+                  onClick={() => {
+                    dispatch(
+                      setProductsSelected({
+                        ...productsSelected,
+                        productsSelected: productsSelected.filter(
+                          (item2) => item.id !== item2.id
+                        ),
+                      })
+                    );
+                  }}
+                >
+                  Remover
+                </span>
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderProductOffers = (item, index: number) => {
+    const { pictures, offerPrice, name, required_quantity } = item;
+    const equalOnOrderItems = orderItems.find(
+      (oi) => oi.variation_id == item.id
+    );
+    const handleQuantityChange = (variationId, newQuantity) => {
+      setOrderItems((prevItems) =>
+        prevItems.map((item) =>
+          item.variation_id === variationId
+            ? { ...item, quantity: parseInt(newQuantity, 10) }
+            : item
+        )
+      );
+    };
+
+    return (
+      <div key={index} className="relative flex py-7 first:pt-0 last:pb-0">
+        <div className="relative h-36 w-24 sm:w-28 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
+          <img
+            src={pictures[0]}
+            alt={name}
+            className="h-full w-full object-contain object-center"
+          />
+        </div>
+
+        <div className="ml-3 sm:ml-6 flex flex-1 flex-col">
+          <div>
+            <div className="flex justify-between">
+              <div className="flex-[1.5] ">
+                <h3 className="text-base font-semibold">{name}</h3>
+
+                <div className=" flex justify-between w-full sm:hidden relative">
+                  <Prices
+                    contentClass="py-1 px-2 md:py-1.5 md:px-2.5 text-sm font-medium h-full"
+                    price={offerPrice}
+                  />
+                </div>
+              </div>
+
+              <div className="hidden flex-1 sm:flex justify-end">
+                <Prices price={offerPrice} className="mt-0.5" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex mt-auto pt-4 items-end justify-between text-sm">
+            <div className="sm:block relative">
+              <Label>Cant. a Comprar</Label>
+
+              <Input
+                value={item?.required_quantity}
+                onChange={(e) =>
+                  handleQuantityChange(
+                    equalOnOrderItems.variation_id,
+                    e.target.value
+                  )
+                }
+                className="mt-1.5"
+                name="quantity"
+                type="number"
+                min="0"
+                disabled
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -430,15 +488,12 @@ const CheckoutPage = () => {
           <div className="w-full lg:w-[36%] ">
             <h3 className="text-lg font-semibold">Resumen de Ordenes</h3>
             <div className="mt-8 divide-y divide-slate-200/70 dark:divide-slate-700 ">
-            {offersSelected.length > 0 && <h3>Ofertas</h3>}
+              {offersSelected.length > 0 && <h3>Ofertas</h3>}
               {offersSelected.map((os) => (
                 <div>
                   <h4>{os.name}</h4>
-                  {os.variations.map((v, i) =>{
-                    v.price = v.offer_price
-                    return (renderProduct(v, i))})}
+                  {os.variations.map(renderProductOffers)}
                 </div>
-
               ))}
             </div>
             <div className="mt-8 divide-y divide-slate-200/70 dark:divide-slate-700 ">

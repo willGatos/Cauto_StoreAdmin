@@ -145,7 +145,6 @@ export default function OfferDisplay() {
     // Simula la carga de datos
     fetchOffers(shopId)
       .then((offers) => {
-        console.log("Ofertas obtenidas:", offers);
         // Aquí puedes actualizar el estado de tu componente React con estos datos
         setOffers(offers);
       })
@@ -188,7 +187,6 @@ export default function OfferDisplay() {
   return (
     <div className="container mx-auto px-4 py-8">
       {offers.map((offer) => {
-        console.log("SO", offersSelected, productsSelected);
         const psfinded = offersSelected.find((PS) => PS.id === offer.id);
         return (
           <section key={offer.id} className="mb-12 border-b pb-8">
