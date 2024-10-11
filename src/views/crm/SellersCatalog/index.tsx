@@ -55,19 +55,22 @@ export default function ProductsVariations() {
   const dispatch = useAppDispatch();
 
   // Get selected products from redux state
-  const { productsSelected, offersSelected } = useAppSelector((state) => state.products);
-  
+  const { productsSelected, offersSelected } = useAppSelector(
+    (state) => state.products
+  );
+
   // Flag to control button disablement
   const [isDisabled, setIsDisabled] = useState(true);
 
   // Effect to update isDisabled based on productsSelected length
   useEffect(() => {
-    console.log('as',offersSelected)
+    console.log("as", offersSelected);
 
     // If there's only one or no product selected, disable the button
-    if (productsSelected.length <= 1) {
-      setIsDisabled(productsSelected.length > 0 ? false : true);
-    }
+
+    setIsDisabled(
+      productsSelected.length > 0 || offersSelected.length > 0 ? false : true
+    );
   }, [productsSelected]);
 
   // Effect to fetch products when component mounts
@@ -86,7 +89,7 @@ export default function ProductsVariations() {
     fetchProducts();
   }, []);
 
- // Function to add or update a product variation
+  // Function to add or update a product variation
   const addOrUpdateItem = (item: ProductVariation) => {
     // Find if the item already exists in productsSelected
     const existingItem = productsSelected.find((i) => i.id === item.id);
@@ -99,7 +102,7 @@ export default function ProductsVariations() {
           productsSelected: productsSelected.filter(
             (item2) => item.id !== item2.id
           ),
-          offersSelected: offersSelected
+          offersSelected: offersSelected,
         })
       );
       handleSuccess("Éxito sacar el Producto");
@@ -107,7 +110,7 @@ export default function ProductsVariations() {
       dispatch(
         setProductsSelected({
           productsSelected: [...productsSelected, item],
-          offersSelected: offersSelected
+          offersSelected: offersSelected,
         })
       );
       handleSuccess("Éxito introducir el Producto");
@@ -121,9 +124,8 @@ export default function ProductsVariations() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="fixed bottom-5 bg left-0 right-0 ml-auto mr-auto text-center">
-        <a href={isDisabled ? "#" : "checkout"}>
+        <a href={"checkout"}>
           <Button
-            disabled={isDisabled}
             type="button"
             variant="solid"
             className=""
@@ -132,11 +134,11 @@ export default function ProductsVariations() {
               handleSuccess("Éxito al Cargar Productos");
             }}
           >
-            Realizar Orden con {productsSelected.length} Productos
+            Tomar Orden{" "}
           </Button>
         </a>
       </div>
-      <OfferDisplay/>
+      <OfferDisplay />
       {products.map((product, key) => (
         <section key={key}>
           <h1 className="text-3xl font-bold mb-6">{product.name}</h1>

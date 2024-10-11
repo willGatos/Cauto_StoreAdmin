@@ -96,7 +96,8 @@ async function fetchOffers(shopId) {
             offer_price,
             required_quantity,
             product_variations: product_variation_id(
-              name
+              name,
+              pictures
             )
           )
         )
@@ -119,6 +120,7 @@ async function fetchOffers(shopId) {
       product.offer_product_variations.map((variation) => ({
         id: variation.id,
         name: `${product.products.name} - ${variation.product_variations.name}`,
+        pictures: variation.product_variations.pictures,
         offer_price: variation.offer_price,
         required_quantity: variation.required_quantity,
       }))
@@ -186,8 +188,8 @@ export default function OfferDisplay() {
   return (
     <div className="container mx-auto px-4 py-8">
       {offers.map((offer) => {
-        console.log('SO',offersSelected, productsSelected)
-        //const psfinded = offersSelected.find((PS) => PS.id === offer.id);
+        console.log("SO", offersSelected, productsSelected);
+        const psfinded = offersSelected.find((PS) => PS.id === offer.id);
         return (
           <section key={offer.id} className="mb-12 border-b pb-8">
             <div className="flex items-center mb-6">
@@ -231,13 +233,14 @@ export default function OfferDisplay() {
               <Button
                 style={{ width: "200px" }}
                 type="button"
-                //variant={psfinded ? "twoTone" : "solid"}
+                variant={psfinded ? "twoTone" : "solid"}
                 size="md"
                 onClick={() => {
                   addOrUpdateItem(offer);
                 }}
               >
-                Agregar Oferta
+                {psfinded ? <>Sacar Oferta </> : <>Agregar Oferta </>}
+                
               </Button>
             </div>
           </section>

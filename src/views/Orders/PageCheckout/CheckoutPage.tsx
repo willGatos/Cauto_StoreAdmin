@@ -52,7 +52,9 @@ const CheckoutPage = () => {
     address: "",
     shipping_cost: 0,
   });
-  const { productsSelected, offersSelected} = useAppSelector((state) => state.products);
+  const { productsSelected, offersSelected } = useAppSelector(
+    (state) => state.products
+  );
   useEffect(() => {
     const newOrderItems = productsSelected.map((product) => ({
       variation_id: product.id,
@@ -161,11 +163,10 @@ const CheckoutPage = () => {
             quantity: personalizedOrder.quantity,
           }));
 
-          handleEmail(0, email)
+        handleEmail(0, email);
       } else {
         handleError("Tienes un campo en CONTACTO sin llenar.");
       }
-
     } catch (error) {
       handleError(error);
     }
@@ -416,9 +417,9 @@ const CheckoutPage = () => {
     <div className="nc-CheckoutPage">
       <main className="container py-16 lg:pb-28 lg:pt-20 ">
         <div className="mb-16">
-          <h2 className="block text-2xl sm:text-3xl lg:text-4xl font-semibold ">
+          <h3 className="block text-2xl sm:text-3xl lg:text-4xl font-semibold ">
             Revision de Productos
-          </h2>
+          </h3>
         </div>
 
         <div className="flex flex-col lg:flex-row">
@@ -428,6 +429,18 @@ const CheckoutPage = () => {
 
           <div className="w-full lg:w-[36%] ">
             <h3 className="text-lg font-semibold">Resumen de Ordenes</h3>
+            <div className="mt-8 divide-y divide-slate-200/70 dark:divide-slate-700 ">
+            {offersSelected.length > 0 && <h3>Ofertas</h3>}
+              {offersSelected.map((os) => (
+                <div>
+                  <h4>{os.name}</h4>
+                  {os.variations.map((v, i) =>{
+                    v.price = v.offer_price
+                    return (renderProduct(v, i))})}
+                </div>
+
+              ))}
+            </div>
             <div className="mt-8 divide-y divide-slate-200/70 dark:divide-slate-700 ">
               {productsSelected.map(renderProduct)}
             </div>
