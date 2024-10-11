@@ -66,7 +66,7 @@ const CheckoutPage = () => {
   }, []);
 
   useEffect(() => {
-    console.log(offersSelected)
+    console.log(offersSelected);
     const ps =
       (productsSelected?.reduce((acc, curr) => {
         // For each product, multiply its price by the quantity ordered
@@ -150,28 +150,29 @@ const CheckoutPage = () => {
           })
           .select("id")
           .single();
-        const oiArray = orderItems.map((oi) => ({
+        let oiArray = orderItems.map((oi) => ({
           order_id: orderData.id,
           variation_id: oi.variation_id,
           price: oi.price,
           quantity: oi.quantity,
         }));
 
-        console.log(offersSelected)
-        const allVariations = offersSelected.reduce((acc, os) => {
-          return acc.concat(os.variations);
-        }, []);
+        {
+          console.log(offersSelected);
+          const allVariations = offersSelected.reduce((acc, os) => {
+            return acc.concat(os.variations);
+          }, []);
 
-        console.log(allVariations);
-        const oiArray2 = createOrderItemsArray(allVariations, orderData.id);
-        console.log(oiArray2);
-
-        
+          console.log(allVariations);
+          const oiArray2 = createOrderItemsArray(allVariations, orderData.id);
+          console.log(oiArray2);
+          oiArray = [...oiArray2, ...oiArray];
+        }
 
         const { error: OIError } = await supabase
           .from("order_items")
-          .insert([...oiArray, ...oiArray2])
-          .select('*');
+          .insert(oiArray)
+          .select("*");
 
         hasPersonalizedOrder &&
           (await supabase.from("personalized_orders").upsert({
