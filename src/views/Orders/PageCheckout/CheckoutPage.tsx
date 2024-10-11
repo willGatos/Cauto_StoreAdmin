@@ -373,7 +373,8 @@ const CheckoutPage = () => {
   };
 
   const renderProductOffers = (item, index: number) => {
-    const { pictures, offerPrice, name, required_quantity } = item;
+    const { pictures, offer_price, name, required_quantity } = item;
+    console.log(item.price, offer_price )
     const equalOnOrderItems = orderItems.find(
       (oi) => oi.variation_id == item.id
     );
@@ -406,13 +407,13 @@ const CheckoutPage = () => {
                 <div className=" flex justify-between w-full sm:hidden relative">
                   <Prices
                     contentClass="py-1 px-2 md:py-1.5 md:px-2.5 text-sm font-medium h-full"
-                    price={offerPrice}
+                    price={offer_price}
                   />
                 </div>
               </div>
 
               <div className="hidden flex-1 sm:flex justify-end">
-                <Prices price={offerPrice} className="mt-0.5" />
+                <Prices price={offer_price} className="mt-0.5" />
               </div>
             </div>
           </div>
@@ -618,6 +619,15 @@ const CheckoutPage = () => {
                 //   </span>
                 // </div>
               }
+              <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-200 text-base pt-4">
+                <span>Orden por Ofertas Total</span>
+                <span>
+                  {" "}
+                  {offersSelected.reduce((total, offer) => {
+                    return total + offer.price;
+                  }, 0)}
+                </span>
+              </div>
               <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-200 text-base pt-4">
                 <span>Orden Total</span>
                 <span> {order.total}</span>
