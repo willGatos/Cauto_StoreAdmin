@@ -3,7 +3,6 @@ import { Select } from "@/components/ui";
 import { FormItem } from "@/components/ui/Form";
 import type { InputProps } from "@/components/ui/Input";
 import Input from "@/components/ui/Input";
-import { supabaseService } from "@/services/Supabase/AttributeService";
 import {
   Field,
   FieldInputProps,
@@ -13,7 +12,6 @@ import {
 } from "formik";
 import { useEffect, useState, type ComponentType } from "react";
 import { NumericFormat, NumericFormatProps } from "react-number-format";
-
 // Nuevos tipos
 type ProductType = "manufactured" | "imported";
 type ProductStatus = "new" | "out_of_stock" | "in_stock" | "discontinued";
@@ -84,6 +82,8 @@ const PricingFields = (props: PricingFieldsProps) => {
     { value: "manufactured", label: "Manufacturado" },
     { value: "imported", label: "Importado" },
   ];
+
+
 
   useEffect(() => {
     console.log(values);

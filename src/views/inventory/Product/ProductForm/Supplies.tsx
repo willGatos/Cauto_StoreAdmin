@@ -25,6 +25,7 @@ type SuppliesProps = {
   touched: FormikTouched<Supply>;
   errors: FormikErrors<Supply>;
   values: ProductData;
+  supplies: Supply[];
 };
 
 const PriceInput = (props: InputProps) => {
@@ -50,15 +51,9 @@ const NumericFormatInput = ({
 };
 
 const Supplies = (props: SuppliesProps) => {
-  const { values, touched, errors } = props;
+  const { values, touched, errors, supplies } = props;
 
-  const [supplies, setSupplies] = useState<Supply[]>([]);
-
-  useEffect(() => {
-    supabaseService
-      .getSupplies()
-      .then((data) => setSupplies(transformArrayToObjectArray(data)));
-  }, []);
+  
 
   return (
     <AdaptableCard divider className="mb-4">
@@ -68,8 +63,8 @@ const Supplies = (props: SuppliesProps) => {
         <div className="col-span-1">
           <FormItem
             label="Insumos"
-            invalid={(errors.type && touched.type) as boolean}
-            errorMessage={errors.type}
+            invalid={(errors.supplies && touched.supplies) as boolean}
+            errorMessage={errors.supplies}
           >
             <Field name={`supplies`}>
               {({ field, form }: FieldProps) => (

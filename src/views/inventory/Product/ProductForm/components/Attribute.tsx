@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from "react";
+import { Currency } from "@/@types/currency";
+import { Dialog, FormItem, Select } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
-import { Switcher } from "@/components/ui/Switcher";
-import { Loader2, X } from "lucide-react";
 import supabase from "@/services/Supabase/BaseClient";
-import { Currency } from "@/@types/currency";
+import { Loader2, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import UploadWidget from "./Images";
-import { Dialog } from "@/components/ui";
+import { Field, FieldProps } from "formik";
+import {
+  Supply,
+  SupplyVariation,
+} from "@/views/inventory/Supply/List/Data/types";
+import { ProductData } from "../ProductForm";
 
 interface Attribute {
   id: number;
@@ -30,6 +35,7 @@ interface ProductVariation {
   pictures: string[];
   currency_id: string | number;
   attributes?: AttributeValue[];
+  supply_variations: SupplyVariation[];
 }
 
 // Mock service
@@ -72,12 +78,18 @@ const supabaseService = {
 
 interface ProductVariationGeneratorProps {
   onVariationsChange?: (variations: ProductVariation[]) => void;
+  supplies: Supply[];
+  values: ProductData;
 }
 
 export default function ProductVariationGenerator({
   onVariationsChange = () => {},
   variations,
   setVariations,
+  supplies,
+  values,
+  errors,
+  touched,
 }: ProductVariationGeneratorProps) {
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
@@ -495,6 +507,42 @@ export default function ProductVariationGenerator({
                             );
                           }}
                         </UploadWidget>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="col-span-1">
+                        <Select
+                          isMulti
+                          name="supplies"
+                          placeholder="Seleccione insumos"
+                          options={supplies
+                            .map(({ supply_variation, value }) => {
+                              return supply_variation
+                                .filter(
+                                  (variation) =>
+                                    values.supplies.includes(value) &&
+                                    variation.supply_id === value
+                                )
+                                .map((filteredVariation) => ({
+                                  ...filteredVariation,
+                                  label: filteredVariation.description,
+                                  value: filteredVariation.id,
+                                }));
+                            })
+                            .flat()}
+                          value={values.supply_variations
+                            .map((supplyV) =>
+                              supplies.find((s) => s.value === supplyV)
+                            )
+                            .filter(Boolean)}
+                          onChange={(option) => {
+                            handleVariationChange(
+                              index,
+                              "supply_variations",
+                              option.map((op) => op.id)
+                            );
+                          }}
+                        />
                       </div>
                     </td>
                   </tr>

@@ -1,25 +1,21 @@
-import { forwardRef, useContext, useEffect, useRef, useState } from "react";
-import { FormContainer } from "@/components/ui/Form";
-import Button from "@/components/ui/Button";
-import hooks from "@/components/ui/hooks";
-import StickyFooter from "@/components/shared/StickyFooter";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
-import { Form, Formik, FormikProps, FormikHelpers } from "formik";
-import BasicInformationFields from "./BasicInformationFields";
-import PricingFields from "./PricingFields";
-import OrganizationFields from "./OrganizationFields";
-import ProductImages from "./ProductImages";
-import cloneDeep from "lodash/cloneDeep";
-import { HiOutlineTrash } from "react-icons/hi";
-import { AiOutlineSave } from "react-icons/ai";
-import * as Yup from "yup";
-import { apiProductBasic } from "@/services/ProductCreateService";
-import Attribute from "./components/Attribute";
-import useSupplyManagement from "./components/Attibutes/hook/useSupplyManagement";
+import StickyFooter from "@/components/shared/StickyFooter";
+import Button from "@/components/ui/Button";
+import { FormContainer } from "@/components/ui/Form";
+import { supabaseService } from "@/services/Supabase/AttributeService";
 import supabase from "@/services/Supabase/BaseClient";
-import { useParams } from "react-router-dom";
+import { Form, Formik, FormikHelpers, FormikProps } from "formik";
+import { forwardRef, useEffect, useRef, useState } from "react";
+import { AiOutlineSave } from "react-icons/ai";
+import { HiOutlineTrash } from "react-icons/hi";
 import { useSelector } from "react-redux";
-import UploadWidget from "./components/Images";
+import * as Yup from "yup";
+import { Supply } from "../../Supply/List/Data/types";
+import BasicInformationFields from "./BasicInformationFields";
+import Attribute from "./components/Attribute";
+import OrganizationFields from "./OrganizationFields";
+import PricingFields from "./PricingFields";
+import ProductImages from "./ProductImages";
 import Supplies from "./Supplies";
 
 export type ProductVariation = {
@@ -323,6 +319,7 @@ export type ProductData = {
   variations?: ProductVariation[];
   images: string[];
   supplies: string[];
+  supply_variations: string[];
 };
 
 export function transformArrayToObjectArray(array: any) {
@@ -470,7 +467,16 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
     standard_price: 0,
     status: 0,
     supplies: [],
+    supply_variations: [],
   });
+
+  const [supplies, setSupplies] = useState<Supply[]>([]);
+
+  useEffect(() => {
+    supabaseService
+      .getSupplies()
+      .then((data) => setSupplies(transformArrayToObjectArray(data)));
+  }, []);
 
   useEffect(() => {
     console.log("HOL", productId);
@@ -578,13 +584,19 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                     setFieldValue={setFieldValue}
                   />
 
-                  <Supplies touched={touched} errors={errors} values={values} />
+                  <Supplies
+                    touched={touched}
+                    errors={errors}
+                    values={values}
+                    supplies={supplies}
+                  />
 
                   {values.type !== "simple" && (
                     <Attribute
                       touched={touched}
                       errors={errors}
                       values={values}
+                      supplies={supplies}
                       variations={variations}
                       setVariations={setVariations}
                       setFieldValue={setFieldValue}
