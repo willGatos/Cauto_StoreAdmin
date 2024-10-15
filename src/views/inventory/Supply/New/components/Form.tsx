@@ -232,7 +232,7 @@ const createSupply = async (supply: Supply): Promise<Supply> => {
   const { data, error } = await supabase
     .from("supplies")
     .upsert(supply)
-    .select('id')
+    .select("id")
     .single();
   console.log("SOY", data);
   if (error) throw error;
@@ -343,7 +343,6 @@ export default function SupplyForm() {
         try {
           // Cargar prods desde Supabase
           //const productsData = await fetchProductsAndVariations();
-
           //console.log("Productos:", productsData);
           //setProducts(productsData);
         } catch (error) {
@@ -353,7 +352,7 @@ export default function SupplyForm() {
         if (id) {
           // Cargar el suministro existente desde Supabase
           const supply = await fetchSupplyById(id);
-          console.log('HOW',user)
+          console.log("HOW", user);
           // Verificar si el suministro pertenece a la tienda del usuario
           if (supply.shop_id !== user.shopId) {
             throw new Error("No tienes permiso para editar este suministro");
@@ -368,11 +367,7 @@ export default function SupplyForm() {
             name: supply.name,
             type: supply.type,
             supply_variation_id: supply.supply_variation_id,
-            variations: variations.map((variation) => ({
-              ...variation,
-             // product_variations: [],
-              created_at: new Date(variation.created_at).toISOString(),
-            })),
+            variations: variations,
             //products: products.map((p) => p.id),
           });
         }
@@ -412,7 +407,7 @@ export default function SupplyForm() {
           delete variation.id;
         } */
 
-       /*  const variations = await createSupplyVariations(
+        /*  const variations = await createSupplyVariations(
           values.variations.map((v) => ({
             ...v,
             supply_id: id,
@@ -595,9 +590,25 @@ export default function SupplyForm() {
                     <Card key={index} className="mb-4">
                       <div className="pt-6">
                         <h3 className="text-lg font-semibold mb-4">
-                          Variación {index + 1}
+                          Variante {index + 1}
                         </h3>
                         <div className="space-y-4">
+                          <div>
+                            <label htmlFor={`variations.${index}.description`}>
+                              Nombre
+                            </label>
+                            <Field
+                              name={`variations.${index}.description`}
+                              as={Input}
+                              className="mt-1"
+                            />
+                            {errors.variations?.[index]?.description &&
+                              touched.variations?.[index]?.description && (
+                                <p className="text-red-500 text-sm mt-1">
+                                  {errors.variations[index].description}
+                                </p>
+                              )}
+                          </div>
                           <div>
                             <label htmlFor={`variations.${index}.cost`}>
                               Costo
@@ -661,23 +672,6 @@ export default function SupplyForm() {
                           </div>
 
                           <div>
-                            <label htmlFor={`variations.${index}.description`}>
-                              Descripción
-                            </label>
-                            <Field
-                              name={`variations.${index}.description`}
-                              as={Input}
-                              className="mt-1"
-                            />
-                            {errors.variations?.[index]?.description &&
-                              touched.variations?.[index]?.description && (
-                                <p className="text-red-500 text-sm mt-1">
-                                  {errors.variations[index].description}
-                                </p>
-                              )}
-                          </div>
-
-                          <div>
                             <label htmlFor={`variations.${index}.measure`}>
                               Medida
                             </label>
@@ -685,6 +679,7 @@ export default function SupplyForm() {
                               name={`variations.${index}.measure`}
                               as={Input}
                               className="mt-1"
+                              placeholder="1 Unidad / 1 Litro / 1 Metro"
                             />
                             {errors.variations?.[index]?.measure &&
                               touched.variations?.[index]?.measure && (
@@ -694,9 +689,11 @@ export default function SupplyForm() {
                               )}
                           </div>
                           <div>
-                            <label>Variaciones de Producto</label>
                             <div className="space-y-4 mt-2">
-                              {/* {products
+                              {/*
+                              
+                              
+                            <label>Variaciones de Producto</label>{products
                                 .filter((p) => values.products.includes(p.id))
                                 .map((product, key) => (
                                   <div key={key}>
@@ -778,8 +775,9 @@ export default function SupplyForm() {
                               onClick={() => remove(index)}
                               className="mt-2"
                             >
-                              <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                              Variación
+                              <div className="flex justify-center text-center">
+                                <Trash2 className="mr-2 h-4 w-4" /> Eliminar Variación
+                              </div>
                             </Button>
                           )}
                         </div>
@@ -795,7 +793,6 @@ export default function SupplyForm() {
                         currency_id: 0, // Valor vacío para el ID de la moneda
                         description: "", // Cadena vacía para la descripción
                         measure: "", // Cadena vacía para la medida
-                        created_at: "", // Cadena vacía para la fecha de creación
                         supply_id: 0, // Valor vacío para el ID de suministro
                         // product_variations: [
                         //   { id: null, required_supplies: 0 }, // Valores vacíos para la variación de producto
@@ -803,7 +800,9 @@ export default function SupplyForm() {
                       })
                     }
                   >
-                    <PlusCircle className="mr-2 h-4 w-4" /> Añadir Variación
+                    <div className="flex text-center justify-center">
+                      <PlusCircle className="mr-2 h-4 w-4" /> Añadir Variación
+                    </div>
                   </Button>
                 </div>
               )}
