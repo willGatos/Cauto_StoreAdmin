@@ -61,8 +61,8 @@ const appsNavigationConfig: NavigationTree[] = [
       {
         key: "apps.crm",
         path: "",
-        title: "Organizar Inventario",
-        translateKey: "nav.appsCrm.org",
+        title: "Insumo",
+        translateKey: "nav.appsCrm.supply",
         icon: "knowledgeBase",
         type: NAV_ITEM_TYPE_COLLAPSE,
         authority: [ADMIN, OWNER, SELLER],
@@ -75,17 +75,6 @@ const appsNavigationConfig: NavigationTree[] = [
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
             authority: [ADMIN, OWNER, SELLER],
-            subMenu: [],
-          },
-
-          {
-            key: "appsSales.supplyEdit",
-            path: `${APP_PREFIX_PATH}/sales/supply-new/:id`,
-            title: "Edit Supply",
-            translateKey: "nav.appsSales.supplyEdit",
-            icon: "",
-            type: NAV_ITEM_TYPE_ITEM,
-            authority: [OWNER, SELLER],
             subMenu: [],
           },
           {

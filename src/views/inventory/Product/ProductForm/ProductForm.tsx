@@ -20,6 +20,7 @@ import supabase from "@/services/Supabase/BaseClient";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import UploadWidget from "./components/Images";
+import Supplies from "./Supplies";
 
 export type ProductVariation = {
   name: string;
@@ -27,6 +28,7 @@ export type ProductVariation = {
   stock: number;
   pictures?: string[];
   currency_id?: number;
+  suppliesVariations?: number;
 };
 
 export const createProduct = async (
@@ -205,7 +207,7 @@ export const upsertProduct = async (
       product = updateProduct;
       console.log(variations);
 
-      console.log(variations.map(e => e.currency))
+      console.log(variations.map((e) => e.currency));
       // Insertar nuevas variaciones
       if (variations && variations.length > 0) {
         const variationsWithProductId = variations.map((variation) => ({
@@ -216,7 +218,6 @@ export const upsertProduct = async (
           product_id: productId,
           currency_id: variation.currency_id,
         }));
-
 
         const { error: variationsError } = await supabase
           .from("product_variations")
@@ -321,6 +322,7 @@ export type ProductData = {
   status: 0 | 1 | 2 | 3;
   variations?: ProductVariation[];
   images: string[];
+  supplies: string[];
 };
 
 export function transformArrayToObjectArray(array: any) {
@@ -442,11 +444,11 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
   const [error, setError] = useState<string | null>(null);
   const [localImages, setLocalImages] = useState([]);
   const user = useSelector((state) => state.auth.user);
-  const productId = location.pathname.substring(
-    location.pathname.lastIndexOf("/") + 1
-  ) === 'product-new' ? false : location.pathname.substring(
-    location.pathname.lastIndexOf("/") + 1
-  );
+  const productId =
+    location.pathname.substring(location.pathname.lastIndexOf("/") + 1) ===
+    "product-new"
+      ? false
+      : location.pathname.substring(location.pathname.lastIndexOf("/") + 1);
   const formRef = useRef<FormikRef>(null);
 
   const [initialValues, setInitialValues] = useState<ProductData>({
@@ -467,10 +469,11 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
     owner_id: null,
     standard_price: 0,
     status: 0,
+    supplies: [],
   });
 
   useEffect(() => {
-    console.log('HOL',productId)
+    console.log("HOL", productId);
     async function fetchCategories() {
       try {
         const { data, error } = await supabase.from("categories").select("*");
@@ -501,8 +504,6 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
           formik.setValues(prod);
           setVariations(prod.variations);
           delete prod.variations;
-          console.log("NUEVA", prod);
-
           setInitialValues(prod);
         })
         .catch((error) => {
@@ -577,15 +578,18 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                     setFieldValue={setFieldValue}
                   />
 
-                  {values.type !== "simple" &&
+                  <Supplies touched={touched} errors={errors} values={values} />
+
+                  {values.type !== "simple" && (
                     <Attribute
-                    touched={touched}
-                    errors={errors}
-                    values={values}
-                    variations={variations}
-                    setVariations={setVariations}
-                    setFieldValue={setFieldValue}
-                  />}
+                      touched={touched}
+                      errors={errors}
+                      values={values}
+                      variations={variations}
+                      setVariations={setVariations}
+                      setFieldValue={setFieldValue}
+                    />
+                  )}
                 </div>
                 <div className="lg:col-span-1">
                   <ProductImages

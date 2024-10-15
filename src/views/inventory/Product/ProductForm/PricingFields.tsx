@@ -1,20 +1,18 @@
 import AdaptableCard from "@/components/shared/AdaptableCard";
+import { Select } from "@/components/ui";
 import { FormItem } from "@/components/ui/Form";
+import type { InputProps } from "@/components/ui/Input";
 import Input from "@/components/ui/Input";
-import { NumericFormat, NumericFormatProps } from "react-number-format";
+import { supabaseService } from "@/services/Supabase/AttributeService";
 import {
   Field,
+  FieldInputProps,
+  FieldProps,
   FormikErrors,
   FormikTouched,
-  FieldProps,
-  FieldInputProps,
 } from "formik";
 import { useEffect, useState, type ComponentType } from "react";
-import type { InputProps } from "@/components/ui/Input";
-import { Select } from "@/components/ui";
-import supabase from "@/services/Supabase/BaseClient";
-import { supabaseService } from "@/services/Supabase/AttributeService";
-import { transformArrayToObjectArray } from "./ProductForm";
+import { NumericFormat, NumericFormatProps } from "react-number-format";
 
 // Nuevos tipos
 type ProductType = "manufactured" | "imported";
@@ -61,7 +59,7 @@ const NumericFormatInput = ({
 };
 
 const PricingFields = (props: PricingFieldsProps) => {
-  const { values, touched, errors} = props;
+  const { values, touched, errors } = props;
   const [prefix, setPrefix] = useState(
     values.commission_type === "percentage" ? "%" : "$"
   );
@@ -69,29 +67,18 @@ const PricingFields = (props: PricingFieldsProps) => {
   const typeOfCommision = [
     { value: "percentage", label: "Porcentaje" },
     { value: "fixed", label: "Fijo" },
-  ]
+  ];
 
   const productTypes = [
     { value: "simple", label: "Simple" },
     { value: "variable", label: "Variable" },
-  ]
+  ];
 
   const [currencies, setCurrencies] = useState([
     { value: "CUP", label: "CUP" },
     { value: "USD", label: "USD" },
     { value: "EURO", label: "EURO" },
   ]);
-
-  useEffect(() => {
-    const currenciesFetch = async () => {
-      const currencies = await supabaseService.getCurrencies().then((data) => {
-        return transformArrayToObjectArray(data);
-      });
-      setCurrencies(currencies);
-      return [];
-    };
-    currenciesFetch();
-  }, []);
 
   const productOrigin = [
     { value: "manufactured", label: "Manufacturado" },
@@ -102,7 +89,7 @@ const PricingFields = (props: PricingFieldsProps) => {
     console.log(values);
     setPrefix(values.commission_type === "percentage" ? "%" : "$");
   }, [values.commission_type]);
-  
+
   return (
     <AdaptableCard divider className="mb-4">
       <h5>Sistema de Precios</h5>
@@ -162,7 +149,8 @@ const PricingFields = (props: PricingFieldsProps) => {
           <FormItem
             label="Moneda de Referencia"
             invalid={
-              (errors.reference_currency && touched.reference_currency) as boolean
+              (errors.reference_currency &&
+                touched.reference_currency) as boolean
             }
             errorMessage={errors.reference_currency}
           >
@@ -209,7 +197,9 @@ const PricingFields = (props: PricingFieldsProps) => {
         <div className="col-span-1">
           <FormItem
             label="Precio Estándar"
-            invalid={(errors.standard_price && touched.standard_price) as boolean}
+            invalid={
+              (errors.standard_price && touched.standard_price) as boolean
+            }
             errorMessage={errors.standard_price}
           >
             <Field name={`standard_price`}>
