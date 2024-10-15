@@ -80,6 +80,7 @@ const Supplies = (props: SuppliesProps) => {
                     .map((supply) => supplies.find((s) => s.value === supply))
                     .filter(Boolean)}
                   onChange={(option) => {
+                    console.log(option)
                     form.setFieldValue(
                       field.name,
                       option.map((op) => op.id)

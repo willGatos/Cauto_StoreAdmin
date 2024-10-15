@@ -386,18 +386,18 @@ export default function ProductVariationGenerator({
           <div className="grid grid-cols-1 gap-4">
             {variations.map((variation, index) => (
               <div key={index} className="bg-white p-4 rounded-lg shadow">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nombre
+                  </label>
+                  <Input
+                    value={variation.name}
+                    onChange={(e) =>
+                      handleVariationChange(index, "name", e.target.value)
+                    }
+                  />
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Nombre
-                    </label>
-                    <Input
-                      value={variation.name}
-                      onChange={(e) =>
-                        handleVariationChange(index, "name", e.target.value)
-                      }
-                    />
-                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Precio
@@ -521,7 +521,8 @@ export default function ProductVariationGenerator({
                     placeholder="Seleccione insumos"
                     options={supplies
                       .map(({ supply_variation, value }) => {
-                        return supply_variation
+
+                        const data = supply_variation
                           .filter(
                             (variation) =>
                               values.supplies.includes(value) &&
@@ -531,19 +532,18 @@ export default function ProductVariationGenerator({
                             ...filteredVariation,
                             label: filteredVariation.description,
                             value: filteredVariation.id,
-                          }));
+                          }))
+                          .flat();
+                        return data;
                       })
                       .flat()}
-                    value={values.supply_variations
-                      .map((supplyV) =>
-                        supplies.find((s) => s.value === supplyV)
-                      )
-                      .filter(Boolean)}
                     onChange={(option) => {
+                      console.log(variation.supply_variations)
+                      console.log(option.map((op) => (op.id ? op.id : op)));
                       handleVariationChange(
                         index,
                         "supply_variations",
-                        option.map((op) => op.id)
+                        option.map((op) => (op.id ? op.id : op))
                       );
                     }}
                   />
