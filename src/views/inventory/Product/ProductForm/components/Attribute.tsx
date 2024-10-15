@@ -383,172 +383,173 @@ export default function ProductVariationGenerator({
       {variations.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-2">Variaciones Generadas:</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="py-2 px-4 border-b text-left">Nombre</th>
-                  <th className="py-2 px-4 border-b text-left">Precio</th>
+          <div className="grid grid-cols-1 gap-4">
+            {variations.map((variation, index) => (
+              <div key={index} className="bg-white p-4 rounded-lg shadow">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nombre
+                    </label>
+                    <Input
+                      value={variation.name}
+                      onChange={(e) =>
+                        handleVariationChange(index, "name", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Precio
+                    </label>
+                    <Input
+                      type="number"
+                      value={variation.price}
+                      onChange={(e) =>
+                        handleVariationChange(
+                          index,
+                          "price",
+                          Number(e.target.value)
+                        )
+                      }
+                    />
+                  </div>
                   {requiresStock && (
-                    <th className="py-2 px-4 border-b text-left">Stock</th>
-                  )}
-                  <th className="py-2 px-4 border-b text-left">Moneda</th>
-                  <th className="py-2 px-4 border-b text-left">Imágenes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {variations.map((variation, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="py-2 px-4 border-b">
-                      <Input
-                        value={variation.name}
-                        onChange={(e) =>
-                          handleVariationChange(index, "name", e.target.value)
-                        }
-                      />
-                    </td>
-                    <td className="py-2 px-4 border-b">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Stock
+                      </label>
                       <Input
                         type="number"
-                        value={variation.price}
+                        value={variation.stock}
                         onChange={(e) =>
                           handleVariationChange(
                             index,
-                            "price",
+                            "stock",
                             Number(e.target.value)
                           )
                         }
-                        className="w-24"
                       />
-                    </td>
-                    {requiresStock && (
-                      <td className="py-2 px-4 border-b">
-                        <Input
-                          type="number"
-                          value={variation.stock}
-                          onChange={(e) =>
-                            handleVariationChange(
-                              index,
-                              "stock",
-                              Number(e.target.value)
-                            )
-                          }
-                          className="w-24"
-                        />
-                      </td>
-                    )}
-                    <td className="py-2 px-4 border-b">
-                      <select
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                        value={variation.currency_id}
-                        onChange={(e) =>
-                          handleVariationChange(
-                            index,
-                            "currency_id",
-                            currencies.find(
-                              (c) => c.id === Number(e.target.value)
-                            ).id
-                          )
-                        }
-                      >
-                        {currencies.map((currency) => (
-                          <option key={currency.id} value={currency.id}>
-                            {currency.name}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      <div className="flex flex-wrap gap-2 items-center">
-                        {variation.pictures.map((pic, picIndex) => (
-                          <div key={picIndex} className="relative">
-                            {pic === "loading" ? (
-                              <div className="w-16 h-16 flex items-center justify-center bg-gray-200 rounded">
-                                <Loader2 className="h-6 w-6 animate-spin" />
-                              </div>
-                            ) : (
-                              <>
-                                <img
-                                  src={pic}
-                                  alt={`Variation ${index + 1}`}
-                                  className="w-16 h-16 object-cover rounded"
-                                  onClick={() => onViewOpen(pic)}
-                                />
-                                <button
-                                  onClick={() => removeImage(index, picIndex)}
-                                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
-                                  aria-label="Remove image"
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                              </>
-                            )}
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Moneda
+                    </label>
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded-md"
+                      value={variation.currency_id}
+                      onChange={(e) =>
+                        handleVariationChange(
+                          index,
+                          "currency_id",
+                          currencies.find(
+                            (c) => c.id === Number(e.target.value)
+                          ).id
+                        )
+                      }
+                    >
+                      {currencies.map((currency) => (
+                        <option key={currency.id} value={currency.id}>
+                          {currency.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Imágenes
+                  </label>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {variation.pictures.map((pic, picIndex) => (
+                      <div key={picIndex} className="relative">
+                        {pic === "loading" ? (
+                          <div className="w-16 h-16 flex items-center justify-center bg-gray-200 rounded">
+                            <Loader2 className="h-6 w-6 animate-spin" />
                           </div>
-                        ))}
-                        <UploadWidget
-                          onUpload={(error, result, widget) => {
-                            const img = result?.info?.secure_url;
-                            handleImageUpload(error, img, widget, index);
-                          }}
-                        >
-                          {({ open }) => {
-                            function handleOnClick(e) {
-                              e.preventDefault();
-                              open();
-                            }
-                            return (
-                              <label className="w-16 h-16 flex items-center justify-center bg-gray-200 rounded cursor-pointer">
-                                <button onClick={handleOnClick}>
-                                  <span className="text-4xl text-gray-500">
-                                    +
-                                  </span>
-                                </button>
-                              </label>
-                            );
-                          }}
-                        </UploadWidget>
+                        ) : (
+                          <>
+                            <img
+                              src={pic}
+                              alt={`Variation ${index + 1}`}
+                              className="w-16 h-16 object-cover rounded"
+                              onClick={() => onViewOpen(pic)}
+                            />
+                            <button
+                              onClick={() => removeImage(index, picIndex)}
+                              className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+                              aria-label="Remove image"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
-                    </td>
-                    <td>
-                      <div className="col-span-1">
-                        <Select
-                          isMulti
-                          name="supplies"
-                          placeholder="Seleccione insumos"
-                          options={supplies
-                            .map(({ supply_variation, value }) => {
-                              return supply_variation
-                                .filter(
-                                  (variation) =>
-                                    values.supplies.includes(value) &&
-                                    variation.supply_id === value
-                                )
-                                .map((filteredVariation) => ({
-                                  ...filteredVariation,
-                                  label: filteredVariation.description,
-                                  value: filteredVariation.id,
-                                }));
-                            })
-                            .flat()}
-                          value={values.supply_variations
-                            .map((supplyV) =>
-                              supplies.find((s) => s.value === supplyV)
-                            )
-                            .filter(Boolean)}
-                          onChange={(option) => {
-                            handleVariationChange(
-                              index,
-                              "supply_variations",
-                              option.map((op) => op.id)
-                            );
-                          }}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    ))}
+                    <UploadWidget
+                      onUpload={(error, result, widget) => {
+                        const img = result?.info?.secure_url;
+                        handleImageUpload(error, img, widget, index);
+                      }}
+                    >
+                      {({ open }) => {
+                        function handleOnClick(e) {
+                          e.preventDefault();
+                          open();
+                        }
+                        return (
+                          <label className="w-16 h-16 flex items-center justify-center bg-gray-200 rounded cursor-pointer">
+                            <button onClick={handleOnClick}>
+                              <span className="text-4xl text-gray-500">+</span>
+                            </button>
+                          </label>
+                        );
+                      }}
+                    </UploadWidget>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Insumos
+                  </label>
+                  <Select
+                    isMulti
+                    name={`supplies-${index}`}
+                    placeholder="Seleccione insumos"
+                    options={supplies
+                      .map(({ supply_variation, value }) => {
+                        return supply_variation
+                          .filter(
+                            (variation) =>
+                              values.supplies.includes(value) &&
+                              variation.supply_id === value
+                          )
+                          .map((filteredVariation) => ({
+                            ...filteredVariation,
+                            label: filteredVariation.description,
+                            value: filteredVariation.id,
+                          }));
+                      })
+                      .flat()}
+                    value={values.supply_variations
+                      .map((supplyV) =>
+                        supplies.find((s) => s.value === supplyV)
+                      )
+                      .filter(Boolean)}
+                    onChange={(option) => {
+                      handleVariationChange(
+                        index,
+                        "supply_variations",
+                        option.map((op) => op.id)
+                      );
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}{" "}
