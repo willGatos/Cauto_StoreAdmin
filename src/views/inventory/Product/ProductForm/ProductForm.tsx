@@ -24,7 +24,7 @@ export type ProductVariation = {
   stock: number;
   pictures?: string[];
   currency_id?: number;
-  suppliesVariations?: number;
+  supply_variations?: number[];
 };
 
 export const createProduct = async (
@@ -82,6 +82,20 @@ export const createProduct = async (
         .from("product_variation_attributes")
         .insert(variationAttributes);
 
+        const combinedPermutations = variations.flatMap((variation) => {
+          return variationsIds.map((varId) => {
+            return variation.supply_variations.map((supplyVariation) => ({
+              product_variation_id: varId,
+              supply_variation_id: supplyVariation,
+              // Agrega cualquier otro campo que necesites de la variación o supply_variation
+            }));
+          });
+        }).flat();
+        console.log(combinedPermutations)
+        const { error: combinedPermutations } = await supabase
+        .from("supply_variation_product_variations")
+        .insert(variationAttributes);
+        //supply_variation_product_variations
       if (variationsError) throw variationsError;
     }
 

@@ -538,8 +538,6 @@ export default function ProductVariationGenerator({
                       })
                       .flat()}
                     onChange={(option) => {
-                      console.log(variation.supply_variations)
-                      console.log(option.map((op) => (op.id ? op.id : op)));
                       handleVariationChange(
                         index,
                         "supply_variations",
