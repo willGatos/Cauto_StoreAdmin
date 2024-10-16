@@ -12,6 +12,9 @@ import {
 } from "formik";
 import { useEffect, useState, type ComponentType } from "react";
 import { NumericFormat, NumericFormatProps } from "react-number-format";
+import { supabaseService } from "@/services/Supabase/AttributeService";
+import { transformArrayToObjectArray } from "./ProductForm";
+
 // Nuevos tipos
 type ProductType = "manufactured" | "imported";
 type ProductStatus = "new" | "out_of_stock" | "in_stock" | "discontinued";
@@ -83,7 +86,16 @@ const PricingFields = (props: PricingFieldsProps) => {
     { value: "imported", label: "Importado" },
   ];
 
-
+  useEffect(() => {
+    const currenciesFetch = async () => {
+      const currencies = await supabaseService.getCurrencies().then((data) => {
+        return transformArrayToObjectArray(data);
+      });
+      setCurrencies(currencies);
+      return [];
+    };
+    currenciesFetch();
+  }, []);
 
   useEffect(() => {
     console.log(values);

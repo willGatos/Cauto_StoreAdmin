@@ -32,6 +32,8 @@ export const createProduct = async (
   variations: ProductVariation[]
 ) => {
   try {
+    const newProdData = productData;
+    delete productData.supplies;
     // Primero, insertamos el producto principal
     const { data: product, error: productError } = await supabase
       .from("products")
@@ -45,6 +47,14 @@ export const createProduct = async (
 
     if (productError) throw productError;
 
+    const dos = newProdData.supplies.map((supplyVariation) => ({
+      supply_id: supplyVariation,
+      product_id: product.id,
+    }));
+
+    const { error: errorCP } = await supabase
+      .from("product_supplies")
+      .insert(dos);
     // Luego, insertamos las variaciones
     if (variations && variations.length > 0) {
       const variationsWithProductId = variations.map((variation) => ({
@@ -82,21 +92,24 @@ export const createProduct = async (
         .from("product_variation_attributes")
         .insert(variationAttributes);
 
-        const combinedPermutations = variations.flatMap((variation) => {
+      //supply_variation_product_variations
+      if (variationsError) throw variationsError;
+
+      const combinedPermutations = variations
+        .flatMap((variation) => {
           return variationsIds.map((varId) => {
             return variation.supply_variations.map((supplyVariation) => ({
-              product_variation_id: varId,
               supply_variation_id: supplyVariation,
-              // Agrega cualquier otro campo que necesites de la variación o supply_variation
+              variation_id: varId.id,
             }));
           });
-        }).flat();
-        console.log(combinedPermutations)
-        const { error: combinedPermutations } = await supabase
+        })
+        .flat();
+      console.log(combinedPermutations);
+
+      const { error: errorCP } = await supabase
         .from("supply_variation_product_variations")
-        .insert(variationAttributes);
-        //supply_variation_product_variations
-      if (variationsError) throw variationsError;
+        .insert(combinedPermutations);
     }
 
     return {};
@@ -104,6 +117,18 @@ export const createProduct = async (
     console.error("Error creating product:", error);
     throw error;
   }
+};
+
+const definingSimpleArray = async (variations) => {
+  const variationsIds = [{ id: "1" }];
+
+  await supabase.from("supply_variation").select("*, product_variations(*)");
+};
+
+const definingSimpleArray2 = async (prod) => {
+  const prodIds = { id: "1" };
+
+  await supabase.from("supplies").select("*, products(*)");
 };
 
 /* export const upsertProduct = async (
@@ -333,7 +358,6 @@ export type ProductData = {
   variations?: ProductVariation[];
   images: string[];
   supplies: string[];
-  supply_variations: string[];
 };
 
 export function transformArrayToObjectArray(array: any) {
@@ -481,7 +505,6 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
     standard_price: 0,
     status: 0,
     supplies: [],
-    supply_variations: [],
   });
 
   const [supplies, setSupplies] = useState<Supply[]>([]);
@@ -651,6 +674,9 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                     type="submit"
                   >
                     {productId ? "Actualizar Producto" : "Crear Producto"}
+                  </Button>
+                  <Button onClick={() => definingSimpleArray2(values)}>
+                    Hola
                   </Button>
                 </div>
               </StickyFooter>
