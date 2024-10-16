@@ -29,11 +29,11 @@ export type ProductVariation = {
 
 export const createProduct = async (
   productData: ProductData,
-  variations: ProductVariation[]
+  variations: ProductVariation[],
+  supplies
 ) => {
   try {
     const newProdData = productData;
-    delete productData.supplies;
     // Primero, insertamos el producto principal
     const { data: product, error: productError } = await supabase
       .from("products")
@@ -47,7 +47,8 @@ export const createProduct = async (
 
     if (productError) throw productError;
 
-    const dos = newProdData.supplies.map((supplyVariation) => ({
+    console.log(newProdData);
+    const dos = supplies.map((supplyVariation) => ({
       supply_id: supplyVariation,
       product_id: product.id,
     }));
@@ -100,7 +101,7 @@ export const createProduct = async (
           return variationsIds.map((varId) => {
             return variation.supply_variations.map((supplyVariation) => ({
               supply_variation_id: supplyVariation,
-              variation_id: varId.id,
+              product_variation_id: varId.id,
             }));
           });
         })
@@ -572,11 +573,14 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
     try {
       values.owner_id = user.id;
       values.images = localImages;
+      const suppliesIds = values.supplies;
 
+      console.log(values, suppliesIds);
+      delete values.supplies;
       if (productId) {
         await upsertProduct(values, parseInt(productId), variations);
       } else {
-        await createProduct(values, variations);
+        await createProduct(values, variations, suppliesIds);
       }
 
       // Manejar el éxito (por ejemplo, mostrar un mensaje, redirigir, etc.)
