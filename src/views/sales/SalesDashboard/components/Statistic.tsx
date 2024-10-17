@@ -73,14 +73,13 @@ const Statistic = ({ data = {} }: StatisticProps) => {
             <StatisticCard
                 data={data.revenue}
                 valuePrefix="$"
-                label="Revenue"
+                label="Beneficios"
                 date={startDate}
             />
-            <StatisticCard data={data.orders} label="Orders" date={startDate} />
+            <StatisticCard data={data.orders} label="Ordenes" date={startDate} />
             <StatisticCard
                 data={data.purchases}
-                valuePrefix="$"
-                label="Purchases"
+                label="Productos dentro de Ordenes "
                 date={startDate}
             />
         </div>

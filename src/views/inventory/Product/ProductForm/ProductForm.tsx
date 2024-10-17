@@ -120,18 +120,6 @@ export const createProduct = async (
   }
 };
 
-const definingSimpleArray = async (variations) => {
-  const variationsIds = [{ id: "1" }];
-
-  await supabase.from("supply_variation").select("*, product_variations(*)");
-};
-
-const definingSimpleArray2 = async (prod) => {
-  const prodIds = { id: "1" };
-
-  await supabase.from("supplies").select("*, products(*)");
-};
-
 /* export const upsertProduct = async (
   productData: ProductData,
   productId?: number,
@@ -678,9 +666,6 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                     type="submit"
                   >
                     {productId ? "Actualizar Producto" : "Crear Producto"}
-                  </Button>
-                  <Button onClick={() => definingSimpleArray2(values)}>
-                    Hola
                   </Button>
                 </div>
               </StickyFooter>

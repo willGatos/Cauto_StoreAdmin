@@ -44,7 +44,7 @@ function MainTable({ data, renderRowSubComponent, getRowCanExpand }) {
       },
       {
         header: "Precio",
-        accessorKey: "price",
+        accessorKey: "standard_price",
       },
       {
         header: "Categoría",
@@ -52,11 +52,25 @@ function MainTable({ data, renderRowSubComponent, getRowCanExpand }) {
       },
       {
         header: "Tipo",
-        accessorKey: "type",
+        //accessorKey: "type",
+        cell: ({ row }) => {
+          console.log(row);
+          return <div>{
+            row.original.type == "simple" && "Simple" ||
+            row.original.type == "variable" && "Con Variantes"
+        }</div>;
+        },
       },
       {
         header: "Origen",
-        accessorKey: "origin",
+        //accessorKey: "origin",
+        cell: ({ row }) => {
+          console.log(row);
+          return <div>{
+            row.original.origin == "manufactured" && "Manufacturado" ||
+            row.original.origin == "imported" && "Importado"
+        }</div>;
+        },
       },
       {
         header: "Estado",
@@ -64,13 +78,14 @@ function MainTable({ data, renderRowSubComponent, getRowCanExpand }) {
       },
       {
         header: "Acciones",
-        cell: ({row}) => {
-          console.log(row)
+        cell: ({ row }) => {
+          console.log(row);
           return (
-          <a href={"product-edit/" + row.original.id}>
-            <Button>Editar</Button>
-          </a>
-        )},
+            <a href={"product-edit/" + row.original.id}>
+              <Button>Editar</Button>
+            </a>
+          );
+        },
       },
     ],
     []

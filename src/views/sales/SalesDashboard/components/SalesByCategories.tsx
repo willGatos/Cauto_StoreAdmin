@@ -15,7 +15,7 @@ const SalesByCategories = ({
 }: SalesByCategoriesProps) => {
     return (
         <Card>
-            <h4>Categories</h4>
+            <h4>Categorías</h4>
             <div className="mt-6">
                 {data.data.length > 0 && (
                     <>
@@ -24,7 +24,7 @@ const SalesByCategories = ({
                                 (a, b) => a + b,
                                 0
                             )}`}
-                            donutText="Product Sold"
+                            donutText="Ordenes Terminadas"
                             series={data.data}
                             customOptions={{ labels: data.labels }}
                             type="donut"
