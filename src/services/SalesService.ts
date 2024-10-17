@@ -15,20 +15,8 @@ export async function apiPostDelievery(data: string) {
     data,
   });
 }
-// Función para mapear los estados de la orden (puede ajustarse)
-export const mapOrderStatus = (status: string): number => {
-    console.log(status)
-  switch (status) {
-    case "Pendiente":
-      return 1;
-    case "Completada":
-      return 2;
-    case "Cancelada":
-      return 3;
-    default:
-      return 0;
-  }
-};
+
+
 
 // Función para obtener el reporte de ventas distribuido por intervalos
 export const getSalesReportByIntervals = async (intervals: number) => {
@@ -169,9 +157,9 @@ export const getDashboardData = async () => {
     salesByCategoriesData,  // Datos calculados de ventas por categoría
     latestOrderData: ordersData.map(order => ({
       id: order.id,
-      date: new Date(order.created_at),
+      date: order.created_at,
       customer: order.clients.name, // Aquí obtenemos el nombre del cliente
-      status: mapOrderStatus(order.status),
+      status: order.status,
       paymentMehod: 'Tarjeta',
       paymentIdendifier: 'Pago Completo',
       totalAmount: order.total,

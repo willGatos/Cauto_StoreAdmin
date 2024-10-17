@@ -35,6 +35,7 @@ type OrderColumnPros = {
 
 const { Tr, Td, TBody, THead, Th } = Table;
 
+
 const orderStatusColor: Record<
   number,
   {
@@ -44,17 +45,37 @@ const orderStatusColor: Record<
   }
 > = {
   0: {
-    label: "Paid",
-    dotClass: "bg-emerald-500",
-    textClass: "text-emerald-500",
+    label: "Cancelado - Pagado",
+    dotClass: "bg-gray-500", // Color genérico para estados no conocidos
+    textClass: "text-gray-500",
   },
   1: {
-    label: "Pending",
-    dotClass: "bg-amber-500",
-    textClass: "text-amber-500",
+    label: "Cancelado",
+    dotClass: "bg-gray-500", // Color genérico para estados no conocidos
+    textClass: "text-gray-500",
   },
-  2: { label: "Failed", dotClass: "bg-red-500", textClass: "text-red-500" },
+  2: {
+    label: "Pendiente",
+    dotClass: "bg-amber-500", // Color para el punto
+    textClass: "text-amber-500", // Color para el texto
+  },
+  3: {
+    label: "En proceso",
+    dotClass: "bg-blue-500",
+    textClass: "text-blue-500",
+  },
+  4: {
+    label: "Listo para Entrega",
+    dotClass: "bg-purple-500",
+    textClass: "text-purple-500",
+  },
+  5: {
+    label: "Pagado a los Gestores",
+    dotClass: "bg-emerald-500", // Completado
+    textClass: "text-emerald-500",
+  },
 };
+
 
 const OrderColumn = ({ row }: OrderColumnPros) => {
   const { textTheme } = useThemeClass();
@@ -85,6 +106,7 @@ const columns = [
     header: "Estado",
     cell: (props) => {
       const { status } = props.row.original;
+      console.log('',status);
       return (
         <div className="flex items-center">
           <Badge className={orderStatusColor[status].dotClass} />
@@ -101,7 +123,7 @@ const columns = [
     header: "Fecha",
     cell: (props) => {
       const row = props.row.original;
-      return <span>{dayjs.unix(row.created_at).format("DD/MM/YYYY")}</span>;
+      return <span>{dayjs(row.created_at).format("DD/MM/YYYY")}</span>;
     },
   }),
   columnHelper.accessor("customer", {

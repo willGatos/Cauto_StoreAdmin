@@ -140,7 +140,7 @@ const CheckoutPage = () => {
         const { data: orderData, error: Oerror } = await supabase
           .from("orders")
           .upsert({
-            status: 1,
+            status: 2,
             total: order.total,
             shop_id: shopId,
             client_id: client.data.id,
