@@ -5,13 +5,14 @@ import locale, { LocaleState } from "./slices/locale/localeSlice";
 import theme, { ThemeState } from "./slices/theme/themeSlice";
 import products, { ProductState } from "./slices/inventory/makeOrderSlice";
 import RtkQueryService from "@/services/RtkQueryService";
-
+import dashboard, {SalesDashboardState} from "@/views/sales/SalesDashboard/store/salesDashboardSlice"
 export type RootState = CombinedState<{
   auth: CombinedState<AuthState>;
   base: CombinedState<BaseState>;
   locale: LocaleState;
   theme: ThemeState;
   products: ProductState;
+  dashboard: SalesDashboardState
   /* eslint-disable @typescript-eslint/no-explicit-any */
   [RtkQueryService.reducerPath]: any;
 }>;
@@ -27,6 +28,7 @@ const staticReducers = {
   locale,
   products,
   theme,
+  dashboard,
   [RtkQueryService.reducerPath]: RtkQueryService.reducer,
 };
 

@@ -1,51 +1,50 @@
-import { useEffect } from 'react'
-import Loading from '@/components/shared/Loading'
-import Statistic from './Statistic'
-import SalesReport from './SalesReport'
-import SalesByCategories from './SalesByCategories'
-import LatestOrder from './LatestOrder'
-import TopProduct from './TopProduct'
-import { getSalesDashboardData, useAppSelector } from '../store'
-import { useAppDispatch } from '@/store'
+import { useEffect } from "react";
+import Loading from "@/components/shared/Loading";
+import Statistic from "./Statistic";
+import SalesReport from "./SalesReport";
+import SalesByCategories from "./SalesByCategories";
+import LatestOrder from "./LatestOrder";
+import TopProduct from "./TopProduct";
+import { getSalesDashboardData, useAppSelector } from "../store";
+import { useAppDispatch } from "@/store";
 
 const SalesDashboardBody = () => {
-    const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
 
-    const dashboardData = useAppSelector(
-        (state) => state.salesDashboard.data.dashboardData
-    )
+  const { dashboardData, startDate, endDate } = useAppSelector(
+    (state) => state.salesDashboard.data
+  );
 
-    const loading = useAppSelector((state) => state.salesDashboard.data.loading)
+  const loading = useAppSelector((state) => state.salesDashboard.data.loading);
 
-    useEffect(() => {
-        fetchData()
-    }, [])
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-    const fetchData = () => {
-        dispatch(getSalesDashboardData())
-    }
+  const fetchData = () => {
+    dispatch(getSalesDashboardData({ startDate, endDate }));
+  };
 
-    return (
-        <Loading loading={loading}>
-            <Statistic data={dashboardData?.statisticData} />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <SalesReport
-                    data={dashboardData?.salesReportData}
-                    className="col-span-2"
-                />
-                <SalesByCategories
-                    data={dashboardData?.salesByCategoriesData}
-                />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <LatestOrder
-                    data={dashboardData?.latestOrderData}
-                    className="lg:col-span-2"
-                />
-                <TopProduct data={dashboardData?.topProductsData} />
-            </div>
-        </Loading>
-    )
-}
+  return (
+    <Loading loading={loading}>
+      <Statistic data={dashboardData?.statisticData} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <SalesReport
+          data={dashboardData?.salesReportData}
+          className="col-span-2"
+        />
+      <SalesByCategories data={dashboardData?.salesByCategoriesData} />
 
-export default SalesDashboardBody
+      </div>
+      <SalesByCategories data={dashboardData?.supplyCostReportData} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <LatestOrder data={dashboardData?.latestOrderData} className="lg:col-span-2"
+        />
+        <TopProduct data={dashboardData?.topProductsData} />
+      </div>
+    </Loading>
+  );
+};
+
+export default SalesDashboardBody;

@@ -28,7 +28,8 @@ const SalesDashboardHeader = () => {
     }
 
     const onFilter = () => {
-        dispatch(getSalesDashboardData())
+        // Dispatch getSalesDashboardData with current start and end dates
+        dispatch(getSalesDashboardData({startDate, endDate}));
     }
 
     return (
@@ -45,14 +46,14 @@ const SalesDashboardHeader = () => {
                     ]}
                     inputFormat={dateFormat}
                     size="sm"
-                    onChange={handleDateChange}
+                   onChange={handleDateChange}
                 />
                 <Button size="sm" icon={<HiOutlineFilter />} onClick={onFilter}>
-                    Filter
+                    Filtrar
                 </Button>
             </div>
         </div>
     )
 }
 
-export default SalesDashboardHeader
+export default SalesDashboardHeader;

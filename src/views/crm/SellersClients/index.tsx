@@ -85,32 +85,32 @@ const mockDataService = {
 };
 
 // Supabase data service
-// const supabaseDataService = {
-//   getClientsWithOrders: async (sellerId: number): Promise<ClientWithOrders[]> => {
-//     const { data, error } = await supabase
-//       .from('clients')
-//       .select(`
-//         id,
-//         user:users (id, name, email, phone),
-//         orders (
-//           id,
-//           total,
-//           status,
-//           created_at,
-//           shipping_cost,
-//           amount_paid
-//         )
-//       `)
-//       .eq('orders.seller_id', sellerId);
+const supabaseDataService = {
+  getClientsWithOrders: async (sellerId: number): Promise<ClientWithOrders[]> => {
+    const { data, error } = await supabase
+      .from('clients')
+      .select(`
+        id,
+        user:users (id, name, email, phone),
+        orders (
+          id,
+          total,
+          status,
+          created_at,
+          shipping_cost,
+          amount_paid
+        )
+      `)
+      .eq('orders.seller_id', sellerId);
     
-//     if (error) {
-//       console.error('Error fetching clients with orders:', error);
-//       return [];
-//     }
+    if (error) {
+      console.error('Error fetching clients with orders:', error);
+      return [];
+    }
     
-//     return data || [];
-//   }
-// };
+    return data || [];
+  }
+};
 
 // Use mock data service
 const dataService = mockDataService;

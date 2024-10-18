@@ -1,50 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import dayjs from "dayjs";
 import { getDashboardData } from "@/services/SalesService";
-import supabase from "@/services/Supabase/BaseClient";
-
-export const getOrders = async () => {
-  const { data, error } = await supabase
-    .from("orders")
-    .select(
-      `
-            id,
-            created_at,
-            total,
-            status,
-            client_id,
-            amount_paid,
-            clients: seller_id(id, name)
-          `
-    )
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching orders:", error);
-    throw error;
-  }
-
-  return data.map((order) => ({
-    id: order.id.toString(),
-    created_at: new Date(order.created_at).getTime(),
-    customer: order.clients?.name || "Unknown",
-    status: mapStatus(order.status),
-    paymentMethod: "Not available", // This info is not in the provided schema
-    paymentIdentifier: "Not available", // This info is not in the provided schema
-    totalAmount: parseFloat(order.total),
-  }));
-};
-
-const mapStatus = (status: string): number => {
-  // Define your status mapping here
-  const statusMap: { [key: string]: number } = {
-    pending: 0,
-    processing: 1,
-    completed: 2,
-    // Add more status mappings as needed
-  };
-  return statusMap[status] || 0;
-};
+import { useAppSelector } from "@/store";
 
 type Statistic = {
   value: number;
@@ -98,14 +55,13 @@ export const SLICE_NAME = "salesDashboard";
 
 export const getSalesDashboardData = createAsyncThunk(
   SLICE_NAME + "/getSalesDashboardData",
-  async () => {
-    const response = await getDashboardData();
+  async (dates) => {
+    const response = await getDashboardData(dates);
     return response;
   }
 );
 
-
-const initialState: SalesDashboardState = {
+const dashboardState: SalesDashboardState = {
   startDate: dayjs(
     dayjs().subtract(3, "month").format("DD-MMM-YYYY, hh:mm A")
   ).unix(),
@@ -116,7 +72,7 @@ const initialState: SalesDashboardState = {
 
 const salesDashboardSlice = createSlice({
   name: `${SLICE_NAME}/state`,
-  initialState,
+  initialState: dashboardState,
   reducers: {
     setStartDate: (state, action: PayloadAction<number>) => {
       state.startDate = action.payload;

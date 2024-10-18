@@ -57,7 +57,7 @@ export const createProduct = async (
       .from("product_supplies")
       .insert(dos);
     // Luego, insertamos las variaciones
-    if (variations && variations.length > 0) {
+    if (variations && variations.length > 0 && productData.type !== "simple" ) {
       const variationsWithProductId = variations.map((variation) => ({
         name: variation.name,
         price: variation.price,
@@ -337,8 +337,8 @@ export type ProductData = {
   state: "available" | "unavailable";
   gender: string | null;
   commission: number;
-  type: "manufactured" | "imported" | null;
-  origin: string | null;
+  type: "simple" | "variable" | null;
+  origin: "manufactured" | "imported" | null;
   commission_type: "percentage" | "fixed";
   reference_currency: number | null;
   owner_id: string | null;
