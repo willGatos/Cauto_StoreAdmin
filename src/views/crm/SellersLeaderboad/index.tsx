@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import React, { useState, useEffect } from "react";
+import { ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
+import supabase from "@/services/Supabase/BaseClient";
+import { orderStatusColor } from "@/views/sales/SalesDashboard/components/LatestOrder";
+import { Badge } from "@/components/ui";
 
 // Types
 interface Seller {
@@ -33,9 +36,19 @@ const mockDataService = {
         phone: "+1234567890",
         created_at: "2023-01-01T00:00:00Z",
         orders: [
-          { id: 1, total: 150.00, status: "Completada", created_at: "2023-05-15T10:30:00Z" },
-          { id: 2, total: 200.00, status: "En proceso", created_at: "2023-05-16T14:45:00Z" },
-        ]
+          {
+            id: 1,
+            total: 150.0,
+            status: "Completada",
+            created_at: "2023-05-15T10:30:00Z",
+          },
+          {
+            id: 2,
+            total: 200.0,
+            status: "En proceso",
+            created_at: "2023-05-16T14:45:00Z",
+          },
+        ],
       },
       {
         id: 2,
@@ -44,75 +57,131 @@ const mockDataService = {
         phone: "+0987654321",
         created_at: "2023-02-01T00:00:00Z",
         orders: [
-          { id: 3, total: 300.00, status: "Completada", created_at: "2023-05-17T09:15:00Z" },
-          { id: 4, total: 175.50, status: "Pendiente", created_at: "2023-05-18T16:20:00Z" },
-        ]
-      }
+          {
+            id: 3,
+            total: 300.0,
+            status: "Completada",
+            created_at: "2023-05-17T09:15:00Z",
+          },
+          {
+            id: 4,
+            total: 175.5,
+            status: "Pendiente",
+            created_at: "2023-05-18T16:20:00Z",
+          },
+        ],
+      },
     ]);
+  },
+};
+
+const supabaseDataService = {
+  getSellersWithPendingOrders: async (): Promise<any[]> => {
+    const { data, error } = await supabase.rpc(
+      "get_sellers_with_pending_orders"
+    ); // Llamada a la función RPC
+
+    if (error) {
+      console.error("Error fetching sellers with pending orders:", error);
+      return [];
+    }
+
+    // Transformar los datos al formato deseado
+    const transformedData = data.reduce((result, current) => {
+      const sellerIndex = result.findIndex(
+        (seller) => seller.email === current.email
+      );
+
+      // Si el vendedor ya está en la lista, agregarle la nueva orden
+      if (sellerIndex !== -1) {
+        result[sellerIndex].orders.push({
+          id: current.order_id,
+          total: current.total,
+          status: getStatusText(current.status),
+          created_at: current.created_at,
+        });
+      } else {
+        // Si el vendedor no está en la lista, agregarlo con sus datos y su primera orden
+        result.push({
+          id: current.seller_id,
+          name: current.name || "Nombre no disponible",
+          email: current.email,
+          phone: current.phone,
+          created_at: current.created_at,
+          orders: [
+            {
+              id: current.order_id,
+              total: current.total,
+              status: getStatusText(current.status),
+              created_at: current.created_at,
+            },
+          ],
+        });
+      }
+      return result;
+    }, []);
+
+    return transformedData || [];
+  },
+};
+
+// Función para convertir el estado numérico a texto
+const getStatusText = (status) => {
+  switch (status) {
+    case 0:
+      return "Pendiente";
+    case 1:
+      return "En proceso";
+    case 2:
+      return "Completada";
+    default:
+      return "Desconocido";
   }
 };
 
-// Supabase data service
-// const supabaseDataService = {
-//   getSellers: async (): Promise<Seller[]> => {
-//     const { data, error } = await supabase
-//       .from('users')
-//       .select(`
-//         *,
-//         orders (
-//           id,
-//           total,
-//           status,
-//           created_at
-//         )
-//       `)
-//       .order('created_at', { ascending: false });
-    
-//     if (error) {
-//       console.error('Error fetching sellers:', error);
-//       return [];
-//     }
-    
-//     return data || [];
-//   }
-// };
-
 // Use mock data service
-const dataService = mockDataService;
+const dataService = supabaseDataService;
 
 export default function Component() {
   const [sellers, setSellers] = useState<Seller[]>([]);
-  const [expandedSellers, setExpandedSellers] = useState<Record<number, boolean>>({});
+  const [expandedSellers, setExpandedSellers] = useState<
+    Record<number, boolean>
+  >({});
 
   useEffect(() => {
-    dataService.getSellers().then(setSellers);
+    dataService.getSellersWithPendingOrders().then(setSellers);
   }, []);
 
   const toggleSeller = (id: number) => {
-    setExpandedSellers(prev => ({ ...prev, [id]: !prev[id] }));
+    setExpandedSellers((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
   };
 
   const calculatePerformance = (orders: Order[]) => {
     const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
-    const completedOrders = orders.filter(order => order.status === "Completada").length;
+    const completedOrders = orders.filter(
+      (order) => order.status === "Completada"
+    ).length;
     return {
       totalSales: formatCurrency(totalSales),
       completedOrders,
-      totalOrders: orders.length
+      totalOrders: orders.length,
     };
   };
 
@@ -124,18 +193,21 @@ export default function Component() {
           <thead>
             <tr className="bg-gray-100">
               <th className="py-2 px-4 border-b text-left"></th>
-              <th className="py-2 px-4 border-b text-left">ID</th>
               <th className="py-2 px-4 border-b text-left">Nombre</th>
               <th className="py-2 px-4 border-b text-left">Email</th>
               <th className="py-2 px-4 border-b text-left">Teléfono</th>
-              <th className="py-2 px-4 border-b text-left">Fecha de Registro</th>
+              <th className="py-2 px-4 border-b text-left">
+                Fecha de Registro
+              </th>
               <th className="py-2 px-4 border-b text-left">Ventas Totales</th>
-              <th className="py-2 px-4 border-b text-left">Órdenes Completadas</th>
+              <th className="py-2 px-4 border-b text-left">
+                Órdenes Completadas
+              </th>
               <th className="py-2 px-4 border-b text-left">Total de Órdenes</th>
             </tr>
           </thead>
           <tbody>
-            {sellers.map(seller => {
+            {sellers.map((seller) => {
               const performance = calculatePerformance(seller.orders);
               return (
                 <React.Fragment key={seller.id}>
@@ -144,7 +216,11 @@ export default function Component() {
                       <button
                         onClick={() => toggleSeller(seller.id)}
                         className="focus:outline-none"
-                        aria-label={expandedSellers[seller.id] ? "Contraer vendedor" : "Expandir vendedor"}
+                        aria-label={
+                          expandedSellers[seller.id]
+                            ? "Contraer vendedor"
+                            : "Expandir vendedor"
+                        }
                       >
                         {expandedSellers[seller.id] ? (
                           <ChevronDown className="h-5 w-5 text-gray-500" />
@@ -153,14 +229,21 @@ export default function Component() {
                         )}
                       </button>
                     </td>
-                    <td className="py-2 px-4 border-b">{seller.id}</td>
                     <td className="py-2 px-4 border-b">{seller.name}</td>
                     <td className="py-2 px-4 border-b">{seller.email}</td>
                     <td className="py-2 px-4 border-b">{seller.phone}</td>
-                    <td className="py-2 px-4 border-b">{formatDate(seller.created_at)}</td>
-                    <td className="py-2 px-4 border-b">{performance.totalSales}</td>
-                    <td className="py-2 px-4 border-b">{performance.completedOrders}</td>
-                    <td className="py-2 px-4 border-b">{performance.totalOrders}</td>
+                    <td className="py-2 px-4 border-b">
+                      {formatDate(seller.created_at)}
+                    </td>
+                    <td className="py-2 px-4 border-b">
+                      {performance.totalSales}
+                    </td>
+                    <td className="py-2 px-4 border-b">
+                      {performance.completedOrders}
+                    </td>
+                    <td className="py-2 px-4 border-b">
+                      {performance.totalOrders}
+                    </td>
                   </tr>
                   {expandedSellers[seller.id] && (
                     <tr>
@@ -168,20 +251,48 @@ export default function Component() {
                         <table className="min-w-full bg-gray-50">
                           <thead>
                             <tr className="bg-gray-100">
-                              <th className="py-2 px-4 border-b text-left">ID de Orden</th>
-                              <th className="py-2 px-4 border-b text-left">Total</th>
-                              <th className="py-2 px-4 border-b text-left">Estado</th>
-                              <th className="py-2 px-4 border-b text-left">Fecha de Creación</th>
-                              <th className="py-2 px-4 border-b text-left">Acción</th>
+                              <th className="py-2 px-4 border-b text-left">
+                                ID de Orden
+                              </th>
+                              <th className="py-2 px-4 border-b text-left">
+                                Total
+                              </th>
+                              <th className="py-2 px-4 border-b text-left">
+                                Estado
+                              </th>
+                              <th className="py-2 px-4 border-b text-left">
+                                Fecha de Creación
+                              </th>
+                              <th className="py-2 px-4 border-b text-left">
+                                Acción
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
-                            {seller.orders.map(order => (
+                            {seller.orders.map((order) => (
                               <tr key={order.id} className="hover:bg-gray-100">
-                                <td className="py-2 px-4 border-b">{order.id}</td>
-                                <td className="py-2 px-4 border-b">{formatCurrency(order.total)}</td>
-                                <td className="py-2 px-4 border-b">{order.status}</td>
-                                <td className="py-2 px-4 border-b">{formatDate(order.created_at)}</td>
+                                <td className="py-2 px-4 border-b">
+                                  {order.id}
+                                </td>
+                                <td className="py-2 px-4 border-b">
+                                  {formatCurrency(order.total)}
+                                </td>
+                                <td className="py-2 px-4 border-b">
+                                  
+                                  <Badge
+                                    className={
+                                      orderStatusColor[order.status].dotClass
+                                    }
+                                  />
+                                  <span
+                                    className={`ml-2 rtl:mr-2 capitalize font-semibold ${orderStatusColor[order.status].textClass}`}
+                                  >
+                                    {orderStatusColor[order.status].label}
+                                  </span>
+                                </td>
+                                <td className="py-2 px-4 border-b">
+                                  {formatDate(order.created_at)}
+                                </td>
                                 <td className="py-2 px-4 border-b">
                                   <a
                                     href={`/orders/${order.id}`}

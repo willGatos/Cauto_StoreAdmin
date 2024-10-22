@@ -11,12 +11,6 @@ const appsRoute: Routes = [
     authority: [OWNER],
   },
   {
-    key: "appsSales.binding",
-    path: `${APP_PREFIX_PATH}/sales/binding`,
-    component: lazy(() => import("@/views/inventory/Supply/Associate/Table")),
-    authority: [OWNER],
-  },
-  {
     key: "appsSales.delivery",
     path: `${APP_PREFIX_PATH}/sales/delivery`,
     component: lazy(() => import("@/views/orders/Delievery/index")),
@@ -115,15 +109,6 @@ const appsRoute: Routes = [
     },
   },
   {
-    key: "appsSales.ProductSupply",
-    path: `${APP_PREFIX_PATH}/sales/ProductSupply`,
-    component: lazy(() => import("@/views/inventory/Supply/ProductSupply")),
-    authority: [OWNER, SELLER],
-    meta: {
-      header: "Add New Product",
-    },
-  },
-  {
     key: "appsSales.catalog",
     path: `${APP_PREFIX_PATH}/catalog`,
     component: lazy(() => import("@/views/catalog/productSections")),
@@ -209,15 +194,6 @@ const appsRoute: Routes = [
     authority: [OWNER, SELLER],
     meta: {
       header: "Clientes",
-    },
-  },
-  {
-    key: "appsSales.clients",
-    path: `${APP_PREFIX_PATH}/sales/pendingOrders`,
-    component: lazy(() => import("@/views/crm/PendingOrders")),
-    authority: [OWNER, SELLER],
-    meta: {
-      header: "Ordenes Pendientes",
     },
   },
   {

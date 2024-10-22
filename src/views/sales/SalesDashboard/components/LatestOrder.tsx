@@ -36,7 +36,7 @@ type OrderColumnPros = {
 const { Tr, Td, TBody, THead, Th } = Table;
 
 
-const orderStatusColor: Record<
+export const orderStatusColor: Record<
   number,
   {
     label: string;

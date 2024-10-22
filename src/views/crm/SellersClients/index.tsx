@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronRight, Phone, Mail } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import React, { useState, useEffect } from "react";
+import { ChevronDown, ChevronRight, Phone, Mail } from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
+import { useAppSelector } from "@/store";
+import supabase from "@/services/Supabase/BaseClient";
 
 interface User {
   id: number;
@@ -38,118 +40,177 @@ const mockDataService = {
         id: 1,
         user: {
           id: 1,
-          name: 'John Doe',
-          email: 'john@example.com',
-          phone: '+1234567890'
+          name: "John Doe",
+          email: "john@example.com",
+          phone: "+1234567890",
         },
         orders: [
           {
             id: 1,
-            total: 150.00,
-            status: 'completed',
-            created_at: '2023-05-15T10:30:00Z',
-            shipping_cost: 10.00,
-            amount_paid: 150.00
+            total: 150.0,
+            status: "completed",
+            created_at: "2023-05-15T10:30:00Z",
+            shipping_cost: 10.0,
+            amount_paid: 150.0,
           },
           {
             id: 2,
-            total: 200.00,
-            status: 'pending',
-            created_at: '2023-05-20T14:45:00Z',
-            shipping_cost: 15.00,
-            amount_paid: 100.00
-          }
-        ]
+            total: 200.0,
+            status: "pending",
+            created_at: "2023-05-20T14:45:00Z",
+            shipping_cost: 15.0,
+            amount_paid: 100.0,
+          },
+        ],
       },
       {
         id: 2,
         user: {
           id: 2,
-          name: 'Jane Smith',
-          email: 'jane@example.com',
-          phone: '+0987654321'
+          name: "Jane Smith",
+          email: "jane@example.com",
+          phone: "+0987654321",
         },
         orders: [
           {
             id: 3,
-            total: 75.00,
-            status: 'completed',
-            created_at: '2023-05-18T09:15:00Z',
-            shipping_cost: 5.00,
-            amount_paid: 75.00
-          }
-        ]
-      }
+            total: 75.0,
+            status: "completed",
+            created_at: "2023-05-18T09:15:00Z",
+            shipping_cost: 5.0,
+            amount_paid: 75.0,
+          },
+        ],
+      },
     ]);
-  }
+  },
 };
 
 // Supabase data service
+
 const supabaseDataService = {
-  getClientsWithOrders: async (sellerId: number): Promise<ClientWithOrders[]> => {
-    const { data, error } = await supabase
-      .from('clients')
-      .select(`
-        id,
-        user:users (id, name, email, phone),
-        orders (
-          id,
-          total,
-          status,
-          created_at,
-          shipping_cost,
-          amount_paid
-        )
-      `)
-      .eq('orders.seller_id', sellerId);
-    
+  getClientsWithOrders: async (sellerId: string): Promise<any[]> => {
+    const { data, error } = await supabase.rpc(
+      "get_clients_with_orders_for_seller",
+      { si: sellerId }
+    ); // Llamada a la función RPC
+
     if (error) {
-      console.error('Error fetching clients with orders:', error);
+      console.error("Error fetching clients with orders:", error);
       return [];
     }
-    
-    return data || [];
+
+    // Transformar los datos al formato deseado
+    const transformedData = data.reduce((result, current) => {
+      const clientIndex = result.findIndex(client => client.user.email === current.client_email);
+
+      // Si el cliente ya está en la lista, agregar la nueva orden
+      if (clientIndex !== -1) {
+        result[clientIndex].orders.push({
+          id: current.order_id,
+          total: current.total,
+          status: getStatusText(current.status),
+          created_at: current.created_at,
+          shipping_cost: current.shipping_cost,
+          amount_paid: current.amount_paid,
+        });
+      } else {
+        // Si el cliente no está en la lista, agregarlo con sus datos y su primera orden
+        result.push({
+          id: current.client_id,
+          user: {
+            id: current.client_id,
+            name: current.client_name || 'Nombre no disponible',
+            email: current.client_email,
+            phone: current.client_phone,
+          },
+          orders: [{
+            id: current.order_id,
+            total: current.total,
+            status: getStatusText(current.status),
+            created_at: current.created_at,
+            shipping_cost: current.shipping_cost,
+            amount_paid: current.amount_paid,
+          }],
+        });
+      }
+      return result;
+    }, []);
+
+    return transformedData || [];
   }
 };
 
+// Función para convertir el estado numérico a texto
+const getStatusText = (status: number): string => {
+  switch (status) {
+    case 0:
+      return "pending";
+    case 1:
+      return "in_process";
+    case 2:
+      return "completed";
+    case 5:
+      return "cancelled";
+    default:
+      return "unknown";
+  }
+};
+
+
+
 // Use mock data service
-const dataService = mockDataService;
+const dataService = supabaseDataService;
 
 export default function SellerClientsView() {
-  const [clientsWithOrders, setClientsWithOrders] = useState<ClientWithOrders[]>([]);
-  const [expandedClients, setExpandedClients] = useState<Record<number, boolean>>({});
+  const [clientsWithOrders, setClientsWithOrders] = useState<
+    ClientWithOrders[]
+  >([]);
+  const [expandedClients, setExpandedClients] = useState<
+    Record<number, boolean>
+  >({});
+  const { id } = useAppSelector(
+    (state) => state.auth.user
+)
 
   useEffect(() => {
     // Assuming seller ID is 1 for this example
-    dataService.getClientsWithOrders(1).then(setClientsWithOrders);
+    dataService.getClientsWithOrders(id).then(setClientsWithOrders);
   }, []);
 
+  
   const toggleClient = (clientId: number) => {
-    setExpandedClients(prev => ({ ...prev, [clientId]: !prev[clientId] }));
+    setExpandedClients((prev) => ({ ...prev, [clientId]: !prev[clientId] }));
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
   };
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-8">Clientes y sus Órdenes</h1>
-      
+
       <div className="space-y-4">
-        {clientsWithOrders.map(client => (
-          <div key={client.id} className="bg-white shadow rounded-lg overflow-hidden">
-            <div 
+        {clientsWithOrders.map((client) => (
+          <div
+            key={client.id}
+            className="bg-white shadow rounded-lg overflow-hidden"
+          >
+            <div
               className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
               onClick={() => toggleClient(client.id)}
             >
@@ -172,10 +233,12 @@ export default function SellerClientsView() {
                 </div>
               </div>
             </div>
-            
+
             {expandedClients[client.id] && (
               <div className="p-4 bg-gray-50">
-                <h3 className="text-lg font-semibold mb-2">Órdenes del Cliente</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Órdenes del Cliente
+                </h3>
                 <table className="min-w-full bg-white">
                   <thead>
                     <tr className="bg-gray-200">
@@ -188,20 +251,32 @@ export default function SellerClientsView() {
                     </tr>
                   </thead>
                   <tbody>
-                    {client.orders.map(order => (
+                    {client.orders.map((order) => (
                       <tr key={order.id} className="hover:bg-gray-100">
                         <td className="py-2 px-4">{order.id}</td>
-                        <td className="py-2 px-4">{formatDate(order.created_at)}</td>
                         <td className="py-2 px-4">
-                          <span className={`px-2 py-1 rounded ${
-                            order.status === 'completed' ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'
-                          }`}>
+                          {formatDate(order.created_at)}
+                        </td>
+                        <td className="py-2 px-4">
+                          <span
+                            className={`px-2 py-1 rounded ${
+                              order.status === "completed"
+                                ? "bg-green-200 text-green-800"
+                                : "bg-yellow-200 text-yellow-800"
+                            }`}
+                          >
                             {order.status}
                           </span>
                         </td>
-                        <td className="py-2 px-4">{formatCurrency(order.total)}</td>
-                        <td className="py-2 px-4">{formatCurrency(order.shipping_cost)}</td>
-                        <td className="py-2 px-4">{formatCurrency(order.amount_paid)}</td>
+                        <td className="py-2 px-4">
+                          {formatCurrency(order.total)}
+                        </td>
+                        <td className="py-2 px-4">
+                          {formatCurrency(order.shipping_cost)}
+                        </td>
+                        <td className="py-2 px-4">
+                          {formatCurrency(order.amount_paid)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
