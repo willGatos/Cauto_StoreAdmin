@@ -97,7 +97,7 @@ const supabaseDataService = {
         result[sellerIndex].orders.push({
           id: current.order_id,
           total: current.total,
-          status: getStatusText(current.status),
+          status: current.status,
           created_at: current.created_at,
         });
       } else {
@@ -112,7 +112,7 @@ const supabaseDataService = {
             {
               id: current.order_id,
               total: current.total,
-              status: getStatusText(current.status),
+              status: current.status,
               created_at: current.created_at,
             },
           ],
@@ -123,20 +123,6 @@ const supabaseDataService = {
 
     return transformedData || [];
   },
-};
-
-// Función para convertir el estado numérico a texto
-const getStatusText = (status) => {
-  switch (status) {
-    case 0:
-      return "Pendiente";
-    case 1:
-      return "En proceso";
-    case 2:
-      return "Completada";
-    default:
-      return "Desconocido";
-  }
 };
 
 // Use mock data service
@@ -278,7 +264,7 @@ export default function Component() {
                                   {formatCurrency(order.total)}
                                 </td>
                                 <td className="py-2 px-4 border-b">
-                                  
+
                                   <Badge
                                     className={
                                       orderStatusColor[order.status].dotClass

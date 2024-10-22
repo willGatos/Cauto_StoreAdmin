@@ -3,6 +3,8 @@ import { ChevronDown, ChevronRight, Phone, Mail } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import { useAppSelector } from "@/store";
 import supabase from "@/services/Supabase/BaseClient";
+import { Badge } from "@/components/ui";
+import { orderStatusColor } from "@/views/sales/SalesDashboard/components/LatestOrder";
 
 interface User {
   id: number;
@@ -102,14 +104,16 @@ const supabaseDataService = {
 
     // Transformar los datos al formato deseado
     const transformedData = data.reduce((result, current) => {
-      const clientIndex = result.findIndex(client => client.user.email === current.client_email);
+      const clientIndex = result.findIndex(
+        (client) => client.user.email === current.client_email
+      );
 
       // Si el cliente ya está en la lista, agregar la nueva orden
       if (clientIndex !== -1) {
         result[clientIndex].orders.push({
           id: current.order_id,
           total: current.total,
-          status: getStatusText(current.status),
+          status: current.status,
           created_at: current.created_at,
           shipping_cost: current.shipping_cost,
           amount_paid: current.amount_paid,
@@ -120,43 +124,28 @@ const supabaseDataService = {
           id: current.client_id,
           user: {
             id: current.client_id,
-            name: current.client_name || 'Nombre no disponible',
+            name: current.client_name || "Nombre no disponible",
             email: current.client_email,
             phone: current.client_phone,
           },
-          orders: [{
-            id: current.order_id,
-            total: current.total,
-            status: getStatusText(current.status),
-            created_at: current.created_at,
-            shipping_cost: current.shipping_cost,
-            amount_paid: current.amount_paid,
-          }],
+          orders: [
+            {
+              id: current.order_id,
+              total: current.total,
+              status: current.status,
+              created_at: current.created_at,
+              shipping_cost: current.shipping_cost,
+              amount_paid: current.amount_paid,
+            },
+          ],
         });
       }
       return result;
     }, []);
 
     return transformedData || [];
-  }
+  },
 };
-
-// Función para convertir el estado numérico a texto
-const getStatusText = (status: number): string => {
-  switch (status) {
-    case 0:
-      return "pending";
-    case 1:
-      return "in_process";
-    case 2:
-      return "completed";
-    case 5:
-      return "cancelled";
-    default:
-      return "unknown";
-  }
-};
-
 
 
 // Use mock data service
@@ -169,16 +158,16 @@ export default function SellerClientsView() {
   const [expandedClients, setExpandedClients] = useState<
     Record<number, boolean>
   >({});
-  const { id } = useAppSelector(
-    (state) => state.auth.user
-)
+  const { id } = useAppSelector((state) => state.auth.user);
 
   useEffect(() => {
     // Assuming seller ID is 1 for this example
-    dataService.getClientsWithOrders(id).then(setClientsWithOrders);
+    dataService.getClientsWithOrders(id).then((data) => {
+      console.log(data)
+      setClientsWithOrders(data);
+    });
   }, []);
 
-  
   const toggleClient = (clientId: number) => {
     setExpandedClients((prev) => ({ ...prev, [clientId]: !prev[clientId] }));
   };
@@ -258,14 +247,15 @@ export default function SellerClientsView() {
                           {formatDate(order.created_at)}
                         </td>
                         <td className="py-2 px-4">
+                          <Badge
+                            className={orderStatusColor[order.status].dotClass}
+                          />
                           <span
-                            className={`px-2 py-1 rounded ${
-                              order.status === "completed"
-                                ? "bg-green-200 text-green-800"
-                                : "bg-yellow-200 text-yellow-800"
+                            className={`ml-2 rtl:mr-2 capitalize font-semibold ${
+                              orderStatusColor[order.status].textClass
                             }`}
                           >
-                            {order.status}
+                            {orderStatusColor[order.status].label}
                           </span>
                         </td>
                         <td className="py-2 px-4">
