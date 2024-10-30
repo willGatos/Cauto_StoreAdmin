@@ -4,7 +4,7 @@ import Button from "@/components/ui/Button";
 import Label from "@/components/ui/Label";
 import Prices from "@/components/ui/Prices";
 import { useAppSelector } from "@/store";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import ContactInfo from "./ContactInfo";
 import ShippingAddress from "./ShippingAddress";
@@ -31,6 +31,7 @@ const CheckoutPage = () => {
       quantity: 0,
     },
   ]);
+  const ref = useRef(0);
   const [hasPersonalizedOrder, setHasPersonalizedOrder] = useState(false);
   const [personalizedOrder, setPersonalizedOrders] = useState({
     order_id: 0,
@@ -75,10 +76,13 @@ const CheckoutPage = () => {
         return acc + curr.price * quantity;
       }, 0) || 0) + +personalizedOrder.price;
 
+      const offersTotalCost = offersSelected.reduce((total, offer) => {
+        return total + offer.price;
+      }, 0)
     setOrder({
       subtotal: ps,
       shipping: +delivery.shipping_cost,
-      total: ps + +delivery.shipping_cost,
+      total: ps + +delivery.shipping_cost + offersTotalCost,
     });
   }, [
     personalizedOrder.quantity,
@@ -123,19 +127,28 @@ const CheckoutPage = () => {
 
   const onSubmit = async () => {
     try {
+      const hasNewClient = ref.current == 0;
+      let clientId = ref.current;
+
       const { name, lastName, phone, email } = formData;
       const hasDel = formData.hasDelivery;
+
       if (name && lastName && phone && email) {
         hasDel &&
           (await supabase.from("locations").upsert({
             description: delivery.address,
             municipality_id: delivery.municipality,
           }));
-        const client = await supabase
-          .from("clients")
-          .upsert({ name, lastname: lastName, phone, email })
-          .select("id")
-          .single();
+
+        if (hasNewClient) {
+          const { data } = await supabase
+            .from("clients")
+            .upsert({ name, lastname: lastName, phone, email })
+            .select("id")
+            .single();
+
+          clientId = data.id;
+        }
 
         const { data: orderData, error: Oerror } = await supabase
           .from("orders")
@@ -143,7 +156,7 @@ const CheckoutPage = () => {
             status: 2,
             total: order.total,
             shop_id: shopId,
-            client_id: client.data.id,
+            client_id: clientId,
             seller_id: id,
             shipping_cost: hasDel ? delivery.shipping_cost : 0,
             amount_paid: order.total / 2,
@@ -186,8 +199,8 @@ const CheckoutPage = () => {
         handleEmail(0, email);
 
         //const data = supabase.from("shops").select("profiles(email)").eq(
-          // Debe tomar el Id desde alguno de los productos de la tienda o algo relacionado con eso.
-          // Como esta ahora lo toma del Id del vendedor, pero ese vendedor tendr'a su propia tienda
+        // Debe tomar el Id desde alguno de los productos de la tienda o algo relacionado con eso.
+        // Como esta ahora lo toma del Id del vendedor, pero ese vendedor tendr'a su propia tienda
         //).single();
         // La idea sería enviar un correo al del de la tienda el cual debe estar con
         // handleEmail(0, (await data).data.profiles.email);
@@ -467,7 +480,7 @@ const CheckoutPage = () => {
             formSubmit={formData}
             setFormSubmit={setFormData}
             setFormDev={setDelivery}
-
+            state={ref.current}
           />
         </div>
 
@@ -612,6 +625,15 @@ const CheckoutPage = () => {
                   ${order.subtotal}
                 </span>
               </div>
+              <div className="flex justify-between  py-2.5">
+                <span>Orden por Ofertas Total</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-200">
+                  {" "}
+                  {offersSelected.reduce((total, offer) => {
+                    return total + offer.price;
+                  }, 0)}
+                </span>
+              </div>
               {formData.hasDelivery && (
                 <div className="flex justify-between py-2.5">
                   <span>Costo de Mensajería</span>
@@ -628,15 +650,7 @@ const CheckoutPage = () => {
                 //   </span>
                 // </div>
               }
-              <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-200 text-base pt-4">
-                <span>Orden por Ofertas Total</span>
-                <span>
-                  {" "}
-                  {offersSelected.reduce((total, offer) => {
-                    return total + offer.price;
-                  }, 0)}
-                </span>
-              </div>
+
               <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-200 text-base pt-4">
                 <span>Orden Total</span>
                 <span> {order.total}</span>

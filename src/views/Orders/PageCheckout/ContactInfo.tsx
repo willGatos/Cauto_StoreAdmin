@@ -15,6 +15,7 @@ interface Props {
   setFormSubmit;
   formSubmit;
   setFormDev;
+  state
 }
 
 const ContactInfo: FC<Props> = ({
@@ -24,6 +25,7 @@ const ContactInfo: FC<Props> = ({
   formSubmit,
   setFormSubmit,
   setFormDev,
+  state
 }) => {
   const { id } = useAppSelector((state) => state.auth.user);
 
@@ -44,7 +46,7 @@ const ContactInfo: FC<Props> = ({
       }
 
       data.push({
-        value: "",
+        value: 0,
         label: "Cliente Nuevo",
         client_name: "",
         client_lastname: "",
@@ -63,13 +65,17 @@ const ContactInfo: FC<Props> = ({
 
     // que deben traer a todos los Clientes de Ese Gestor
 
-    // TODO: En el Form debes poner que diga si se introdujo que va a hacer el producto.
     fetchClientDeliveryData(id).then(setClientsList);
   }, []);
 
   //Cuando sean seleccionados deben reflejarse en el formulario
   function handleReceiverChange(deliveryData) {
+    // Desbloqueando Formularios
     setHasSelected(false)
+
+    // Definiendo que tipo de cliente se ha insertado.
+    state = deliveryData.value;
+
     console.log(deliveryData);
     // Manejar los Cambios de Informaci'on cuando se selecciona un cliente
     setFormDev({
