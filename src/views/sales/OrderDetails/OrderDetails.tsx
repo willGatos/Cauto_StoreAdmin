@@ -15,6 +15,12 @@ import { useLocation } from "react-router-dom";
 import isEmpty from "lodash/isEmpty";
 import dayjs from "dayjs";
 import supabase from "@/services/Supabase/BaseClient";
+import { Button, Select } from "@/components/ui";
+import {
+  deliveryStatusColor,
+  orderStatusColor,
+} from "../SalesDashboard/components/LatestOrder";
+import Label from "@/components/ui/Label";
 
 type SalesOrderDetailsResponse = {
   id?: string;
@@ -72,6 +78,46 @@ type SalesOrderDetailsResponse = {
     };
   };
 };
+const initialState: SalesOrderDetailsResponse = {
+  id: "",
+  progressStatus: 0,
+  payementStatus: 0,
+  dateTime: 0,
+  paymentSummary: {
+    subTotal: 0,
+    tax: 0,
+    deliveryFees: 0,
+    total: 0,
+  },
+  shipping: {
+    deliveryFees: 0,
+    estimatedMin: 0,
+    estimatedMax: 0,
+    shippingLogo: "",
+    shippingVendor: "",
+  },
+  product: [],
+  activity: [],
+  customer: {
+    name: "",
+    email: "",
+    phone: "",
+    img: "",
+    previousOrder: 0,
+    shippingAddress: {
+      line1: "",
+      line2: "",
+      line3: "",
+      line4: "",
+    },
+    billingAddress: {
+      line1: "",
+      line2: "",
+      line3: "",
+      line4: "",
+    },
+  },
+};
 
 type PayementStatus = {
   label: string;
@@ -115,7 +161,7 @@ export const getOrderDetails = async (
             status,
             created_at,
             shipping_cost,
-            clients (id, name, email, phone)
+            clients (id, name, email, phone, locations(description, municipalities(name)))
         `
     )
     .eq("id", orderId)
@@ -132,21 +178,24 @@ export const getOrderDetails = async (
             price,
             product_variations (
                 id,
-                product_id,
-                products (name, images)
+                name,
+                pictures,
+                products (name, images),
+                currency(name),
+                attribute_values(type(name),value)
             )
         `
     )
     .eq("order_id", orderId);
 
   if (itemsError) throw itemsError;
-
+  console.log(order.created_at, dayjs(order.created_at).format("MM/DD/YYYY"));
   // Map the data to the required format
   const orderDetails: SalesOrderDetailsResponse = {
     id: order.id.toString(),
-    progressStatus: mapStatus(order.status),
-    payementStatus: 1, // Assuming 1 is paid, adjust as needed
-    dateTime: new Date(order.created_at).getTime(),
+    progressStatus: 0, //order.status,
+    payementStatus: 0, // Assuming 1 is paid, adjust as needed
+    dateTime: order.created_at,
     paymentSummary: {
       subTotal: parseFloat(order.total) - parseFloat(order.shipping_cost),
       tax: 0, // Not available in the current schema
@@ -162,12 +211,17 @@ export const getOrderDetails = async (
     },
     product: orderItems.map((item) => ({
       id: item.product_variations.id.toString(),
-      name: item.product_variations.products.name,
-      productCode: '',
-      img: item.product_variations.products.images[0],
+      name: item.product_variations.name,
+      productCode: "",
+      images: item.product_variations.pictures,
       price: parseFloat(item.price),
       quantity: item.quantity,
       total: parseFloat(item.price) * item.quantity,
+      currency: item.product_variations.currency.name,
+      attributesValues: item.product_variations.attribute_values.map((av) => ({
+        name: av.type.name,
+        value: av.value,
+      })),
       details: {}, // Not available in the current schema
     })),
     activity: [], // Not available in the current schema
@@ -179,16 +233,10 @@ export const getOrderDetails = async (
           img: "", // Not available in the current schema
           previousOrder: 0, // Not available in the current schema
           shippingAddress: {
-            line1: "",
-            line2: "",
-            line3: "",
-            line4: "",
-          },
-          billingAddress: {
-            line1: "",
-            line2: "",
-            line3: "",
-            line4: "",
+            line1:
+              order.clients.locations.description +
+              " " +
+              order.clients.locations.municipalities.name,
           },
         }
       : undefined,
@@ -211,10 +259,35 @@ const OrderDetails = () => {
   const location = useLocation();
 
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<SalesOrderDetailsResponse>({});
+  const [data, setData] = useState<SalesOrderDetailsResponse>(initialState);
+  const [stateOfProduct, setStateOfProduct] = useState(0);
+  const [stateOfProduct2, setStateOfProduct2] = useState(0);
+  const [options, setOptions] = useState([]);
+  const [options2, setOptions2] = useState([]);
 
+  useEffect(() => {}, []);
   useEffect(() => {
     fetchData();
+    const formattedOptions = Object.values(orderStatusColor).map((option) => ({
+      value: option.value,
+      label: option.label,
+    }));
+    const formattedOptions2 = Object.values(deliveryStatusColor).map(
+      (option) => ({
+        value: option.value,
+        label: option.label,
+      })
+    );
+    console.log(
+      stateOfProduct2,
+      data.progressStatus,
+      stateOfProduct,
+      data.payementStatus,
+      stateOfProduct2 == data.progressStatus ||
+        stateOfProduct == data.payementStatus
+    );
+    setOptions(formattedOptions);
+    setOptions2(formattedOptions2);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -224,7 +297,7 @@ const OrderDetails = () => {
     );
     if (id) {
       setLoading(true);
-      const response = await getOrderDetails(id)
+      const response = await getOrderDetails(id);
       if (response) {
         setLoading(false);
         setData(response);
@@ -232,6 +305,14 @@ const OrderDetails = () => {
     }
   };
 
+  const handleSelectChange = (option: any) => {
+    console.log(option?.value);
+    setStateOfProduct(option?.value);
+  };
+  const handleSelect2Change = (option: any) => {
+    console.log(option?.value);
+    setStateOfProduct2(option?.value);
+  };
   return (
     <Container className="h-full">
       <Loading loading={false}>
@@ -240,7 +321,7 @@ const OrderDetails = () => {
             <div className="mb-6">
               <div className="flex items-center mb-2">
                 <h3>
-                  <span>Order</span>
+                  <span>Orden</span>
                   <span className="ltr:ml-2 rtl:mr-2">#{data.id}</span>
                 </h3>
                 <Tag
@@ -263,23 +344,49 @@ const OrderDetails = () => {
               <span className="flex items-center">
                 <HiOutlineCalendar className="text-lg" />
                 <span className="ltr:ml-1 rtl:mr-1">
-                  {dayjs
-                    .unix(data.dateTime || 0)
-                    .format("ddd DD-MMM-YYYY, hh:mm A")}
+                  {dayjs(data.dateTime || 0).format("ddd DD-MMM-YYYY, hh:mm A")}
                 </span>
               </span>
             </div>
             <div className="xl:flex gap-4">
               <div className="w-full">
-                {/* <OrderProducts data={data.product} /> */}
+                <OrderProducts data={data.product} />
                 <div className="xl:grid grid-cols-2 gap-4">
-                  <ShippingInfo data={data.shipping} />
+                  {/* <ShippingInfo data={data.shipping} /> */}
                   <PaymentSummary data={data.paymentSummary} />
                 </div>
-                <Activity data={data.activity} />
+                {/* <Activity data={data.activity} /> */}
               </div>
               <div className="xl:max-w-[360px] w-full">
                 <CustomerInfo data={data.customer} />
+              </div>
+              <div className="mt-5">
+                <Label>Estado del Pedido</Label>
+                <Select
+                  options={options}
+                  value={options.find((o) => o.value == stateOfProduct)}
+                  onChange={handleSelectChange}
+                />
+              </div>
+              <div className="mt-5">
+                <Label>Estado de la Mensajería</Label>
+                <Select
+                  options={options2}
+                  value={options2.find((o2) => o2.value == stateOfProduct2)}
+                  onChange={handleSelect2Change}
+                />
+              </div>
+              <div>
+                <Button
+                  disabled={
+                    !(stateOfProduct2 != data.progressStatus ||
+                    stateOfProduct != data.payementStatus)
+                  }
+                  className="mt-5"
+                  variant="solid"
+                >
+                  Guardar
+                </Button>
               </div>
             </div>
           </>
@@ -292,7 +399,7 @@ const OrderDetails = () => {
             darkModeSrc="/img/others/img-2-dark.png"
             alt="No order found!"
           />
-          <h3 className="mt-8">No order found!</h3>
+          <h3 className="mt-8">Ninguna Orden Encontrada</h3>
         </div>
       )}
     </Container>

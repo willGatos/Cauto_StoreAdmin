@@ -184,6 +184,13 @@ const CheckoutPage = () => {
           }));
 
         handleEmail(0, email);
+
+        //const data = supabase.from("shops").select("profiles(email)").eq(
+          // Debe tomar el Id desde alguno de los productos de la tienda o algo relacionado con eso.
+          // Como esta ahora lo toma del Id del vendedor, pero ese vendedor tendr'a su propia tienda
+        //).single();
+        // La idea sería enviar un correo al del de la tienda el cual debe estar con
+        // handleEmail(0, (await data).data.profiles.email);
       } else {
         handleError("Tienes un campo en CONTACTO sin llenar.");
       }
@@ -374,7 +381,7 @@ const CheckoutPage = () => {
 
   const renderProductOffers = (item, index: number) => {
     const { pictures, offer_price, name, required_quantity } = item;
-    console.log(item.price, offer_price )
+    console.log(item.price, offer_price);
     const equalOnOrderItems = orderItems.find(
       (oi) => oi.variation_id == item.id
     );

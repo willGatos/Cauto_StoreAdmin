@@ -42,37 +42,83 @@ export const orderStatusColor: Record<
     label: string;
     dotClass: string;
     textClass: string;
+    value: number
   }
 > = {
   0: {
     label: "Cancelado - Pagado",
     dotClass: "bg-gray-500", // Color genérico para estados no conocidos
     textClass: "text-gray-500",
+    value: 0,
   },
   1: {
     label: "Cancelado",
     dotClass: "bg-gray-500", // Color genérico para estados no conocidos
     textClass: "text-gray-500",
+    value: 1,
   },
   2: {
     label: "Pendiente",
     dotClass: "bg-amber-500", // Color para el punto
     textClass: "text-amber-500", // Color para el texto
+    value: 2,
+
   },
   3: {
     label: "En proceso",
     dotClass: "bg-blue-500",
     textClass: "text-blue-500",
+    value: 3,
+
   },
   4: {
     label: "Listo para Entrega",
     dotClass: "bg-purple-500",
     textClass: "text-purple-500",
+    value: 4,
   },
   5: {
     label: "Pagado a los Gestores",
     dotClass: "bg-emerald-500", // Completado
     textClass: "text-emerald-500",
+    value: 5,
+  },
+};
+
+export const deliveryStatusColor: Record<
+  number,
+  {
+    label: string;
+    dotClass: string;
+    textClass: string;
+    value: number
+  }
+> = {
+  0: {
+    label: "No Disponible",
+    dotClass: "bg-gray-500", // Color genérico para estados no conocidos
+    textClass: "text-gray-500",
+    value: 0,
+  },
+  1: {
+    label: "Disponible",
+    dotClass: "bg-gray-500", // Color genérico para estados no conocidos
+    textClass: "text-gray-500",
+    value: 1,
+  },
+  2: {
+    label: "Entregado",
+    dotClass: "bg-amber-500", // Color para el punto
+    textClass: "text-amber-500", // Color para el texto
+    value: 2,
+
+  },
+  3: {
+    label: "Pagado",
+    dotClass: "bg-blue-500",
+    textClass: "text-blue-500",
+    value: 3,
+
   },
 };
 

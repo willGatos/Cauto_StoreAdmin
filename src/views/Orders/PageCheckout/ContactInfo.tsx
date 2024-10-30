@@ -1,9 +1,10 @@
 import Label from "@/components/ui/Label";
-import React, { FC, SetStateAction, useRef } from "react";
+import React, { FC, SetStateAction, useEffect, useRef } from "react";
 import ButtonPrimary from "@/components/ui/Button";
 import ButtonSecondary from "@/components/ui/Button";
 import Checkbox from "@/components/ui/Checkbox/Checkbox";
 import Input from "@/components/ui/Input/Input";
+import { Select } from "@/components/ui";
 
 interface Props {
   isActive: boolean;
@@ -25,10 +26,39 @@ const ContactInfo: FC<Props> = ({
     setFormSubmit((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+
+
+  useEffect(() => {
+    
+      // TODO: Aca debe haber una funcion para manejar los Datos desde el servidor, 
+      // que deben traer a todos los Clientes de Ese Gestor
+      // TODO: Esos datos, deben transformarse para que los objetos digan label, value
+      // TODO: Cuando sean seleccionados deben reflejarse en el formulario
+      // TODO: Incluyendo el ID del cliente
+      // TODO: En el Form debes poner que diga si se introdujo que va a hacer el producto.
+
+        return transformedData || [];
+        // const response = await basicService.get('admin/HBL/filtered');
+        // response.HBLNumber = response.HBLNumber + 1;
+        setHblOptions(response);
+        setBasicData({HBLNumber:  response.HBLNumber, docCategory: "HBL"})
+        setHbl(prevState => ({...prevState, HBLNumber:  response.HBLNumber}))
+      
+    fetchData();
+  }, []);
+
+    // Fetch data from API on component mount
+    function handleReceiverChange(event) {
+      const selectedReceiverData = event.target.value;
+      setFormSubmit(selectedReceiverData);
+      const selectedHbl = clientsOptions.data.find((hblOption) => hblOption.receiver._id === selectedReceiverData);
+      setHbl(() => ({ ...selectedHbl, HBLNumber: hblOptions.HBLNumber }));
+    }
+
   const onCheck = (value: boolean, e) => {
     console.log(value, e, formSubmit);
 
-    setFormSubmit((prev) => ({ ...prev, hasDelivery: value}));
+    setFormSubmit((prev) => ({ ...prev, hasDelivery: value }));
   };
   const renderAccount = () => {
     return (
@@ -100,6 +130,15 @@ const ContactInfo: FC<Props> = ({
             <h3 className="text-lg font-semibold">Información de Contacto</h3>
           </div>
           {/* ============ */}
+          <div>
+            <h3>Selecciona Un Cliente</h3>
+            <Select
+              //value={valueForSelect}
+              placeholder="Seleccionar Cliente Previo"
+              options={[]}
+              onChange={handleReceiverChange}
+            />
+          </div>
           <div className="max-w-lg flex gap-5">
             <div className="w-56">
               <Label className="text-sm">Nombre</Label>
@@ -160,7 +199,7 @@ const ContactInfo: FC<Props> = ({
               onClick={() => onCloseActive()}
             >
               Guardar
-              { formSubmit.hasDelivery ? " y seguir a Mensajería" : ""}
+              {formSubmit.hasDelivery ? " y seguir a Mensajería" : ""}
             </ButtonPrimary>
             <ButtonSecondary
               className="mt-3 sm:mt-0 sm:ml-3"

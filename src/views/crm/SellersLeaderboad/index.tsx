@@ -110,7 +110,6 @@ const supabaseDataService = {
           created_at: current.created_at,
           orders: [
             {
-              
               id: current.order_id,
               total: current.total,
               status: current.status,

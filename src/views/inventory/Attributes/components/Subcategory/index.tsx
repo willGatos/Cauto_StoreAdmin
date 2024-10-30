@@ -69,7 +69,7 @@ export default function FormDialog({
                         return ({...prev, categoryId: newValue._id})
                     })
                 )}
-                ></Select>
+                />
 
                <h3>Nombre de Subategoria</h3>
                     <Input
