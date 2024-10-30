@@ -1,10 +1,12 @@
 import Label from "@/components/ui/Label";
-import React, { FC, SetStateAction, useEffect, useRef } from "react";
+import React, { FC, SetStateAction, useEffect, useRef, useState } from "react";
 import ButtonPrimary from "@/components/ui/Button";
 import ButtonSecondary from "@/components/ui/Button";
 import Checkbox from "@/components/ui/Checkbox/Checkbox";
 import Input from "@/components/ui/Input/Input";
 import { Select } from "@/components/ui";
+import { useAppSelector } from "@/store";
+import supabase from "@/services/Supabase/BaseClient";
 
 interface Props {
   isActive: boolean;
@@ -12,6 +14,7 @@ interface Props {
   onCloseActive: () => void;
   setFormSubmit;
   formSubmit;
+  setFormDev;
 }
 
 const ContactInfo: FC<Props> = ({
@@ -20,41 +23,74 @@ const ContactInfo: FC<Props> = ({
   onOpenActive,
   formSubmit,
   setFormSubmit,
+  setFormDev,
 }) => {
+  const { id } = useAppSelector((state) => state.auth.user);
+
+  const [clientsList, setClientsList] = useState([]);
+  const [hasSelected, setHasSelected] = useState(true);
+  useEffect(() => {
+    // Funcion para manejar los Datos desde el servidor, incluyendo el label y el value
+    // Incluyendo el ID del cliente
+
+    async function fetchClientDeliveryData(manager_id) {
+      const { data, error } = await supabase.rpc("get_manager_clients_data", {
+        manager_id,
+      });
+
+      if (error) {
+        console.error("Error fetching client delivery data:", error);
+        return;
+      }
+
+      data.push({
+        value: "",
+        label: "Cliente Nuevo",
+        client_name: "",
+        client_lastname: "",
+        client_phone: "",
+        client_email: "",
+        client_has_delivery: false,
+        delivery_municipality: 1,
+        delivery_province: 1,
+        delivery_address: "",
+        delivery_shipping_cost: 0,
+      });
+
+      return data;
+    }
+    // Añadir un tipo de Cliente que sea "Cliente Nuevo" que tenga todos los datos en blanco
+
+    // que deben traer a todos los Clientes de Ese Gestor
+
+    // TODO: En el Form debes poner que diga si se introdujo que va a hacer el producto.
+    fetchClientDeliveryData(id).then(setClientsList);
+  }, []);
+
+  //Cuando sean seleccionados deben reflejarse en el formulario
+  function handleReceiverChange(deliveryData) {
+    setHasSelected(false)
+    console.log(deliveryData);
+    // Manejar los Cambios de Informaci'on cuando se selecciona un cliente
+    setFormDev({
+      municipality: deliveryData.delivery_municipality,
+      province: deliveryData.delivery_province,
+      address: deliveryData.delivery_address,
+      shipping_cost: deliveryData.delivery_shipping_cost,
+    });
+
+    setFormSubmit({
+      name: deliveryData.client_name,
+      lastName: deliveryData.client_lastname,
+      phone: deliveryData.client_phone,
+      email: deliveryData.client_email,
+      hasDelivery: deliveryData.client_has_delivery,
+    });
+  }
   const handleChange = (e) => {
     console.log("e", e.target.value, e.target.name);
     setFormSubmit((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
-
-
-
-  useEffect(() => {
-    
-      // TODO: Aca debe haber una funcion para manejar los Datos desde el servidor, 
-      // que deben traer a todos los Clientes de Ese Gestor
-      // TODO: Esos datos, deben transformarse para que los objetos digan label, value
-      // TODO: Cuando sean seleccionados deben reflejarse en el formulario
-      // TODO: Incluyendo el ID del cliente
-      // TODO: En el Form debes poner que diga si se introdujo que va a hacer el producto.
-
-        return transformedData || [];
-        // const response = await basicService.get('admin/HBL/filtered');
-        // response.HBLNumber = response.HBLNumber + 1;
-        setHblOptions(response);
-        setBasicData({HBLNumber:  response.HBLNumber, docCategory: "HBL"})
-        setHbl(prevState => ({...prevState, HBLNumber:  response.HBLNumber}))
-      
-    fetchData();
-  }, []);
-
-    // Fetch data from API on component mount
-    function handleReceiverChange(event) {
-      const selectedReceiverData = event.target.value;
-      setFormSubmit(selectedReceiverData);
-      const selectedHbl = clientsOptions.data.find((hblOption) => hblOption.receiver._id === selectedReceiverData);
-      setHbl(() => ({ ...selectedHbl, HBLNumber: hblOptions.HBLNumber }));
-    }
-
   const onCheck = (value: boolean, e) => {
     console.log(value, e, formSubmit);
 
@@ -130,19 +166,21 @@ const ContactInfo: FC<Props> = ({
             <h3 className="text-lg font-semibold">Información de Contacto</h3>
           </div>
           {/* ============ */}
-          <div>
-            <h3>Selecciona Un Cliente</h3>
+          <div className="">
+            <h5>Seleccione primero Un Cliente</h5>
             <Select
               //value={valueForSelect}
               placeholder="Seleccionar Cliente Previo"
-              options={[]}
+              options={clientsList}
               onChange={handleReceiverChange}
+              className="mb-16"
             />
           </div>
           <div className="max-w-lg flex gap-5">
             <div className="w-56">
               <Label className="text-sm">Nombre</Label>
               <Input
+                disabled={hasSelected}
                 value={formSubmit.name}
                 onChange={handleChange}
                 className="mt-1.5"
@@ -153,6 +191,7 @@ const ContactInfo: FC<Props> = ({
             <div className="w-56">
               <Label className="text-sm">Apellidos</Label>
               <Input
+                disabled={hasSelected}
                 value={formSubmit.lastName}
                 onChange={handleChange}
                 name="lastName"
@@ -164,6 +203,7 @@ const ContactInfo: FC<Props> = ({
           <div className="max-w-lg">
             <Label className="text-sm">Teléfono de WhatsApp</Label>
             <Input
+              disabled={hasSelected}
               value={formSubmit.phone}
               onChange={handleChange}
               className="mt-1.5"
@@ -175,6 +215,7 @@ const ContactInfo: FC<Props> = ({
           <div className="max-w-lg">
             <Label className="text-sm">Correo para Mantenerle al tanto</Label>
             <Input
+              disabled={hasSelected}
               value={formSubmit.email}
               onChange={handleChange}
               className="mt-1.5"

@@ -466,6 +466,8 @@ const CheckoutPage = () => {
             }}
             formSubmit={formData}
             setFormSubmit={setFormData}
+            setFormDev={setDelivery}
+
           />
         </div>
 
