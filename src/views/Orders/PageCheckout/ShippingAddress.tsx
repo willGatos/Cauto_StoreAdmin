@@ -31,6 +31,7 @@ const ShippingAddress: FC<Props> = ({
   formData,
   setFormSubmit,
 }) => {
+  const arrayOfProvinces = [{ value: 1, label: "La Habana" }];
   const { shopId } = useAppSelector((state) => state.auth.user);
   const [delieveyData, setDelieveyData] = useState({
     id: null,
@@ -60,6 +61,11 @@ const ShippingAddress: FC<Props> = ({
     console.log(e);
     setFormSubmit((prev) => ({ ...prev, province: e.value }));
   };
+
+  const transformedLandV = municipality.map(({ id, name }) => ({
+    value: id,
+    label: name,
+  }));
   //  onChange = { handleCategoryChange };
 
   const renderShippingAddress = () => {
@@ -152,19 +158,21 @@ const ShippingAddress: FC<Props> = ({
             <div>
               <Label className="text-sm">Provincia</Label>
               <Select
-                options={[{ value: 1, label: "La Habana" }]}
+                options={arrayOfProvinces}
                 className="mt-1.5"
-                value={province.find((prov) => prov.id === delivery.province)}
+                value={arrayOfProvinces.find(
+                  (prov) => prov.value === delivery.province
+                )}
                 onChange={handleChangePro}
               />
             </div>
             <div>
               <Label className="text-sm">Municipio</Label>
               <Select
-                options={municipality.map(({ id, name }) => ({
-                  value: id,
-                  label: name,
-                }))}
+                options={transformedLandV}
+                value={transformedLandV.find(
+                  (muni) => muni.value === delivery.municipality
+                )}
                 onChange={handleChange}
                 className="mt-1.5"
               />

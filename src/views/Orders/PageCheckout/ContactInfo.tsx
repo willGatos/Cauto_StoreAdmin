@@ -15,7 +15,7 @@ interface Props {
   setFormSubmit;
   formSubmit;
   setFormDev;
-  state
+  setClientId;
 }
 
 const ContactInfo: FC<Props> = ({
@@ -25,7 +25,7 @@ const ContactInfo: FC<Props> = ({
   formSubmit,
   setFormSubmit,
   setFormDev,
-  state
+  setClientId,
 }) => {
   const { id } = useAppSelector((state) => state.auth.user);
 
@@ -71,10 +71,10 @@ const ContactInfo: FC<Props> = ({
   //Cuando sean seleccionados deben reflejarse en el formulario
   function handleReceiverChange(deliveryData) {
     // Desbloqueando Formularios
-    setHasSelected(false)
-
+    setHasSelected(false);
+    console.log(2, deliveryData.value);
     // Definiendo que tipo de cliente se ha insertado.
-    state = deliveryData.value;
+    setClientId(deliveryData.value);
 
     console.log(deliveryData);
     // Manejar los Cambios de Informaci'on cuando se selecciona un cliente

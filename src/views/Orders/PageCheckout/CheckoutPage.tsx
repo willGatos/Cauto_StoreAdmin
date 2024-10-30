@@ -31,7 +31,7 @@ const CheckoutPage = () => {
       quantity: 0,
     },
   ]);
-  const ref = useRef(0);
+  const [clientId, setClientId] = useState(0)
   const [hasPersonalizedOrder, setHasPersonalizedOrder] = useState(false);
   const [personalizedOrder, setPersonalizedOrders] = useState({
     order_id: 0,
@@ -127,9 +127,10 @@ const CheckoutPage = () => {
 
   const onSubmit = async () => {
     try {
-      const hasNewClient = ref.current == 0;
-      let clientId = ref.current;
+      const hasNewClient = clientId == 0;
+      let clientIdForAPI = clientId;
 
+      console.log('s',clientId, );
       const { name, lastName, phone, email } = formData;
       const hasDel = formData.hasDelivery;
 
@@ -146,8 +147,7 @@ const CheckoutPage = () => {
             .upsert({ name, lastname: lastName, phone, email })
             .select("id")
             .single();
-
-          clientId = data.id;
+            clientIdForAPI = data.id;
         }
 
         const { data: orderData, error: Oerror } = await supabase
@@ -156,7 +156,7 @@ const CheckoutPage = () => {
             status: 2,
             total: order.total,
             shop_id: shopId,
-            client_id: clientId,
+            client_id: clientIdForAPI,
             seller_id: id,
             shipping_cost: hasDel ? delivery.shipping_cost : 0,
             amount_paid: order.total / 2,
@@ -480,7 +480,7 @@ const CheckoutPage = () => {
             formSubmit={formData}
             setFormSubmit={setFormData}
             setFormDev={setDelivery}
-            state={ref.current}
+            setClientId={setClientId}
           />
         </div>
 
