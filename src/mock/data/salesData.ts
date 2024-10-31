@@ -598,7 +598,7 @@ export const orderDetailsData = [
     {
         id: '95954',
         progressStatus: 0,
-        payementStatus: 0,
+        deliveryStatus: 0,
         dateTime: 1646396117,
         paymentSummary: {
             subTotal: 1762,

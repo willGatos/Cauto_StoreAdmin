@@ -31,7 +31,7 @@ const CheckoutPage = () => {
       quantity: 0,
     },
   ]);
-  const [clientId, setClientId] = useState(0)
+  const [clientId, setClientId] = useState(0);
   const [hasPersonalizedOrder, setHasPersonalizedOrder] = useState(false);
   const [personalizedOrder, setPersonalizedOrders] = useState({
     order_id: 0,
@@ -76,9 +76,9 @@ const CheckoutPage = () => {
         return acc + curr.price * quantity;
       }, 0) || 0) + +personalizedOrder.price;
 
-      const offersTotalCost = offersSelected.reduce((total, offer) => {
-        return total + offer.price;
-      }, 0)
+    const offersTotalCost = offersSelected.reduce((total, offer) => {
+      return total + offer.price;
+    }, 0);
     setOrder({
       subtotal: ps,
       shipping: +delivery.shipping_cost,
@@ -123,31 +123,61 @@ const CheckoutPage = () => {
       quantity: variation.required_quantity || 1,
     }));
   };
-  // TODO: HACER QUE SE CAMBIE EL TOTAL EN AUTOMATICO y agregar el campo de shipping
 
   const onSubmit = async () => {
+    // TODO: Y ahora si la hay. La idea ser'ia que se analizara el modelo antiguo y en base a ese, se mirara si hacer un cambio o no
+    // Adem'as de eso, esta creando la location sin que sea necesario en el caso de que sea igual, y si es diferente a la original
+    // , lo esta haciendo mal.
+
     try {
       const hasNewClient = clientId == 0;
       let clientIdForAPI = clientId;
 
-      console.log('s',clientId, );
+      console.log("s", delivery);
       const { name, lastName, phone, email } = formData;
       const hasDel = formData.hasDelivery;
-
+      let locationId = null; // Falta tomarlo del fetch en Contact
       if (name && lastName && phone && email) {
-        hasDel &&
-          (await supabase.from("locations").upsert({
-            description: delivery.address,
-            municipality_id: delivery.municipality,
-          }));
+        if (hasDel) {
+          const { data } = await supabase
+            .from("locations")
+            .upsert({
+              description: delivery.address,
+              municipality_id: delivery.municipality,
+            })
+            .select("id")
+            .single();
+          locationId = data.id;
+        }
 
         if (hasNewClient) {
           const { data } = await supabase
             .from("clients")
-            .upsert({ name, lastname: lastName, phone, email })
+            .upsert({
+              name,
+              lastname: lastName,
+              phone,
+              email,
+              location_id: locationId,
+            })
             .select("id")
             .single();
-            clientIdForAPI = data.id;
+          clientIdForAPI = data.id;
+        } else {
+          const { data } = await supabase
+            .from("clients")
+            .update({
+              name,
+              lastname: lastName,
+              phone,
+              email,
+              location_id: locationId,
+            })
+            .eq("id", clientId)
+            .select("id")
+
+            .single();
+          clientIdForAPI = data.id;
         }
 
         const { data: orderData, error: Oerror } = await supabase

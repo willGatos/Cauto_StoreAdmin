@@ -21,11 +21,12 @@ import {
   orderStatusColor,
 } from "../SalesDashboard/components/LatestOrder";
 import Label from "@/components/ui/Label";
+import handleEmail from "@/components/email";
 
 type SalesOrderDetailsResponse = {
   id?: string;
   progressStatus?: number;
-  payementStatus?: number;
+  deliveryStatus?: number;
   dateTime?: number;
   paymentSummary?: {
     subTotal: number;
@@ -81,7 +82,7 @@ type SalesOrderDetailsResponse = {
 const initialState: SalesOrderDetailsResponse = {
   id: "",
   progressStatus: 0,
-  payementStatus: 0,
+  deliveryStatus: 0,
   dateTime: 0,
   paymentSummary: {
     subTotal: 0,
@@ -119,12 +120,12 @@ const initialState: SalesOrderDetailsResponse = {
   },
 };
 
-type PayementStatus = {
+type deliveryStatus = {
   label: string;
   class: string;
 };
 
-const paymentStatus: Record<number, PayementStatus> = {
+const paymentStatus: Record<number, deliveryStatus> = {
   0: {
     label: "Paid",
     class:
@@ -134,15 +135,24 @@ const paymentStatus: Record<number, PayementStatus> = {
     label: "Unpaid",
     class: "text-red-500 bg-red-100 dark:text-red-100 dark:bg-red-500/20",
   },
+  2: {
+    label: "Unpaid",
+    class: "text-red-500 bg-red-100 dark:text-red-100 dark:bg-red-500/20",
+  },
 };
 
-const progressStatus: Record<number, PayementStatus> = {
+const progressStatus: Record<number, deliveryStatus> = {
   0: {
-    label: "Fulfilled",
+    label: "Terminada",
     class: "bg-cyan-100 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-100",
   },
   1: {
-    label: "Unfulfilled",
+    label: "Pendiente",
+    class:
+      "text-amber-600 bg-amber-100 dark:text-amber-100 dark:bg-amber-500/20",
+  },
+  2: {
+    label: "Pendiente",
     class:
       "text-amber-600 bg-amber-100 dark:text-amber-100 dark:bg-amber-500/20",
   },
@@ -159,6 +169,7 @@ export const getOrderDetails = async (
             id,
             total,
             status,
+            delivery_state,
             created_at,
             shipping_cost,
             clients (id, name, email, phone, locations(description, municipalities(name)))
@@ -193,8 +204,8 @@ export const getOrderDetails = async (
   // Map the data to the required format
   const orderDetails: SalesOrderDetailsResponse = {
     id: order.id.toString(),
-    progressStatus: 0, //order.status,
-    payementStatus: 0, // Assuming 1 is paid, adjust as needed
+    progressStatus: order.status, //order.status,
+    deliveryStatus: order.delivery_state, // Assuming 1 is paid, adjust as needed
     dateTime: order.created_at,
     paymentSummary: {
       subTotal: parseFloat(order.total) - parseFloat(order.shipping_cost),
@@ -210,15 +221,15 @@ export const getOrderDetails = async (
       shippingVendor: "", // Not available in the current schema
     },
     product: orderItems.map((item) => ({
-      id: item.product_variations.id.toString(),
-      name: item.product_variations.name,
+      id: item.product_variations?.id.toString(),
+      name: item.product_variations?.name,
       productCode: "",
-      images: item.product_variations.pictures,
-      price: parseFloat(item.price),
-      quantity: item.quantity,
-      total: parseFloat(item.price) * item.quantity,
-      currency: item.product_variations.currency.name,
-      attributesValues: item.product_variations.attribute_values.map((av) => ({
+      images: item.product_variations?.pictures,
+      price: parseFloat(item?.price),
+      quantity: item?.quantity,
+      total: parseFloat(item?.price) * item?.quantity,
+      currency: item.product_variations?.currency.name,
+      attributesValues: item.product_variations?.attribute_values.map((av) => ({
         name: av.type.name,
         value: av.value,
       })),
@@ -233,10 +244,11 @@ export const getOrderDetails = async (
           img: "", // Not available in the current schema
           previousOrder: 0, // Not available in the current schema
           shippingAddress: {
-            line1:
-              order.clients.locations.description +
-              " " +
-              order.clients.locations.municipalities.name,
+            line1: order.clients?.locations
+              ? order.clients?.locations?.description +
+                " " +
+                order.clients?.locations?.municipalities?.name
+              : "",
           },
         }
       : undefined,
@@ -245,16 +257,6 @@ export const getOrderDetails = async (
   return orderDetails;
 };
 
-const mapStatus = (status: string): number => {
-  // Define your status mapping here
-  const statusMap: { [key: string]: number } = {
-    pending: 0,
-    processing: 1,
-    completed: 2,
-    // Add more status mappings as needed
-  };
-  return statusMap[status] || 0;
-};
 const OrderDetails = () => {
   const location = useLocation();
 
@@ -278,14 +280,6 @@ const OrderDetails = () => {
         label: option.label,
       })
     );
-    console.log(
-      stateOfProduct2,
-      data.progressStatus,
-      stateOfProduct,
-      data.payementStatus,
-      stateOfProduct2 == data.progressStatus ||
-        stateOfProduct == data.payementStatus
-    );
     setOptions(formattedOptions);
     setOptions2(formattedOptions2);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -301,6 +295,9 @@ const OrderDetails = () => {
       if (response) {
         setLoading(false);
         setData(response);
+        console.log(response.progressStatus, response.deliveryStatus);
+        setStateOfProduct(response.progressStatus);
+        setStateOfProduct2(response.deliveryStatus);
       }
     }
   };
@@ -312,6 +309,27 @@ const OrderDetails = () => {
   const handleSelect2Change = (option: any) => {
     console.log(option?.value);
     setStateOfProduct2(option?.value);
+  };
+
+  const changeState = () => {
+    // Tienes que hacer las llamadas de email para los Correos
+
+    // Los Correos enviarlos a los Cliente con el Estado Correspondiente,
+    if (stateOfProduct != data.progressStatus)
+      handleEmail(data.progressStatus, data.customer.email);
+
+    if (stateOfProduct2 != data.deliveryStatus)
+      handleEmail(data.deliveryStatus, data.customer.email);
+    // Cambiar los estados en la base de datos - deliveryState - State
+    supabase
+      .from("orders")
+      .update({
+        state: stateOfProduct,
+        delivery_state: stateOfProduct2,
+      })
+      .eq("id", data.id)
+      .select("status, delivery_state")
+      .single();
   };
   return (
     <Container className="h-full">
@@ -327,10 +345,10 @@ const OrderDetails = () => {
                 <Tag
                   className={classNames(
                     "border-0 rounded-md ltr:ml-2 rtl:mr-2",
-                    paymentStatus[data.payementStatus || 0].class
+                    paymentStatus[data.deliveryStatus || 0].class
                   )}
                 >
-                  {paymentStatus[data.payementStatus || 0].label}
+                  {paymentStatus[data.deliveryStatus || 0].label}
                 </Tag>
                 <Tag
                   className={classNames(
@@ -379,11 +397,14 @@ const OrderDetails = () => {
               <div>
                 <Button
                   disabled={
-                    !(stateOfProduct2 != data.progressStatus ||
-                    stateOfProduct != data.payementStatus)
+                    !(
+                      stateOfProduct != data.progressStatus ||
+                      stateOfProduct2 != data.deliveryStatus
+                    )
                   }
                   className="mt-5"
                   variant="solid"
+                  onClick={changeState}
                 >
                   Guardar
                 </Button>
