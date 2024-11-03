@@ -155,7 +155,7 @@ export default function ProductsVariations() {
                 return (
                   <div
                     key={key2}
-                    className="flex-shrink-0 w-64 border rounded-lg p-4 shadow-md relative"
+                    className="flex-shrink-0 w-64 border rounded-lg p-4 shadow-md"
                   >
                     <div className="mb-4">
                       <img

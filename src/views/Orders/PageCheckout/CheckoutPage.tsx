@@ -200,22 +200,35 @@ const CheckoutPage = () => {
           quantity: oi.quantity,
         }));
 
-        {
-          console.log(offersSelected);
-          const allVariations = offersSelected.reduce((acc, os) => {
-            return acc.concat(os.variations);
-          }, []);
+        console.log(offersSelected);
+        const allVariations = offersSelected.reduce((acc, os) => {
+          return acc.concat(os.variations);
+        }, []);
 
-          console.log(allVariations);
-          const oiArray2 = createOrderItemsArray(allVariations, orderData.id);
-          console.log(oiArray2);
-          oiArray = [...oiArray2, ...oiArray];
-        }
+        console.log(allVariations);
+        const oiArray2 = createOrderItemsArray(allVariations, orderData.id);
+        console.log(oiArray2);
+        oiArray = [...oiArray2, ...oiArray];
 
         const { error: OIError } = await supabase
           .from("order_items")
           .insert(oiArray)
           .select("*");
+
+        const { data: dP } = await supabase
+          .from("shops")
+          .select("owner: owner_id(email)")
+          .eq(
+            "id",
+            shopId
+            // Debe tomar el Id desde alguno de los productos de la tienda o algo relacionado con eso.
+            // Como esta ahora lo toma del Id del vendedor, pero ese vendedor tendr'a su propia tienda
+            // El problema es que son variaciones de los productos lo que se esta trayendo.
+            // Adem'as de eso, pueden pedir 2 productos de 2 tiendas diferentes.
+            // Tienes que traer las ofertas de las 2 Tiendas
+          )
+          .single();
+        console.log(dP.owner.email);
 
         hasPersonalizedOrder &&
           (await supabase.from("personalized_orders").upsert({
@@ -227,11 +240,8 @@ const CheckoutPage = () => {
           }));
 
         handleEmail(0, email);
+        handleEmail(0, dP.owner.email);
 
-        //const data = supabase.from("shops").select("profiles(email)").eq(
-        // Debe tomar el Id desde alguno de los productos de la tienda o algo relacionado con eso.
-        // Como esta ahora lo toma del Id del vendedor, pero ese vendedor tendr'a su propia tienda
-        //).single();
         // La idea sería enviar un correo al del de la tienda el cual debe estar con
         // handleEmail(0, (await data).data.profiles.email);
       } else {

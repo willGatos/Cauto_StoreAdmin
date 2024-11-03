@@ -378,6 +378,8 @@ const OrderDetails = () => {
               <div className="xl:max-w-[360px] w-full">
                 <CustomerInfo data={data.customer} />
               </div>
+            </div>
+            <div className="gap-4">
               <div className="mt-5">
                 <Label>Estado del Pedido</Label>
                 <Select
