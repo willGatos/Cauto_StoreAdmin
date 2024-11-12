@@ -157,7 +157,7 @@ const Profile = ({
     setSubmitting(false);
   };
 
-  const [localImage, setLocalImage] = useState('');
+  const [localImage, setLocalImage] = useState("");
   const [error, updateError] = useState();
 
   const handleImageUpload = async (error, result, widget) => {
@@ -208,13 +208,15 @@ const Profile = ({
                             open();
                           }
                           return (
-                            <Avatar
-                              className="border-2 border-white dark:border-gray-800 shadow-lg"
-                              size={60}
-                              shape="circle"
-                              src={localImage}
-                              icon={<HiOutlineUser />}
-                            />
+                            <div onClick={handleOnClick}>
+                              <Avatar
+                                className="border-2 border-white dark:border-gray-800 shadow-lg"
+                                size={60}
+                                shape="circle"
+                                src={localImage}
+                                icon={<HiOutlineUser />}
+                              />
+                            </div>
                           );
                         }}
                       </UploadWidget>
