@@ -4,7 +4,7 @@ import {
   NAV_ITEM_TYPE_COLLAPSE,
   NAV_ITEM_TYPE_ITEM,
 } from "@/constants/navigation.constant";
-import { ADMIN, USER, OWNER, SELLER } from "@/constants/roles.constant";
+import { USER, OWNER, SELLER_FIXED } from "@/constants/roles.constant";
 import type { NavigationTree } from "@/@types/navigation";
 
 const appsNavigationConfig: NavigationTree[] = [
@@ -15,16 +15,16 @@ const appsNavigationConfig: NavigationTree[] = [
     translateKey: "nav.apps",
     icon: "apps",
     type: NAV_ITEM_TYPE_TITLE,
-    authority: [ADMIN, OWNER, SELLER],
+    authority: [OWNER, SELLER_FIXED],
     subMenu: [
       {
-        key: "apps.crm",
+        key: "apps.inventory",
         path: "",
         title: "Organizar Inventario",
         translateKey: "nav.appsCrm.org",
         icon: "knowledgeBase",
         type: NAV_ITEM_TYPE_COLLAPSE,
-        authority: [ADMIN, OWNER, SELLER],
+        authority: [OWNER],
         subMenu: [
           {
             key: "appsSales.currency",
@@ -33,7 +33,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.currency",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
+            authority: [OWNER],
             subMenu: [],
           },
           {
@@ -43,7 +43,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.categoryList",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER],
+            authority: [OWNER],
             subMenu: [],
           },
           {
@@ -53,28 +53,28 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.attributeNew",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER],
+            authority: [OWNER],
             subMenu: [],
           },
         ],
       },
       {
-        key: "apps.crm",
+        key: "apps.supplies",
         path: "",
         title: "Insumo",
         translateKey: "nav.appsCrm.supply",
         icon: "knowledgeBase",
         type: NAV_ITEM_TYPE_COLLAPSE,
-        authority: [ADMIN, OWNER, SELLER],
+        authority: [OWNER],
         subMenu: [
           {
             key: "appsSales.supplyNew",
             path: `${APP_PREFIX_PATH}/sales/supply-new`,
-            title: "Nuevo Insumo",
+            title: "Crear Insumo",
             translateKey: "nav.appsSales.supplyNew",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
+            authority: [OWNER],
             subMenu: [],
           },
           {
@@ -84,7 +84,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.supplyList",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
+            authority: [OWNER],
             subMenu: [],
           },
         ],
@@ -96,7 +96,7 @@ const appsNavigationConfig: NavigationTree[] = [
         translateKey: "nav.appsCrm.catalog",
         icon: "inventory",
         type: NAV_ITEM_TYPE_COLLAPSE,
-        authority: [ADMIN, OWNER, SELLER],
+        authority: [OWNER],
         subMenu: [
           {
             key: "appsSales.sections",
@@ -105,7 +105,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.catalog",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
+            authority: [OWNER],
             subMenu: [],
           },
           {
@@ -115,7 +115,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.catalog",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
+            authority: [OWNER],
             subMenu: [],
           },
           {
@@ -125,7 +125,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.catalog",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
+            authority: [OWNER],
             subMenu: [],
           },
 
@@ -136,7 +136,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.offerForm",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
+            authority: [OWNER],
             subMenu: [],
           },
           {
@@ -146,7 +146,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.offerTable",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
+            authority: [OWNER],
             subMenu: [],
           },
         ],
@@ -158,7 +158,7 @@ const appsNavigationConfig: NavigationTree[] = [
         translateKey: "nav.appsCrm.crm",
         icon: "inventory",
         type: NAV_ITEM_TYPE_COLLAPSE,
-        authority: [ADMIN, OWNER, SELLER],
+        authority: [OWNER, SELLER_FIXED],
         subMenu: [
           {
             key: "appsSales.productList",
@@ -167,7 +167,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.productList",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
+            authority: [OWNER],
             subMenu: [],
           },
           {
@@ -177,17 +177,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.delivery",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
-            subMenu: [],
-          },
-          {
-            key: "appsSales.sellerList",
-            path: `${APP_PREFIX_PATH}/sales/sellers`,
-            title: "Seller List",
-            translateKey: "nav.appsSales.sellerList",
-            icon: "",
-            type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER],
+            authority: [OWNER],
             subMenu: [],
           },
           {
@@ -197,7 +187,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.orderList",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
+            authority: [SELLER_FIXED],
             subMenu: [],
           },
           {
@@ -207,30 +197,9 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.productNew",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
+            authority: [OWNER],
             subMenu: [],
           },
-          {
-            key: "appsSales.orderNew",
-            path: `${APP_PREFIX_PATH}/sales/order-new`,
-            title: "Nueva Orden",
-            translateKey: "nav.appsSales.orderNew",
-            icon: "",
-            type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, SELLER],
-            subMenu: [],
-          },
-        ],
-      },
-      {
-        key: "apps.customers",
-        path: "",
-        title: "Clientes",
-        translateKey: "nav.appsSales.customers",
-        icon: "sales",
-        type: NAV_ITEM_TYPE_COLLAPSE,
-        authority: [ADMIN, OWNER, SELLER],
-        subMenu: [
           {
             key: "appsSales.sellerCatalog",
             path: `${APP_PREFIX_PATH}/sales/sellerCatalog`,
@@ -238,9 +207,20 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.sellerCatalog",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, USER],
+            authority: [SELLER_FIXED],
             subMenu: [],
           },
+        ],
+      },
+      {
+        key: "apps.customers",
+        path: "",
+        title: "Vendedores",
+        translateKey: "nav.appsSales.customers",
+        icon: "sales",
+        type: NAV_ITEM_TYPE_COLLAPSE,
+        authority: [OWNER, SELLER_FIXED],
+        subMenu: [
           {
             key: "appsSales.clients",
             path: `${APP_PREFIX_PATH}/sales/clients`,
@@ -248,7 +228,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.clients",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, USER],
+            authority: [SELLER_FIXED],
             subMenu: [],
           },
           {
@@ -258,7 +238,38 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.leaderboardSellers",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, USER],
+            authority: [OWNER, SELLER_FIXED],
+            subMenu: [],
+          },
+          {
+            key: "appsSales.sellerList",
+            path: `${APP_PREFIX_PATH}/sales/sellers`,
+            title: "Lista de Vendedores",
+            translateKey: "nav.appsSales.sellerList",
+            icon: "",
+            type: NAV_ITEM_TYPE_ITEM,
+            authority: [OWNER],
+            subMenu: [],
+          },
+        ],
+      },
+      {
+        key: "apps.account",
+        path: "",
+        title: "Cuenta",
+        translateKey: "nav.appsAccount.account",
+        icon: "account",
+        type: NAV_ITEM_TYPE_COLLAPSE,
+        authority: [],
+        subMenu: [
+          {
+            key: "appsAccount.settings",
+            path: `${APP_PREFIX_PATH}/account/settings/profile`,
+            title: "Configuración",
+            translateKey: "nav.appsAccount.settings",
+            icon: "",
+            type: NAV_ITEM_TYPE_ITEM,
+            authority: [],
             subMenu: [],
           },
         ],
@@ -270,7 +281,7 @@ const appsNavigationConfig: NavigationTree[] = [
         translateKey: "nav.appsSales.sales",
         icon: "sales",
         type: NAV_ITEM_TYPE_COLLAPSE,
-        authority: [ADMIN, OWNER, SELLER],
+        authority: [OWNER],
         subMenu: [
           {
             key: "appsSales.dashboard",
@@ -279,7 +290,7 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.dashboard",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, USER],
+            authority: [OWNER],
             subMenu: [],
           },
           {
@@ -289,19 +300,9 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.profit",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, USER],
+            authority: [OWNER],
             subMenu: [],
-          },
-          {
-            key: "appsSales.delivery",
-            path: `${APP_PREFIX_PATH}/sales/delivery`,
-            title: "Mensajería",
-            translateKey: "nav.appsSales.delivery",
-            icon: "",
-            type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, USER],
-            subMenu: [],
-          },
+          } /* 
           {
             key: "appsSales.orderDetails",
             path: `${APP_PREFIX_PATH}/sales/order-details/95954`,
@@ -309,9 +310,9 @@ const appsNavigationConfig: NavigationTree[] = [
             translateKey: "nav.appsSales.orderDetails",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [ADMIN, OWNER, USER],
+            authority: [OWNER],
             subMenu: [],
-          },
+          }, */,
         ],
       },
     ],
@@ -328,7 +329,7 @@ export default appsNavigationConfig; /* {
                 translateKey: 'nav.appsProject.project',
                 icon: 'project',
                 type: NAV_ITEM_TYPE_COLLAPSE,
-                authority: [ADMIN, OWNER, USER],
+                authority: [OWNER, USER],
                 subMenu: [
                     {
                         key: 'appsProject.dashboard',
@@ -337,7 +338,7 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsProject.dashboard',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                     {
@@ -347,7 +348,7 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsProject.projectList',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                     {
@@ -357,7 +358,7 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsProject.scrumBoard',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                     {
@@ -367,34 +368,13 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsProject.issue',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                 ],
             }, */
 
-/* {
-                key: 'apps.account',
-                path: '',
-                title: 'Account',
-                translateKey: 'nav.appsAccount.account',
-                icon: 'account',
-                type: NAV_ITEM_TYPE_COLLAPSE,
-                authority: [],
-                subMenu: [
-                    {
-                        key: 'appsAccount.settings',
-                        path: `${APP_PREFIX_PATH}/account/settings/profile`,
-                        title: 'Settings',
-                        translateKey: 'nav.appsAccount.settings',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [],
-                        subMenu: [],
-                    },
-                    
-                ],
-            }, */
+/* */
 
 /*  {
                 key: 'apps.crypto',
@@ -403,7 +383,7 @@ export default appsNavigationConfig; /* {
                 translateKey: 'nav.appsCrypto.crypto',
                 icon: 'crypto',
                 type: NAV_ITEM_TYPE_COLLAPSE,
-                authority: [ADMIN, OWNER, USER],
+                authority: [OWNER, USER],
                 subMenu: [
                     {
                         key: 'appsCrypto.dashboard',
@@ -412,7 +392,7 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsCrypto.dashboard',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                     {
@@ -422,7 +402,7 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsCrypto.portfolio',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                     {
@@ -432,7 +412,7 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsCrypto.market',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                     {
@@ -442,7 +422,7 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsCrypto.wallets',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                 ],
@@ -454,7 +434,7 @@ export default appsNavigationConfig; /* {
                 translateKey: 'nav.appsknowledgeBase.knowledgeBase',
                 icon: 'knowledgeBase',
                 type: NAV_ITEM_TYPE_COLLAPSE,
-                authority: [ADMIN, OWNER, USER],
+                authority: [OWNER, USER],
                 subMenu: [
                     {
                         key: 'appsknowledgeBase.helpCenter',
@@ -463,7 +443,7 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsknowledgeBase.helpCenter',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                     {
@@ -473,7 +453,7 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsknowledgeBase.article',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                     {
@@ -483,7 +463,7 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsknowledgeBase.manageArticles',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                     {
@@ -493,18 +473,18 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsknowledgeBase.editArticle',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                 ],
-            }, 
+            }, {
                         key: 'appsAccount.invoice',
                         path: `${APP_PREFIX_PATH}/account/invoice/36223`,
                         title: 'Invoice',
                         translateKey: 'nav.appsAccount.invoice',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                     {
@@ -514,7 +494,7 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsAccount.activityLog',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     },
                     {
@@ -524,6 +504,6 @@ export default appsNavigationConfig; /* {
                         translateKey: 'nav.appsAccount.kycForm',
                         icon: '',
                         type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, OWNER, USER],
+                        authority: [OWNER, USER],
                         subMenu: [],
                     }, */

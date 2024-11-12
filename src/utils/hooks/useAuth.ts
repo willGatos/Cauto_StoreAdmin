@@ -16,8 +16,9 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import useQuery from "./useQuery";
 import supabase from "@/services/Supabase/BaseClient";
-import { OWNER, SELLER } from "@/constants/roles.constant";
+import { OWNER, SELLER_FIXED } from "@/constants/roles.constant";
 import { initialState } from "@/store/slices/auth/userSlice";
+
 type Status = "success" | "failed";
 
 function useAuth() {
@@ -35,8 +36,6 @@ function useAuth() {
     try {
       const data = await apiSignIn(email, password);
 
-      console.log(data);
-
       if (data) {
         const { user, session } = data;
 
@@ -44,10 +43,14 @@ function useAuth() {
           dispatch(signInSuccess(session.access_token));
         }
 
-        console.log(user);
+        console.log("USER", user);
         if (user) {
           dispatch(setUser(user));
-          navigate(appConfig.authenticatedEntryPath); // Redirige a la ruta autenticada
+          navigate(
+            isForSellers
+              ? appConfig.authenticatedEntryPathForSellers
+              : appConfig.authenticatedEntryPath
+          ); // Redirige a la ruta autenticada
         }
 
         return {
@@ -64,10 +67,11 @@ function useAuth() {
   };
 
   const signUp = async (id = "", values: SignUpCredential) => {
-    console.log(isForSellers);
     try {
+      // Cual va a ser la diferencia entre los que venden de forma fija y lo
+      // que los venden de forma no fija
       const data = isForSellers // Analiza si es para vendedores o dueños
-        ? await signUpWithInvitation(id, values, SELLER)
+        ? await signUpWithInvitation(id, values, SELLER_FIXED)
         : await signUpWithInvitation(id, values, OWNER);
 
       if (data) {
@@ -78,7 +82,12 @@ function useAuth() {
         }
         if (user) {
           dispatch(setUser(user));
-          navigate(appConfig.authenticatedEntryPath);
+
+          navigate(
+            isForSellers
+              ? appConfig.authenticatedEntryPathForSellers
+              : appConfig.authenticatedEntryPath
+          );
         }
 
         return {
@@ -115,18 +124,17 @@ function useAuth() {
         .from("invitations")
         .select("*")
         .eq("shop_id", shopId)
-        .eq("inviter_id", inviterId)
-        .is("invitee_id", null)
-        .single();
+        .eq("inviter_id", inviterId);
 
-      if (existingInvitation?.id) {
+      if (existingInvitation[0]?.id) {
         return {
           status: "success",
           message: "Invitación creada con éxito.",
-          invitationId: existingInvitation,
+          invitationId: existingInvitation[0],
         };
       } else {
         console.log(existingInvitation);
+
         // 2. Crear una nueva invitación si no existe
         const { data: newInvitation, error } = await supabase
           .from("invitations")
@@ -140,7 +148,12 @@ function useAuth() {
         if (error) {
           throw new Error(`Error al crear la invitación: ${error.message}`);
         }
-        const invitationId = newInvitation.id;
+        //const invitationId = newInvitation.id;
+        return {
+          status: "success",
+          message: "Invitación creada con éxito.",
+          invitationId: newInvitation,
+        };
       }
     } catch (error) {
       return {

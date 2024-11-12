@@ -100,11 +100,13 @@ export default function OfferTable() {
   const [expandedOffers, setExpandedOffers] = useState<Record<number, boolean>>(
     {}
   );
+  
   const [loading, setLoading] = useState(true);
-  const { shopId } = useAppSelector((state) => state.auth.user);
+  const { shopId, authority, email } = useAppSelector((state) => state.auth.user);
 
   useEffect(() => {
-    fetchOffers();
+    console.log("HOLA", authority, shopId, email);
+   //fetchOffers();
   }, []);
 
   const fetchOffers = async () => {

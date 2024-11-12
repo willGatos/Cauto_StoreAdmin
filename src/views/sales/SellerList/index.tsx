@@ -9,6 +9,8 @@ import {
 import { Button } from "@/components/ui/Button";
 import InviteButton from "./components/InviteButton";
 import supabase from "@/services/Supabase/BaseClient";
+import { useAppSelector } from "@/store";
+import { isEmpty } from "lodash";
 
 interface Seller {
   id: string;
@@ -192,6 +194,7 @@ export default function SellerOrdersTable() {
   const [expandedSeller, setExpandedSeller] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 5;
+
 
   useEffect(() => {
     const loadSellers = async () => {

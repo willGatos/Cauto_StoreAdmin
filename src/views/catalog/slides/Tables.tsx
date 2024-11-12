@@ -45,7 +45,6 @@ export default function SlideList() {
         setIsLoading(false);
       }
     };
-
     fetchSlides();
   }, []);
 

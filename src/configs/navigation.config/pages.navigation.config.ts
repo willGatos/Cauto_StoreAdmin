@@ -3,7 +3,7 @@ import {
     NAV_ITEM_TYPE_TITLE,
     NAV_ITEM_TYPE_ITEM,
 } from '@/constants/navigation.constant'
-import { ADMIN, OWNER, SELLER, USER } from '@/constants/roles.constant'
+import { ADMIN, OWNER, SELLER_FIXED, USER } from '@/constants/roles.constant'
 import type { NavigationTree } from '@/@types/navigation'
 
 const pagesNavigationConfig: NavigationTree[] = [

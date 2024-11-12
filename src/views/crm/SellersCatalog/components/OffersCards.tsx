@@ -135,7 +135,7 @@ async function fetchOffers(shopId) {
 
 export default function OfferDisplay() {
   const [offers, setOffers] = useState<Offer[]>([]);
-  const { shopId } = useAppSelector((state) => state.auth.user);
+  const { shopId, authority } = useAppSelector((state) => state.auth.user);
   const { productsSelected, offersSelected } = useAppSelector(
     (state) => state.products
   );
@@ -152,7 +152,7 @@ export default function OfferDisplay() {
       .catch((error) => {
         console.error("Error:", error);
       });
-  }, []);
+  }, [authority]);
 
   // Function to add or update a product variation
   const addOrUpdateItem = (item) => {
@@ -209,7 +209,7 @@ export default function OfferDisplay() {
 
             <div className="overflow-x-auto">
               <div className="flex space-x-4 pb-4">
-                {offer.variations.map((variation,key) => (
+                {offer.variations.map((variation, key) => (
                   <div
                     key={key}
                     className="flex-shrink-0 w-48 border rounded-lg p-4 shadow-md"

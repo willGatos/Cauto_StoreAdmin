@@ -11,9 +11,9 @@ const AccessDenied = () => {
                     alt="Access Denied!"
                 />
                 <div className="mt-6 text-center">
-                    <h3 className="mb-2">Access Denied!</h3>
+                    <h3 className="mb-2">Acceso Denegado</h3>
                     <p className="text-base">
-                        You have no permission to visit this page
+                        No Tienes Permiso para ver esta Página
                     </p>
                 </div>
             </div>

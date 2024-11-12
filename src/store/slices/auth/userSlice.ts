@@ -7,8 +7,9 @@ export const initialState: User = {
   name: "",
   email: "",
   phone: "",
-  roles: [],
+  authority: [],
   shopId: "",
+  sellersShops: []
 };
 
 const userSlice = createSlice({
@@ -21,8 +22,9 @@ const userSlice = createSlice({
       state.name = action.payload?.name;
       state.name = action.payload?.name;
       state.phone = action.payload?.phone;
-      state.roles = action.payload?.roles;
+      state.authority = action.payload?.authority;
       state.shopId = action.payload?.shopId;
+      state.sellersShops = action.payload?.sellersShops
     },
   },
 });

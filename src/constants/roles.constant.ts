@@ -1,4 +1,5 @@
 export const ADMIN = 'admin'
 export const USER = 'user'
 export const OWNER = 'owner'
-export const SELLER = 'seller'
+export const SELLER_FIXED = 'seller_fixed'
+export const SELLER_VARIABLE = 'seller_variable'

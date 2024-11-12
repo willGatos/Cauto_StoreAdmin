@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import { PAGES_PREFIX_PATH } from '@/constants/route.constant'
-import { ADMIN, OWNER, SELLER, USER } from '@/constants/roles.constant'
+import { ADMIN, OWNER, SELLER_FIXED, USER } from '@/constants/roles.constant'
 import type { Routes } from '@/@types/routes'
 
 const pagesRoute: Routes = [
@@ -19,7 +19,7 @@ const pagesRoute: Routes = [
         key: 'pages.accessDenied',
         path: '/access-denied',
         component: lazy(() => import('@/views/pages/AccessDenied')),
-        authority: [ADMIN, SELLER, OWNER],
+        authority: [ADMIN, SELLER_FIXED, OWNER],
     },
 ]
 

@@ -1,9 +1,45 @@
 import { lazy } from "react";
 import { APP_PREFIX_PATH } from "@/constants/route.constant";
-import { OWNER, SELLER } from "@/constants/roles.constant";
+import { OWNER, SELLER_FIXED } from "@/constants/roles.constant";
 import type { Routes } from "@/@types/routes";
 
 const appsRoute: Routes = [
+  {
+    key: "appsSales.sellerCatalog",
+    path: `${APP_PREFIX_PATH}/sales/sellerCatalog`,
+    component: lazy(() => import("@/views/crm/SellersCatalog")),
+    authority: [SELLER_FIXED],
+    meta: {
+      header: "Crear Orden",
+    },
+  },
+  {
+    key: "appsSales.clients",
+    path: `${APP_PREFIX_PATH}/sales/clients`,
+    component: lazy(() => import("@/views/crm/SellersClients")),
+    authority: [SELLER_FIXED],
+    meta: {
+      header: "Clientes",
+    },
+  },
+  {
+    key: "appsSales.leaderboardSellers",
+    path: `${APP_PREFIX_PATH}/sales/leaderboardSellers`,
+    component: lazy(() => import("@/views/crm/SellersLeaderboad")),
+    authority: [OWNER,SELLER_FIXED],
+    meta: {
+      header: "Tabla Insignea",
+    },
+  },
+  {
+    key: "appsSales.orderList",
+    path: `${APP_PREFIX_PATH}/sales/orders`,
+    component: lazy(() => import("@/views/sales/OrderList")),
+    authority: [OWNER, SELLER_FIXED],
+    meta: {
+      header: "Order List",
+    },
+  },
   {
     key: "appsSales.checkout",
     path: `${APP_PREFIX_PATH}/sales/checkout`,
@@ -14,7 +50,7 @@ const appsRoute: Routes = [
     key: "appsSales.delivery",
     path: `${APP_PREFIX_PATH}/sales/delivery`,
     component: lazy(() => import("@/views/orders/Delievery/index")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
   },
   {
     key: "appsSales.profit",
@@ -32,25 +68,25 @@ const appsRoute: Routes = [
     key: "appsSales.productList",
     path: `${APP_PREFIX_PATH}/sales/product-list`,
     component: lazy(() => import("@/views/inventory/Product/ProductList")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
   },
   {
     key: "appsSales.attributeList",
     path: `${APP_PREFIX_PATH}/sales/attributes`,
     component: lazy(() => import("@/views/inventory/Attributes")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
   },
   {
     key: "appsSales.productsAttributes",
     path: `${APP_PREFIX_PATH}/sales/products-attributes`,
     component: lazy(() => import("@/views/inventory/Attributes")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
   },
   {
     key: "appsSales.storeList",
     path: `${APP_PREFIX_PATH}/sales/store-lists`, //
     component: lazy(() => import("@/views/inventory/Product/StoresProduct")), // VISTA PARA TIENDAS CONECTADAS
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
   },
   {
     key: "appsSales.productEdit",
@@ -58,7 +94,7 @@ const appsRoute: Routes = [
     component: lazy(
       () => import("@/views/inventory/Product/ProductEdit/index")
     ),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Edit Product",
     },
@@ -76,7 +112,7 @@ const appsRoute: Routes = [
     key: "appsSales.productNew",
     path: `${APP_PREFIX_PATH}/sales/product-new`,
     component: lazy(() => import("@/views/inventory/Product/ProductNew")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Add New Product",
     },
@@ -85,7 +121,7 @@ const appsRoute: Routes = [
     key: "appsSales.offerForm",
     path: `${APP_PREFIX_PATH}/sales/createForm`,
     component: lazy(() => import("@/views/sales/Offers/Form")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Crear Oferta",
     },
@@ -94,7 +130,7 @@ const appsRoute: Routes = [
     key: "appsSales.offerForm",
     path: `${APP_PREFIX_PATH}/sales/editForm/:id`,
     component: lazy(() => import("@/views/sales/Offers/Form")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Crear Oferta",
     },
@@ -103,7 +139,7 @@ const appsRoute: Routes = [
     key: "appsSales.offerTable",
     path: `${APP_PREFIX_PATH}/sales/offerTable`,
     component: lazy(() => import("@/views/sales/Offers/Table")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Add New Product",
     },
@@ -112,7 +148,7 @@ const appsRoute: Routes = [
     key: "appsSales.catalog",
     path: `${APP_PREFIX_PATH}/catalog`,
     component: lazy(() => import("@/views/catalog/productSections")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Add New Product",
     },
@@ -121,7 +157,7 @@ const appsRoute: Routes = [
     key: "appsSales.slides",
     path: `${APP_PREFIX_PATH}/slides`,
     component: lazy(() => import("@/views/catalog/slides/Tables")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Diapositivas",
     },
@@ -130,7 +166,7 @@ const appsRoute: Routes = [
     key: "appsSales.Cslides",
     path: `${APP_PREFIX_PATH}/Cslides`,
     component: lazy(() => import("@/views/catalog/slides/components/Create")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Crear Diapositivas",
     },
@@ -139,7 +175,7 @@ const appsRoute: Routes = [
     key: "appsSales.Eslides",
     path: `${APP_PREFIX_PATH}/Eslides/:id`,
     component: lazy(() => import("@/views/catalog/slides/components/Edit")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Editar Diapositiva",
     },
@@ -154,7 +190,7 @@ const appsRoute: Routes = [
     key: "appsSales.supplyNew",
     path: `${APP_PREFIX_PATH}/sales/supply-new`,
     component: lazy(() => import("@/views/inventory/Supply/New/index")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Nuevo Insumo",
     },
@@ -163,7 +199,7 @@ const appsRoute: Routes = [
     key: "appsSales.supplyEdit",
     path: `${APP_PREFIX_PATH}/sales/supply-new/:id`,
     component: lazy(() => import("@/views/inventory/Supply/New")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Editar Insumo",
     },
@@ -172,44 +208,16 @@ const appsRoute: Routes = [
   //     key: 'appsSales.supplyEdit',
   //     path: `${APP_PREFIX_PATH}/sales/supply-edit/:supplyId`,
   //     component: lazy(() => import('@/views/inventory/Supply/New/index')),
-  //     authority: [OWNER, SELLER],
+  //     authority: [OWNER],
   //     meta: {
   //         header: 'Edit Supply',
   //     },
   // },
-
-  {
-    key: "appsSales.sellerCatalog",
-    path: `${APP_PREFIX_PATH}/sales/sellerCatalog`,
-    component: lazy(() => import("@/views/crm/SellersCatalog")),
-    authority: [OWNER, SELLER],
-    meta: {
-      header: "Crear Orden",
-    },
-  },
-  {
-    key: "appsSales.clients",
-    path: `${APP_PREFIX_PATH}/sales/clients`,
-    component: lazy(() => import("@/views/crm/SellersClients")),
-    authority: [OWNER, SELLER],
-    meta: {
-      header: "Clientes",
-    },
-  },
-  {
-    key: "appsSales.leaderboardSellers",
-    path: `${APP_PREFIX_PATH}/sales/leaderboardSellers`,
-    component: lazy(() => import("@/views/crm/SellersLeaderboad")),
-    authority: [OWNER, SELLER],
-    meta: {
-      header: "Tabla Insignea",
-    },
-  },
   {
     key: "appsSales.supplyList",
     path: `${APP_PREFIX_PATH}/sales/supplies`,
     component: lazy(() => import("@/views/inventory/Supply/List")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Lista de Insumos",
     },
@@ -251,18 +259,9 @@ const appsRoute: Routes = [
     key: "appsSales.orderEdit",
     path: `${APP_PREFIX_PATH}/sales/order-edit/:orderId`,
     component: lazy(() => import("@/views/sales/OrderEdit")),
-    authority: [OWNER, SELLER],
+    authority: [OWNER],
     meta: {
       header: "Edit Order",
-    },
-  },
-  {
-    key: "appsSales.orderList",
-    path: `${APP_PREFIX_PATH}/sales/orders`,
-    component: lazy(() => import("@/views/sales/OrderList")),
-    authority: [OWNER, SELLER],
-    meta: {
-      header: "Order List",
     },
   },
   {

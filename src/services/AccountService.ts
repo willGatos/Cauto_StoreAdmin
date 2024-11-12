@@ -1,10 +1,17 @@
 import ApiService from './ApiService'
+import supabase from './Supabase/BaseClient';
 
-export async function apiGetAccountSettingData<T>() {
-    return ApiService.fetchData<T>({
-        url: '/account/setting',
-        method: 'get',
-    })
+export async function apiGetAccountSettingData<T>(userId) {
+    const { data: shops, error: shopError } = await supabase
+      .from("shops")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (shopError) {
+      throw new Error(`Error: ${shopError.message}`);
+    }
+    return shops;
 }
 
 export async function apiGetAccountSettingIntegrationData<T>() {

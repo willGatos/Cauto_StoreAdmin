@@ -13,6 +13,9 @@ const authRoute: Routes = [
             footer: false,
         },
     },
+    // Tengo la duda respecto a como se crean las tiendas. 
+    // Pueden ser con un link, esto hace que 
+    // 
     {
         key: 'signUp',
         path: `/sign-up/`,
