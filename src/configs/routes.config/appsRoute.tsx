@@ -204,15 +204,6 @@ const appsRoute: Routes = [
       header: "Editar Insumo",
     },
   },
-  // {
-  //     key: 'appsSales.supplyEdit',
-  //     path: `${APP_PREFIX_PATH}/sales/supply-edit/:supplyId`,
-  //     component: lazy(() => import('@/views/inventory/Supply/New/index')),
-  //     authority: [OWNER],
-  //     meta: {
-  //         header: 'Edit Supply',
-  //     },
-  // },
   {
     key: "appsSales.supplyList",
     path: `${APP_PREFIX_PATH}/sales/supplies`,

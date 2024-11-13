@@ -5,8 +5,6 @@ import { useAppSelector } from "@/store";
 const HorizontalNav = () => {
   const mode = useAppSelector((state) => state.theme.mode);
   const userAuthority = useAppSelector((state) => state.auth.user.authority);
-  console.log("KKK",userAuthority);
-
   const { larger } = useResponsive();
 
   return (

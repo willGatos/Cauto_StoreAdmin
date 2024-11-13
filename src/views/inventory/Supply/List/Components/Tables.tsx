@@ -1,4 +1,4 @@
-import React, { useMemo, Fragment } from "react";
+import React, { useMemo, Fragment, useState } from "react";
 import Table from "@/components/ui/Table";
 import {
   useReactTable,
@@ -13,6 +13,7 @@ import type { ColumnDef, Row } from "@tanstack/react-table";
 import type { ReactElement } from "react";
 import { supabaseService } from "@/services/Supabase/AttributeService";
 import { Button } from "@/components/ui";
+import { Loading } from "@/components/shared";
 
 type ReactTableProps<T> = {
   renderRowSubComponent: (props: { row: Row<T> }) => ReactElement;
@@ -26,9 +27,11 @@ function ReactTable({
   getRowCanExpand,
 }: ReactTableProps<Supply>) {
   const [supplies, setSupplies] = React.useState<Supply[]>([]);
-
+  const [isLoading, setIsLoading] = useState(false);
   React.useEffect(() => {
+    setIsLoading(true);
     supabaseService.getSupplies().then(setSupplies);
+    setIsLoading(false);
   }, []);
 
   const columns = useMemo<ColumnDef<Supply>[]>(
@@ -89,42 +92,47 @@ function ReactTable({
 
   return (
     <>
-      <Table>
-        <THead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <Tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <Th key={header.id} colSpan={header.colSpan}>
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                </Th>
-              ))}
-            </Tr>
-          ))}
-        </THead>
-        <TBody>
-          {table.getRowModel().rows.map((row) => (
-            <Fragment key={row.id}>
-              <Tr>
-                {row.getVisibleCells().map((cell) => (
-                  <Td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </Td>
+      <Loading loading={isLoading}>
+        <Table>
+          <THead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <Tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <Th key={header.id} colSpan={header.colSpan}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </Th>
                 ))}
               </Tr>
-              {row.getIsExpanded() && (
+            ))}
+          </THead>
+          <TBody>
+            {table.getRowModel().rows.map((row) => (
+              <Fragment key={row.id}>
                 <Tr>
-                  <Td colSpan={row.getVisibleCells().length}>
-                    {renderRowSubComponent({ row })}
-                  </Td>
+                  {row.getVisibleCells().map((cell) => (
+                    <Td key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </Td>
+                  ))}
                 </Tr>
-              )}
-            </Fragment>
-          ))}
-        </TBody>
-      </Table>
+                {row.getIsExpanded() && (
+                  <Tr>
+                    <Td colSpan={row.getVisibleCells().length}>
+                      {renderRowSubComponent({ row })}
+                    </Td>
+                  </Tr>
+                )}
+              </Fragment>
+            ))}
+          </TBody>
+        </Table>
+      </Loading>
     </>
   );
 }
@@ -135,10 +143,10 @@ const SubTable = ({ data }: { data: SupplyVariation[] }) => {
       {
         header: "Costo",
         accessorKey: "cost",
-      },
-      {
-        header: "Costo",
-        accessorKey: "currency.name",
+        cell: ({ row }) => {
+          console.log(row)
+          return (<div>{row.original.cost} {row.original.currency.name}</div>)
+        },
       },
       {
         header: "Descripción",

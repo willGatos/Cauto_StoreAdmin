@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Edit2, X, Check } from 'lucide-react';
-import supabase from '@/services/Supabase/BaseClient';
-import { Button } from '@/components/ui';
+import React, { useState, useEffect } from "react";
+import { Edit2, X, Check } from "lucide-react";
+import supabase from "@/services/Supabase/BaseClient";
+import { Button } from "@/components/ui";
+import HandleFeedback from "@/components/ui/FeedBack";
+import { useSelector } from "react-redux";
 interface Currency {
   id: number;
   name: string;
@@ -10,34 +12,38 @@ interface Currency {
 
 // Supabase data service
 const supabaseDataService = {
-  getCurrencies: async (): Promise<Currency[]> => {
+  getCurrencies: async (shopId): Promise<Currency[]> => {
     const { data, error } = await supabase
-      .from('currency')
-      .select('*')
-      .order('id');
-    
+      .from("currency")
+      .select("*")
+      .order("id")
+      .eq("shop_id", shopId);
+
     if (error) {
-      console.error('Error fetching currencies:', error);
+      console.error("Error fetching currencies:", error);
       return [];
     }
-    
+
     return data || [];
   },
-  updateCurrency: async (id: number, exchange_rate: number): Promise<Currency> => {
+  updateCurrency: async (
+    id: number,
+    exchange_rate: number
+  ): Promise<Currency> => {
     const { data, error } = await supabase
-      .from('currency')
+      .from("currency")
       .update({ exchange_rate })
-      .eq('id', id)
-      .select('*')
+      .eq("id", id)
+      .select("*")
       .single();
 
     if (error) {
-      console.error('Error updating currency:', error);
+      console.error("Error updating currency:", error);
       throw error;
     }
 
     return data;
-  }
+  },
 };
 
 // Use mock data service
@@ -46,15 +52,19 @@ const dataService = supabaseDataService;
 export default function CurrencyView() {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [editingCurrency, setEditingCurrency] = useState<Currency | null>(null);
-  const [newExchangeRate, setNewExchangeRate] = useState<string>('');
-  const [updateNotification, setUpdateNotification] = useState<string | null>(null);
-  const [isAddingCurrency, setIsAddingCurrency] = useState(false)
-  const [newCurrencyName, setNewCurrencyName] = useState('')
-  const [newCurrencyRate, setNewCurrencyRate] = useState('')
+  const [newExchangeRate, setNewExchangeRate] = useState<string>("");
+  const [updateNotification, setUpdateNotification] = useState<string | null>(
+    null
+  );
+  const [isAddingCurrency, setIsAddingCurrency] = useState(false);
+  const [newCurrencyName, setNewCurrencyName] = useState("");
+  const [newCurrencyRate, setNewCurrencyRate] = useState("");
+  const { shopId } = useSelector((state) => state.auth.user);
+  const { handleLoading, handleSuccess } = HandleFeedback();
 
   useEffect(() => {
-    console.log('first')
-    dataService.getCurrencies().then(setCurrencies);
+    console.log("first");
+    dataService.getCurrencies(shopId).then(setCurrencies);
   }, []);
 
   const handleEditClick = (currency: Currency) => {
@@ -64,39 +74,56 @@ export default function CurrencyView() {
 
   const handleCloseModal = () => {
     setEditingCurrency(null);
-    setNewExchangeRate('');
+    setNewExchangeRate("");
   };
 
   const handleAddCurrency = async () => {
+    handleLoading(true);
     if (newCurrencyName && newCurrencyRate) {
-      // Using mock data service
-      // const added = await mockDataService.addCurrency(newCurrencyName, parseFloat(newCurrencyRate))
-      
-      // Using Supabase
       const { data: added, error } = await supabase
-        .from('currency')
-        .insert({ name: newCurrencyName, exchange_rate: parseFloat(newCurrencyRate), is_automatic: false})
+        .from("currency")
+        .insert({
+          name: newCurrencyName,
+          exchange_rate: parseFloat(newCurrencyRate),
+          is_automatic: false,
+          shop_id: shopId,
+        })
         .select()
         .single();
-      if (error) console.error('Error adding currency:', error)
+      if (error) console.error("Error adding currency:", error);
 
-      setCurrencies([...currencies, added])
-      setIsAddingCurrency(false)
-      setNewCurrencyName('')
-      setNewCurrencyRate('')
+      setCurrencies([...currencies, added]);
+
+      setIsAddingCurrency(false);
+      setNewCurrencyName("");
+      setNewCurrencyRate("");
+
+      handleSuccess("Se ha creado la Divisa");
+      handleLoading(false);
     }
-  }
+  };
 
   const handleUpdateCurrency = async () => {
+    handleLoading(true);
     if (editingCurrency && newExchangeRate) {
       try {
-        const updatedCurrency = await dataService.updateCurrency(editingCurrency.id, parseFloat(newExchangeRate));
-        setCurrencies(currencies.map(c => c.id === updatedCurrency.id ? updatedCurrency : c));
+        const updatedCurrency = await dataService.updateCurrency(
+          editingCurrency.id,
+          parseFloat(newExchangeRate)
+        );
+        setCurrencies(
+          currencies.map((c) =>
+            c.id === updatedCurrency.id ? updatedCurrency : c
+          )
+        );
         handleCloseModal();
-        setUpdateNotification(`${updatedCurrency.name} actualizado correctamente`);
-        setTimeout(() => setUpdateNotification(null), 3000);
+        setUpdateNotification(
+          `${updatedCurrency.name} actualizado correctamente`
+        );
+        handleSuccess("Se ha actualizado la Divisa");
+        handleLoading(false);
       } catch (error) {
-        console.error('Error updating currency:', error);
+        console.error("Error updating currency:", error);
       }
     }
   };
@@ -104,16 +131,18 @@ export default function CurrencyView() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-8">Divisas</h1>
-      
+
       {updateNotification && (
         <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg flex items-center">
           <Check className="h-5 w-5 mr-2" />
           {updateNotification}
         </div>
       )}
-      
+      <div>
+        <p>Pronto llegará la Opción de Sincronizarlo con elToque</p>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {currencies.map(currency => (
+        {currencies.map((currency) => (
           <div key={currency.id} className="bg-white p-4 rounded shadow">
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-xl font-bold">{currency.name}</h2>
@@ -134,13 +163,21 @@ export default function CurrencyView() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">Editar {editingCurrency.name}</h2>
-              <button onClick={handleCloseModal} className="text-gray-500 hover:text-gray-700">
+              <h2 className="text-2xl font-bold">
+                Editar {editingCurrency.name}
+              </h2>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
                 <X className="h-6 w-6" />
               </button>
             </div>
             <div className="mb-4">
-              <label htmlFor="exchangeRate" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="exchangeRate"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Nueva tasa de cambio
               </label>
               <input
@@ -161,15 +198,15 @@ export default function CurrencyView() {
           </div>
         </div>
       )}
-    <Button
+      <Button
         onClick={() => setIsAddingCurrency(true)}
-        variant='default'
+        variant="default"
         className="font-bold py-2 px-4 rounded mb-4 mt-5"
       >
         Añadir Nueva Moneda
       </Button>
 
-{isAddingCurrency && (
+      {isAddingCurrency && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white rounded-lg p-6">
             <h2 className="text-xl font-bold mb-4">Añadir Nueva Moneda</h2>

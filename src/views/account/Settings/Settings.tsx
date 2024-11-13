@@ -57,10 +57,12 @@ const settingsMenu: Record<
   }
 > = {
   profile: { label: "Datos de Tienda", path: "profile" },
-  password: { label: "Password", path: "password" },
-  /*notification: { label: 'Notification', path: 'notification' },
-     integration: { label: 'Integration', path: 'integration' },
-    billing: { label: 'Billing', path: 'billing' }, */
+  /*
+    password: { label: "Password", path: "password" },
+    notification: { label: 'Notification', path: 'notification' },
+    integration: { label: 'Integration', path: 'integration' },
+    billing: { label: 'Billing', path: 'billing' }, 
+  */
 };
 
 const Settings = () => {
@@ -110,12 +112,12 @@ const Settings = () => {
         <div className="px-4 py-6">
           <Suspense fallback={<></>}>
             {currentTab === "profile" && <Profile data={data} />}
-            {currentTab === "password" && <Password data={data.loginHistory} />}
-            {/*{currentTab === 'notification' && (
-                            <NotificationSetting data={data.notification} />
-                        )}
-                         {currentTab === 'integration' && <Integration />}
-                        {currentTab === 'billing' && <Billing />} */}
+            {/*
+                {currentTab === "password" && <Password data={data.loginHistory} />}
+                {currentTab === 'notification' && (<NotificationSetting data={data.notification} />)}
+                {currentTab === 'integration' && <Integration />}
+                {currentTab === 'billing' && <Billing />} 
+            */}
           </Suspense>
         </div>
       </AdaptableCard>

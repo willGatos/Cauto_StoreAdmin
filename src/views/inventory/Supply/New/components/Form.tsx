@@ -13,6 +13,8 @@ import { useSelector } from "react-redux";
 import supabase from "@/services/Supabase/BaseClient";
 import { Supply, SupplyVariation } from "@/@types/supply";
 import { Currency } from "@/@types/currency";
+import HandleFeedback from "@/components/ui/FeedBack";
+import { Loading } from "@/components/shared";
 //import { Product, ProductVariation } from "@/@types/products";
 // Tipos
 
@@ -332,6 +334,7 @@ export default function SupplyForm() {
   //const [products, setProducts] = useState<Product[]>([]);
   const [valueRan, setValueRan] = useState("");
   const user = useSelector((state) => state.auth.user);
+  const { handleSuccess, handleError} = HandleFeedback();
 
   useEffect(() => {
     const loadData = async () => {
@@ -340,14 +343,6 @@ export default function SupplyForm() {
         // Cargar monedas desde Supabase
         const currenciesData = await fetchCurrenciesFromSupabase();
         setCurrencies(currenciesData);
-        try {
-          // Cargar prods desde Supabase
-          //const productsData = await fetchProductsAndVariations();
-          //console.log("Productos:", productsData);
-          //setProducts(productsData);
-        } catch (error) {
-          console.error("Error al cargar productos y variaciones:", error);
-        }
 
         if (id) {
           // Cargar el suministro existente desde Supabase
@@ -372,7 +367,7 @@ export default function SupplyForm() {
           });
         }
       } catch (err) {
-        setError(err.message || "Error al cargar los datos iniciales");
+        handleError(err.message || "Error al cargar los datos iniciales");
       } finally {
         setIsLoading(false);
       }
@@ -476,66 +471,63 @@ export default function SupplyForm() {
         await createSupplyVariations(variationsToCreate);
       }
 
-      alert(values.id ? "Suministro actualizado" : "Suministro creado");
+      handleSuccess(values.id ? "Suministro actualizado" : "Suministro creado");
     } catch (err) {
-      setError(err.message || "Error al guardar el suministro");
+      handleError(err.message || "Error al guardar el suministro");
     } finally {
       setSubmitting(false);
     }
   };
-
-  if (isLoading) {
-    return <div className="text-center py-8">Cargando...</div>;
-  }
 
   if (error) {
     return <Alert variant="default">{error}</Alert>;
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6">
-        {id ? "Editar Suministro" : "Crear Suministro"}
-      </h2>
-      <Formik
-        initialValues={initialFormValues}
-        validationSchema={validationSchema}
-        onSubmit={handleSubmit}
-        enableReinitialize
-      >
-        {({ values, errors, touched, isSubmitting, setFieldValue }) => (
-          <Form className="space-y-6">
-            <div>
-              <label htmlFor="name">Nombre</label>
-              <Field name="name" as={Input} className="mt-1" />
-              {errors.name && touched.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-              )}
-            </div>
+    <Loading loading={isLoading}>
+      <div className="w-full max-w-2xl mx-auto">
+        <h2 className="text-2xl font-bold mb-6">
+          {id ? "Editar Suministro" : "Crear Suministro"}
+        </h2>
+        <Formik
+          initialValues={initialFormValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+          enableReinitialize
+        >
+          {({ values, errors, touched, isSubmitting, setFieldValue }) => (
+            <Form className="space-y-6">
+              <div>
+                <label htmlFor="name">Nombre</label>
+                <Field name="name" as={Input} className="mt-1" />
+                {errors.name && touched.name && (
+                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                )}
+              </div>
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="fixed"
-                checked={values.type === "fixed"}
-                onChange={(checked) => {
-                  setFieldValue("type", checked ? "fixed" : "variable");
-                }}
-              />
-              <label htmlFor="fixed">Fijo</label>
-            </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="fixed"
+                  checked={values.type === "fixed"}
+                  onChange={(checked) => {
+                    setFieldValue("type", checked ? "fixed" : "variable");
+                  }}
+                />
+                <label htmlFor="fixed">Fijo</label>
+              </div>
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="variable"
-                checked={values.type === "variable"}
-                onChange={(checked) => {
-                  setFieldValue("type", checked ? "variable" : "fixed");
-                }}
-              />
-              <label htmlFor="variable">Variable</label>
-            </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="variable"
+                  checked={values.type === "variable"}
+                  onChange={(checked) => {
+                    setFieldValue("type", checked ? "variable" : "fixed");
+                  }}
+                />
+                <label htmlFor="variable">Variable</label>
+              </div>
 
-            {/* <div>
+              {/* <div>
               <label>Productos</label>
               <div className="space-y-2 mt-2">
                 <Checkbox.Group
@@ -583,114 +575,116 @@ export default function SupplyForm() {
               </div>
             </div>*/}
 
-            <FieldArray name="variations">
-              {({ push, remove }) => (
-                <div>
-                  {values.variations.map((variation, index) => (
-                    <Card key={index} className="mb-4">
-                      <div className="pt-6">
-                        <h3 className="text-lg font-semibold mb-4">
-                          Variante {index + 1}
-                        </h3>
-                        <div className="space-y-4">
-                          <div>
-                            <label htmlFor={`variations.${index}.description`}>
-                              Nombre
-                            </label>
-                            <Field
-                              name={`variations.${index}.description`}
-                              as={Input}
-                              className="mt-1"
-                            />
-                            {errors.variations?.[index]?.description &&
-                              touched.variations?.[index]?.description && (
-                                <p className="text-red-500 text-sm mt-1">
-                                  {errors.variations[index].description}
-                                </p>
-                              )}
-                          </div>
-                          <div>
-                            <label htmlFor={`variations.${index}.cost`}>
-                              Costo
-                            </label>
-                            <Field
-                              name={`variations.${index}.cost`}
-                              type="number"
-                              as={Input}
-                              className="mt-1"
-                            />
-                            {errors.variations?.[index]?.cost &&
-                              touched.variations?.[index]?.cost && (
-                                <p className="text-red-500 text-sm mt-1">
-                                  {errors.variations[index].cost}
-                                </p>
-                              )}
-                          </div>
-
-                          <div>
-                            <label>Moneda</label>
-                            <div className="space-y-2">
-                              {currencies.map((currency) => (
-                                <div
-                                  key={currency.id}
-                                  className="flex items-center space-x-2"
-                                >
-                                  <Checkbox
-                                    id={`currency-${currency.id}-${index}`}
-                                    checked={
-                                      values.variations[index].currency_id ===
-                                      currency.id
-                                    }
-                                    onChange={(checked) => {
-                                      if (checked) {
-                                        setFieldValue(
-                                          `variations.${index}.currency_id`,
-                                          currency.id
-                                        );
-                                      } else {
-                                        setFieldValue(
-                                          `variations.${index}.currency_id`,
-                                          0
-                                        );
-                                      }
-                                    }}
-                                  />
-                                  <label
-                                    htmlFor={`currency-${currency.id}-${index}`}
-                                  >
-                                    {currency.name}{" "}
-                                  </label>
-                                </div>
-                              ))}
+              <FieldArray name="variations">
+                {({ push, remove }) => (
+                  <div>
+                    {values.variations.map((variation, index) => (
+                      <Card key={index} className="mb-4">
+                        <div className="pt-6">
+                          <h3 className="text-lg font-semibold mb-4">
+                            Variante {index + 1}
+                          </h3>
+                          <div className="space-y-4">
+                            <div>
+                              <label
+                                htmlFor={`variations.${index}.description`}
+                              >
+                                Nombre
+                              </label>
+                              <Field
+                                name={`variations.${index}.description`}
+                                as={Input}
+                                className="mt-1"
+                              />
+                              {errors.variations?.[index]?.description &&
+                                touched.variations?.[index]?.description && (
+                                  <p className="text-red-500 text-sm mt-1">
+                                    {errors.variations[index].description}
+                                  </p>
+                                )}
                             </div>
-                            {errors.variations?.[index]?.currency_id &&
-                              touched.variations?.[index]?.currency_id && (
-                                <p className="text-red-500 text-sm mt-1">
-                                  {errors.variations[index].currency_id}
-                                </p>
-                              )}
-                          </div>
+                            <div>
+                              <label htmlFor={`variations.${index}.cost`}>
+                                Costo
+                              </label>
+                              <Field
+                                name={`variations.${index}.cost`}
+                                type="number"
+                                as={Input}
+                                className="mt-1"
+                              />
+                              {errors.variations?.[index]?.cost &&
+                                touched.variations?.[index]?.cost && (
+                                  <p className="text-red-500 text-sm mt-1">
+                                    {errors.variations[index].cost}
+                                  </p>
+                                )}
+                            </div>
 
-                          <div>
-                            <label htmlFor={`variations.${index}.measure`}>
-                              Medida
-                            </label>
-                            <Field
-                              name={`variations.${index}.measure`}
-                              as={Input}
-                              className="mt-1"
-                              placeholder="1 Unidad / 1 Litro / 1 Metro"
-                            />
-                            {errors.variations?.[index]?.measure &&
-                              touched.variations?.[index]?.measure && (
-                                <p className="text-red-500 text-sm mt-1">
-                                  {errors.variations[index].measure}
-                                </p>
-                              )}
-                          </div>
-                          <div>
-                            <div className="space-y-4 mt-2">
-                              {/*
+                            <div>
+                              <label>Moneda</label>
+                              <div className="space-y-2">
+                                {currencies.map((currency) => (
+                                  <div
+                                    key={currency.id}
+                                    className="flex items-center space-x-2"
+                                  >
+                                    <Checkbox
+                                      id={`currency-${currency.id}-${index}`}
+                                      checked={
+                                        values.variations[index].currency_id ===
+                                        currency.id
+                                      }
+                                      onChange={(checked) => {
+                                        if (checked) {
+                                          setFieldValue(
+                                            `variations.${index}.currency_id`,
+                                            currency.id
+                                          );
+                                        } else {
+                                          setFieldValue(
+                                            `variations.${index}.currency_id`,
+                                            0
+                                          );
+                                        }
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor={`currency-${currency.id}-${index}`}
+                                    >
+                                      {currency.name}{" "}
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
+                              {errors.variations?.[index]?.currency_id &&
+                                touched.variations?.[index]?.currency_id && (
+                                  <p className="text-red-500 text-sm mt-1">
+                                    {errors.variations[index].currency_id}
+                                  </p>
+                                )}
+                            </div>
+
+                            <div>
+                              <label htmlFor={`variations.${index}.measure`}>
+                                Medida
+                              </label>
+                              <Field
+                                name={`variations.${index}.measure`}
+                                as={Input}
+                                className="mt-1"
+                                placeholder="1 Unidad / 1 Litro / 1 Metro"
+                              />
+                              {errors.variations?.[index]?.measure &&
+                                touched.variations?.[index]?.measure && (
+                                  <p className="text-red-500 text-sm mt-1">
+                                    {errors.variations[index].measure}
+                                  </p>
+                                )}
+                            </div>
+                            <div>
+                              <div className="space-y-4 mt-2">
+                                {/*
                               
                               
                             <label>Variaciones de Producto</label>{products
@@ -766,58 +760,60 @@ export default function SupplyForm() {
                                     ))}
                                   </div>
                                 ))} */}
-                            </div>
-                          </div>
-                          {index > 0 && (
-                            <Button
-                              type="button"
-                              variant="default"
-                              onClick={() => remove(index)}
-                              className="mt-2"
-                            >
-                              <div className="flex justify-center text-center">
-                                <Trash2 className="mr-2 h-4 w-4" /> Eliminar Variación
                               </div>
-                            </Button>
-                          )}
+                            </div>
+                            {index > 0 && (
+                              <Button
+                                type="button"
+                                variant="default"
+                                onClick={() => remove(index)}
+                                className="mt-2"
+                              >
+                                <div className="flex justify-center text-center">
+                                  <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                                  Variación
+                                </div>
+                              </Button>
+                            )}
+                          </div>
                         </div>
+                      </Card>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="default"
+                      onClick={() =>
+                        push({
+                          cost: 0, // Valor vacío para el costo
+                          currency_id: 0, // Valor vacío para el ID de la moneda
+                          description: "", // Cadena vacía para la descripción
+                          measure: "", // Cadena vacía para la medida
+                          supply_id: 0, // Valor vacío para el ID de suministro
+                          // product_variations: [
+                          //   { id: null, required_supplies: 0 }, // Valores vacíos para la variación de producto
+                          // ],
+                        })
+                      }
+                    >
+                      <div className="flex text-center justify-center">
+                        <PlusCircle className="mr-2 h-4 w-4" /> Añadir Variación
                       </div>
-                    </Card>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="default"
-                    onClick={() =>
-                      push({
-                        cost: 0, // Valor vacío para el costo
-                        currency_id: 0, // Valor vacío para el ID de la moneda
-                        description: "", // Cadena vacía para la descripción
-                        measure: "", // Cadena vacía para la medida
-                        supply_id: 0, // Valor vacío para el ID de suministro
-                        // product_variations: [
-                        //   { id: null, required_supplies: 0 }, // Valores vacíos para la variación de producto
-                        // ],
-                      })
-                    }
-                  >
-                    <div className="flex text-center justify-center">
-                      <PlusCircle className="mr-2 h-4 w-4" /> Añadir Variación
-                    </div>
-                  </Button>
-                </div>
-              )}
-            </FieldArray>
+                    </Button>
+                  </div>
+                )}
+              </FieldArray>
 
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting
-                ? "Enviando..."
-                : id
-                ? "Actualizar Suministro"
-                : "Crear Suministro"}
-            </Button>
-          </Form>
-        )}
-      </Formik>
-    </div>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting
+                  ? "Enviando..."
+                  : id
+                  ? "Actualizar Suministro"
+                  : "Crear Suministro"}
+              </Button>
+            </Form>
+          )}
+        </Formik>
+      </div>
+    </Loading>
   );
 }
