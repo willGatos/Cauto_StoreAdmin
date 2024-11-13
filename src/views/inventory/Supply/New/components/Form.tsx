@@ -418,9 +418,6 @@ export default function SupplyForm() {
   return (
     <Loading loading={isLoading}>
       <div className="w-full max-w-2xl mx-auto">
-        <h2 className="text-2xl font-bold mb-6">
-          {id ? "Editar Suministro" : "Crear Suministro"}
-        </h2>
         <Formik
           initialValues={initialFormValues}
           validationSchema={validationSchema}

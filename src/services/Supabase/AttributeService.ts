@@ -162,56 +162,26 @@ export const supabaseService = {
       })) || []
     );
   },
-  getSupplies: async (): Promise<Supply[]> => {
-    const { data: supplies, error: suppliesError } = await supabase.from(
-      "supplies"
-    ).select(`
+  getSupplies: async (shopId): Promise<Supply[]> => {
+    const { data: supplies, error: suppliesError } = await supabase
+      .from("supplies")
+      .select(
+        `
           id,
           name,
-          type`);
+          type,
+          supply_variation(*,           
+          currency: currency_id(name))
+          `
+      )
+      .eq("shop_id", shopId);
 
     if (suppliesError) {
       console.error("Error fetching supplies:", suppliesError);
       return [];
     }
 
-    const supplyIds = supplies.map((supply) => supply.id);
-
-    const { data: variations, error: variationsError } = await supabase
-      .from("supply_variation")
-      .select(
-        `
-          id,
-          cost,
-          currency: currency_id(name),
-          description,
-          measure,
-          created_at,
-          supply_id
-        `
-      )
-      .in("supply_id", supplyIds);
-
-    if (variationsError) {
-      console.error("Error fetching supply variations:", variationsError);
-      return [];
-    }
-
-    // Unificación de datos
-    const suppliesWithVariations = supplies.map((supply) => {
-      const supplyVariations = variations
-        .filter((variation) => variation.supply_id === supply.id)
-        .map((variation) => ({
-          ...variation,
-        }));
-
-      return {
-        ...supply,
-        supply_variation: supplyVariations,
-      };
-    });
-
-    return suppliesWithVariations;
+    return supplies;
   },
   getCurrencies: async (): Promise<Currency[]> => {
     const { data, error } = await supabase

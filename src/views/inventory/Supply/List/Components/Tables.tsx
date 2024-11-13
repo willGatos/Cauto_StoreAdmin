@@ -14,6 +14,7 @@ import type { ReactElement } from "react";
 import { supabaseService } from "@/services/Supabase/AttributeService";
 import { Button } from "@/components/ui";
 import { Loading } from "@/components/shared";
+import { useSelector } from "react-redux";
 
 type ReactTableProps<T> = {
   renderRowSubComponent: (props: { row: Row<T> }) => ReactElement;
@@ -28,9 +29,11 @@ function ReactTable({
 }: ReactTableProps<Supply>) {
   const [supplies, setSupplies] = React.useState<Supply[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { shopId } = useSelector((state) => state.auth.user);
+
   React.useEffect(() => {
     setIsLoading(true);
-    supabaseService.getSupplies().then(setSupplies);
+    supabaseService.getSupplies(shopId).then(setSupplies);
     setIsLoading(false);
   }, []);
 
