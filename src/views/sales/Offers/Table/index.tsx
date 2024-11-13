@@ -39,12 +39,11 @@ const mockDataService = {
             description,
             start_date,
             end_date,
-            products:offer_products (
-              id,
-              product:products (
+            products (
                 id,
                 name
               ),
+
               variations:offer_product_variations (
                 id,
                 variation:product_variations (
@@ -70,21 +69,24 @@ const mockDataService = {
 
     //Simple
 
-    return data.map((offer) => ({
+    const dataNew = data.map((offer) => ({
       ...offer,
       startDate: offer.start_date,
       endDate: offer.end_date,
-      products: offer.products.map((p) => ({
-        id: p.product.id,
-        name: p.product.name,
-        variations: p.variations.map((v) => ({
-          id: v.variation.id,
-          name: v.variation.name,
-          offerPrice: v.offer_price,
-          currency: v.currency.name,
-        })),
+      products: offer.products?.map((product) => ({
+        id: product?.id,
+        name: product?.name,
+      })),
+      variations: offer.variations?.map((v) => ({
+        id: v.variation?.id,
+        name: v.variation?.name,
+        offerPrice: v.offer_price,
+        currency: v.currency.name,
       })),
     }));
+
+    console.log(dataNew);
+    return dataNew;
   },
   deleteOffer: async (id: number): Promise<void> => {
     const { error } = await supabase.from("offers").delete().eq("id", id);
@@ -100,13 +102,14 @@ export default function OfferTable() {
   const [expandedOffers, setExpandedOffers] = useState<Record<number, boolean>>(
     {}
   );
-  
+
   const [loading, setLoading] = useState(true);
-  const { shopId, authority, email } = useAppSelector((state) => state.auth.user);
+  const { shopId, authority, email } = useAppSelector(
+    (state) => state.auth.user
+  );
 
   useEffect(() => {
-    console.log("HOLA", authority, shopId, email);
-   //fetchOffers();
+    fetchOffers();
   }, []);
 
   const fetchOffers = async () => {
@@ -131,10 +134,6 @@ export default function OfferTable() {
       fetchOffers(); // Refresh the list after deletion
     }
   };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <Table>
@@ -189,19 +188,22 @@ export default function OfferTable() {
                 <Td colSpan={5}>
                   <div className="p-4 bg-gray-50">
                     <h4 className="font-semibold mb-2">Products:</h4>
-                    {offer.products.map((product) => (
-                      <div key={product.id} className="mb-4">
-                        <h5 className="font-medium">{product.name}</h5>
-                        <ul className="list-disc list-inside">
-                          {product.variations.map((variation) => (
-                            <li key={variation.id}>
-                              {variation.name}: {variation.offerPrice}{" "}
-                              {variation.currency}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
+                    {offer.products?.map((product) => {
+                      console.log(product);
+                      return (
+                        <div key={product.id} className="mb-4">
+                          <h5 className="font-medium">{product.name}</h5>
+                          <ul className="list-disc list-inside">
+                            {offer.variations?.map((variation) => (
+                              <li key={variation.id}>
+                                {variation.name}: {variation.offerPrice}{" "}
+                                {variation.currency}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })}
                   </div>
                 </Td>
               </Tr>

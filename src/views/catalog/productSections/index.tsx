@@ -38,12 +38,13 @@ export const saveCatalogSectionToApi = async (sectionData: {
       name: sectionData.name,
       type_of_view: sectionData.type_of_view,
     })
-    .select();
+    .select("*")
+    .single();
 
   if (error) console.error("Error al guardar sección:", error);
-  else console.log("Sección guardada:", data[0]);
+  else console.log("Sección guardada:", data);
 
-  return data[0];
+  return data;
 };
 
 export const updateCatalogSection = async (
@@ -207,16 +208,19 @@ export default function Component() {
   };
 
   const handleSaveSection = async () => {
+    // Verificar si el nombre de la sección está vacío
     if (!sectionName.trim()) {
       alert("Por favor, ingresa un nombre para la sección.");
       return;
     }
 
+    // Verificar si se ha seleccionado al menos un producto
     if (selectedProducts.length === 0) {
       alert("Por favor, selecciona al menos un producto.");
       return;
     }
 
+    // Crear el objeto sectionToSave con la estructura adecuada
     const sectionToSave = {
       id: null,
       name: sectionName.trim(),
@@ -225,9 +229,10 @@ export default function Component() {
     };
 
     try {
+      // Guardar o actualizar la sección según el estado de edición
       const newSection = isEditing
         ? await updateCatalogSection(currentSection.id, {
-            name: sectionName,
+            name: sectionName.trim(),
             type_of_view: viewType.value,
             products: selectedProducts.map((id) => ({ id })),
           })
@@ -237,26 +242,24 @@ export default function Component() {
             type_of_view: viewType.value,
             products: selectedProducts.map((id) => ({ id })),
           });
-      //setCurrentSection(savedSection);
+
+      // Limpiar los campos de entrada
       setSectionName("");
       setSelectedProducts([]);
 
+      // Asignar el id de la nueva sección al objeto sectionToSave
       sectionToSave.id = newSection.id;
 
-      // Agregar productos seleccionados a la sección
-      const addedProducts = await addProductsToSection(
-        newSection.id,
-        selectedProducts
-      );
       // Actualizar la lista de secciones en el estado
-      setSections((prevSections) =>
-        prevSections.map((section) =>
-          section.id === newSection.id
-            ? { ...newSection, products: selectedProducts }
-            : section
-        )
-      );
+      setSections((prevSections) => {
+        // Retornar un nuevo array con la nueva sección añadida
+        return [...prevSections, sectionToSave];
+      });
+
+      // Mostrar mensaje de éxito
+      handleSuccess("Éxito en guardar la sección.");
     } catch (error) {
+      // Manejo de errores con mensaje de consola y usuario
       console.error("No se pudo guardar la sección:", error.message);
       handleError("Error al guardar la sección.");
     }
@@ -389,7 +392,7 @@ export default function Component() {
             {sections.map((section) => (
               <Tr key={section.id}>
                 <Td>{section.name}</Td>
-                <Td>{section.type_of_view == "Flex" ? FLEX: GRID}</Td>
+                <Td>{section.type_of_view == "Flex" ? FLEX : GRID}</Td>
                 <Td>{section.products.length}</Td>
                 <Td>
                   <Button onClick={() => handleEditSection(section)}>

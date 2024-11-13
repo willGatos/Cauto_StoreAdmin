@@ -111,9 +111,8 @@ export default function OfferForm() {
       .select(
         `
         *,
-        products:offer_products (
-          id,
-          product_id,
+        products:  (
+        *,
           variations:offer_product_variations (
             id,
             product_variation_id,

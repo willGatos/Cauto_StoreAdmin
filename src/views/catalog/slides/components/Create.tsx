@@ -6,31 +6,38 @@ import { Button } from "@/components/ui/Button";
 import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
 import supabase from "@/services/Supabase/BaseClient";
 import { useAppSelector } from "@/store";
+import HandleFeedback from "@/components/ui/FeedBack";
 export const createSlide = async (slide: Slide): Promise<Slide> => {
-    try {
-      const { data, error } = await supabase.from('slides').insert(slide)
-      
-      if (error) throw error
-      
-      return data
-    } catch (error) {
-      console.error('Error creating slide:', error)
-      throw error
-    }
+  try {
+    const { data, error } = await supabase.from("slides").insert(slide);
+
+    if (error) throw error;
+
+    return data;
+  } catch (error) {
+    console.error("Error creating slide:", error);
+    throw error;
   }
-  
-  export const updateSlide = async (id: string, slide: Partial<Slide>): Promise<Slide> => {
-    try {
-      const { data, error } = await supabase.from('slides').update(slide).eq('id', id)
-      
-      if (error) throw error
-      
-      return data
-    } catch (error) {
-      console.error('Error updating slide:', error)
-      throw error
-    }
+};
+
+export const updateSlide = async (
+  id: string,
+  slide: Partial<Slide>
+): Promise<Slide> => {
+  try {
+    const { data, error } = await supabase
+      .from("slides")
+      .update(slide)
+      .eq("id", id);
+
+    if (error) throw error;
+
+    return data;
+  } catch (error) {
+    console.error("Error updating slide:", error);
+    throw error;
   }
+};
 interface Slide {
   name: string;
   shop_id: string | number;
@@ -41,21 +48,22 @@ export default function SlideCreate() {
   const [slide, setSlide] = useState<Slide>({
     name: "",
     images: [""],
-    shop_id: ''
+    shop_id: "",
   });
-  const { shopId } = useAppSelector(
-    (state) => state.auth.user
-)
+  const { shopId } = useAppSelector((state) => state.auth.user);
   const [error, updateError] = useState();
   const [localImages, setLocalImages] = useState([]);
-
+  const { handleSuccess, handleLoading } = HandleFeedback();
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
+      handleLoading(true);
       const upload = slide;
       upload.images = localImages;
-      upload.shop_id = shopId
+      upload.shop_id = shopId;
       await createSlide(slide);
+      handleSuccess("Exito en Guardar Diapositivas.");
+      handleLoading(false);
     } catch (error) {
       console.error("Error creating slide:", error);
     }

@@ -9,6 +9,7 @@ import UploadWidget from "@/views/inventory/Product/ProductForm/components/Image
 import { useAppSelector } from "@/store";
 import supabase from "@/services/Supabase/BaseClient";
 import cloneDeep from "lodash/cloneDeep";
+import HandleFeedback from "@/components/ui/FeedBack";
 
 interface Slide {
   id?: number;
@@ -18,30 +19,37 @@ interface Slide {
 }
 
 const getSlideById = async (id: number): Promise<Slide | null> => {
-    try {
-      const { data, error } = await supabase.from('slides').select('*').eq('id', id).single()
-      
-      if (error) throw error
-      
-      return data || null
-    } catch (error) {
-      console.error('Error fetching slide:', error)
-      throw error
-    }
+  try {
+    const { data, error } = await supabase
+      .from("slides")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+
+    return data || null;
+  } catch (error) {
+    console.error("Error fetching slide:", error);
+    throw error;
   }
-  
+};
+
 const updateSlide = async (slide: Slide, id): Promise<Slide> => {
-    try {
-      const { data, error } = await supabase.from('slides').update(slide).eq('id', id)
-      
-      if (error) throw error
-      
-      return data
-    } catch (error) {
-      console.error('Error updating slide:', error)
-      throw error
-    }
+  try {
+    const { data, error } = await supabase
+      .from("slides")
+      .update(slide)
+      .eq("id", id);
+
+    if (error) throw error;
+
+    return data;
+  } catch (error) {
+    console.error("Error updating slide:", error);
+    throw error;
   }
+};
 
 export default function SlideEdit() {
   const { id } = useParams();
@@ -49,9 +57,11 @@ export default function SlideEdit() {
   const [isLoading, setIsLoading] = useState(true);
   const { shopId } = useAppSelector((state) => state.auth.user);
   const [error, updateError] = useState();
+  const { handleSuccess, handleLoading, handleError } = HandleFeedback();
+
   const [localImages, setLocalImages] = useState([]);
   useEffect(() => {
-    console.log(id)
+    console.log(id);
     if (id) {
       const fetchSlide = async () => {
         setIsLoading(true);
@@ -86,11 +96,7 @@ export default function SlideEdit() {
     // Actualizar el estado con una imagen de carga
   };
 
-  const handleImageDelete = (
-    form,
-    field,
-    deletedImg: string
-  ) => {
+  const handleImageDelete = (form, field, deletedImg: string) => {
     let images = cloneDeep(localImages);
     images = images.filter((img) => img !== deletedImg);
     setLocalImages(images);
@@ -100,9 +106,15 @@ export default function SlideEdit() {
     event.preventDefault();
     if (slide) {
       try {
-        await updateSlide({name: slide.name, shop_id: shopId, images: localImages}, slide.id);
+        handleLoading(true);
+        await updateSlide(
+          { name: slide.name, shop_id: shopId, images: localImages },
+          slide.id
+        );
+        handleSuccess("Exito en Guardar Diapositivas.");
+        handleLoading(true);
       } catch (error) {
-        console.error("Error updating slide:", error);
+        handleError("Error updating slide:" + error);
       }
     }
   };
