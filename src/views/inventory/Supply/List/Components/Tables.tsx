@@ -144,8 +144,12 @@ const SubTable = ({ data }: { data: SupplyVariation[] }) => {
         header: "Costo",
         accessorKey: "cost",
         cell: ({ row }) => {
-          console.log(row)
-          return (<div>{row.original.cost} {row.original.currency.name}</div>)
+          console.log(row);
+          return (
+            <div>
+              {row.original.cost} {row.original.currency.name}
+            </div>
+          );
         },
       },
       {

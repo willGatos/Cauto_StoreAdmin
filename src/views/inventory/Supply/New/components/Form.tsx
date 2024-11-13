@@ -291,39 +291,6 @@ const deleteSupplyVariation = async (variationId: number): Promise<void> => {
   if (error) throw error;
 };
 
-/* const fetchProductsAndVariations = async () => {
-  // Fetch products
-  const { data: productsData, error: productsError } = await supabase
-    .from("products")
-    .select("id, name"); // Sólo traemos id y nombre de los productos
-
-  if (productsError) throw productsError;
-
-  // Fetch product variations for all products
-  const { data: variationsData, error: variationsError } = await supabase
-    .from<ProductVariation>("product_variations")
-    .select("*"); // Traemos todas las variaciones
-
-  if (variationsError) throw variationsError;
-
-  const newProd = productsData.map((product) => {
-    variationsData.map((variation) => {
-      if (variation.product_id === product.id) {
-        product.variations = []; // Inicializamos el array si no existe
-        product.variations.push(variation);
-      } else {
-        product.variations = []; // Inicializamos el array si no existe
-      }
-      return variation;
-    });
-    console.log("SOY YO", product);
-    return product;
-  });
-  console.log(newProd);
-
-  return newProd;
-};
- */
 export default function SupplyForm() {
   const { id } = useParams<{ id: string }>();
   const [initialFormValues, setInitialFormValues] =
@@ -334,7 +301,7 @@ export default function SupplyForm() {
   //const [products, setProducts] = useState<Product[]>([]);
   const [valueRan, setValueRan] = useState("");
   const user = useSelector((state) => state.auth.user);
-  const { handleSuccess, handleError} = HandleFeedback();
+  const { handleSuccess, handleError } = HandleFeedback();
 
   useEffect(() => {
     const loadData = async () => {
@@ -383,6 +350,8 @@ export default function SupplyForm() {
     try {
       // Obtener el shopId del usuario desde Redux
       let supply;
+
+      // Actualizar se reconoce por el Id
       if (values.id) {
         // Obtener el suministro existente
         const existingSupply = await fetchSupplyById(values.id);
@@ -392,26 +361,6 @@ export default function SupplyForm() {
           throw new Error("No tienes permiso para editar este suministro");
         }
 
-        // Actualizar relaciones de variaciones de suministro con variaciones de producto
-        /* for (const variation of values.variations) {
-          await updateSupplyVariationProductVariations(
-            variation.id,
-            variation.product_variations
-          );
-          delete variation.product_variations;
-          delete variation.id;
-        } */
-
-        /*  const variations = await createSupplyVariations(
-          values.variations.map((v) => ({
-            ...v,
-            supply_id: id,
-          }))
-        ); */
-
-        // Actualizar relaciones de suministro con productos
-        // await updateProductSupplies(id!, values.products);
-
         // Actualizar el suministro
         supply = await updateSupply(values.id, {
           name: values.name,
@@ -419,14 +368,10 @@ export default function SupplyForm() {
           shop_id: user.shopId, // Asegurarse de que el shop_id no cambie
         });
 
-        // // Obtener las variaciones existentes
-        // const existingVariations =
-        //     await fetchExistingVariationsBySupplyId(values.id)
         console.log(values.variations);
         // Actualizar y crear variaciones
         for (const variation of values.variations) {
           if (variation.id) {
-            console.log("first1");
             const { id: variationId } = variation;
             delete variation.id;
             // Actualizar variación existente
@@ -442,17 +387,6 @@ export default function SupplyForm() {
             ]);
           }
         }
-
-        // // Eliminar variaciones que no están en la lista actual
-        // const existingVariationIds = existingVariations.map((v) => v.id)
-        // const incomingVariationIds = values.variations.map((v) => v.id)
-        // const variationsToDelete = existingVariationIds.filter(
-        //     (id) => !incomingVariationIds.includes(id)
-        // )
-
-        // for (let variationId of variationsToDelete) {
-        //     await deleteSupplyVariation(variationId)
-        // }
       } else {
         // Creación de un nuevo suministro
         supply = await createSupply({
@@ -460,8 +394,6 @@ export default function SupplyForm() {
           type: values.type,
           shop_id: user.shopId,
         });
-
-        console.log(supply);
 
         // Crear variaciones para el nuevo suministro
         const variationsToCreate = values.variations.map((v) => ({
@@ -526,54 +458,6 @@ export default function SupplyForm() {
                 />
                 <label htmlFor="variable">Variable</label>
               </div>
-
-              {/* <div>
-              <label>Productos</label>
-              <div className="space-y-2 mt-2">
-                <Checkbox.Group
-                  name="products"
-                  value={values.products} // Vincula el valor del grupo a los productos seleccionados
-                  onChange={(checked) => {
-                    setProducts(products);
-                    setFieldValue("products", checked);
-                  }}
-                >
-                  {products.map((product) => (
-                    <div
-                      key={product.id}
-                      className="flex items-center space-x-2"
-                    >
-                      <Checkbox
-                        id={`product-${product.id}`}
-                        value={product.id} // Asigna el ID del producto como valor del checkbox
-                      />
-                      <label htmlFor={`product-${product.id}`}>
-                        {product.name}
-                      </label>
-                    </div>
-                  ))}
-                </Checkbox.Group>
-
-              {products.map(product => (
-                            <div key={product.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`product-${product.id}`}
-                                checked={values.products.includes(product.id)}
-                                onChange={(checked) => {
-                                  const newProducts = checked
-                                    ? [...values.products, product.id]
-                                    : values.products.filter(id => id !== product.id)
-                                  
-                                    console.log({ checked, newProducts });
-
-                                  setFieldValue('products', newProducts.slice())
-                                }}
-                              />
-                              <label htmlFor={`product-${product.id}`}>{product.name}</label>
-                            </div>
-                          ))} 
-              </div>
-            </div>*/}
 
               <FieldArray name="variations">
                 {({ push, remove }) => (
@@ -683,84 +567,7 @@ export default function SupplyForm() {
                                 )}
                             </div>
                             <div>
-                              <div className="space-y-4 mt-2">
-                                {/*
-                              
-                              
-                            <label>Variaciones de Producto</label>{products
-                                .filter((p) => values.products.includes(p.id))
-                                .map((product, key) => (
-                                  <div key={key}>
-                                    {product.variations.map((pv) => (
-                                      <div key={pv.id} className="ml-4 mt-2">
-                                        <div className="flex items-center space-x-2">
-                                          <Checkbox
-                                            id={`pv-${pv.id}-${index}`}
-                                            checked={values.variations[
-                                              index
-                                            ].product_variations.some(
-                                              (v) => v.id === pv.id
-                                            )}
-                                            onChange={(checked) => {
-                                              const newProductVariations =
-                                                checked
-                                                  ? [
-                                                      ...values.variations[
-                                                        index
-                                                      ].product_variations,
-                                                      {
-                                                        id: pv.id,
-                                                        required_supplies: 0,
-                                                      },
-                                                    ]
-                                                  : values.variations[
-                                                      index
-                                                    ].product_variations.filter(
-                                                      (v) => v.id !== pv.id
-                                                    );
-
-                                              console.log(newProductVariations);
-                                              setFieldValue(
-                                                `variations.${index}.product_variations`,
-                                                newProductVariations
-                                              );
-                                            }}
-                                          />
-                                          <label
-                                            htmlFor={`pv-${pv.id}-${index}`}
-                                          >
-                                            {pv.name}
-                                          </label>
-                                        </div>
-                                        {values.variations[
-                                          index
-                                        ].product_variations.some(
-                                          (v) => v.id === pv.id
-                                        ) && (
-                                          <div className="mt-2 ml-6">
-                                            <label
-                                              htmlFor={`pv-${pv.id}-${index}-required`}
-                                            >
-                                              Cantidad Requerida para la
-                                              Variación
-                                            </label>
-                                            <Field
-                                              name={`variations.${index}.product_variations[${values.variations[
-                                                index
-                                              ].product_variations.findIndex(
-                                                (v) => v.id === pv.id
-                                              )}].required_supplies`}
-                                              type="number"
-                                              as={Input}
-                                              className="mt-1 w-24"
-                                            />
-                                          </div>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                ))} */}
-                              </div>
+                              <div className="space-y-4 mt-2"></div>
                             </div>
                             {index > 0 && (
                               <Button
