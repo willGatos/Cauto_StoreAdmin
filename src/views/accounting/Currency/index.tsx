@@ -60,11 +60,17 @@ export default function CurrencyView() {
   const [newCurrencyName, setNewCurrencyName] = useState("");
   const [newCurrencyRate, setNewCurrencyRate] = useState("");
   const { shopId } = useSelector((state) => state.auth.user);
-  const { handleLoading, handleSuccess } = HandleFeedback();
+  const { handleLoading, handleSuccess, handleError } = HandleFeedback();
 
   useEffect(() => {
     console.log("first");
-    dataService.getCurrencies(shopId).then(setCurrencies);
+    try {
+      dataService.getCurrencies(shopId).then(setCurrencies);
+    } catch (error) {
+      handleError(
+        error || "No se Pudo cargar las Divisas. Compruebe la Conexión."
+      );
+    }
   }, []);
 
   const handleEditClick = (currency: Currency) => {
@@ -79,28 +85,34 @@ export default function CurrencyView() {
 
   const handleAddCurrency = async () => {
     handleLoading(true);
-    if (newCurrencyName && newCurrencyRate) {
-      const { data: added, error } = await supabase
-        .from("currency")
-        .insert({
-          name: newCurrencyName,
-          exchange_rate: parseFloat(newCurrencyRate),
-          is_automatic: false,
-          shop_id: shopId,
-        })
-        .select()
-        .single();
-      if (error) console.error("Error adding currency:", error);
+    try {
+      if (newCurrencyName && newCurrencyRate) {
+        const { data: added, error } = await supabase
+          .from("currency")
+          .insert({
+            name: newCurrencyName,
+            exchange_rate: parseFloat(newCurrencyRate),
+            is_automatic: false,
+            shop_id: shopId,
+          })
+          .select()
+          .single();
 
-      setCurrencies([...currencies, added]);
+        if (added) {
+          setCurrencies([...currencies, added]);
 
-      setIsAddingCurrency(false);
-      setNewCurrencyName("");
-      setNewCurrencyRate("");
-
-      handleSuccess("Se ha creado la Divisa");
-      handleLoading(false);
+          setIsAddingCurrency(false);
+          setNewCurrencyName("");
+          setNewCurrencyRate("");
+          handleSuccess("Se ha creado la Divisa");
+        } else {
+          handleError("Error Creando Divisa:" + error.message);
+        }
+      }
+    } catch (error) {
+      handleError("Error Creando Divisa:" + error.message);
     }
+    handleLoading(false);
   };
 
   const handleUpdateCurrency = async () => {
@@ -123,7 +135,8 @@ export default function CurrencyView() {
         handleSuccess("Se ha actualizado la Divisa");
         handleLoading(false);
       } catch (error) {
-        console.error("Error updating currency:", error);
+        console.log(error);
+        handleError("Error Actualizando Divisa:" + error.message);
       }
     }
   };
