@@ -110,17 +110,30 @@ export default function OfferForm() {
       .from("offers")
       .select(
         `
-        *,
-        products:  (
-        *,
-          variations:offer_product_variations (
             id,
-            product_variation_id,
-            offer_price,
-            currency_id
-          )
-        )
-      `
+            name,
+            description,
+            long_description,
+            start_date,
+            end_date,
+            products (
+                id,
+                name
+              ),
+              variations:offer_product_variations (
+                id,
+                variation:product_variations (
+                  id,
+                  name
+                ),
+                offer_price,
+                currency:currency (
+                  name,
+                  exchange_rate
+                )
+              )
+            )
+          `
       )
       .eq("id", offerId)
       .single();
@@ -128,20 +141,19 @@ export default function OfferForm() {
     if (error) {
       console.error("Error fetching offer:", error);
     } else if (data) {
-      const formattedOffer: Offer = {
+      const formattedOffer = {
         ...data,
         startDate: data.start_date,
         endDate: data.end_date,
-        shopId: data.shop_id,
-        products: data.products.map((p: any) => ({
-          id: p.id,
-          productId: p.product_id,
-          variations: p.variations.map((v: any) => ({
-            id: v.id,
-            variationId: v.product_variation_id,
-            offer_price: v.offer_price,
-            currencyId: v.currency_id,
-          })),
+        products: data.products?.map((product) => ({
+          id: product?.id,
+          name: product?.name,
+        })),
+        variations: data.variations?.map((v) => ({
+          id: v.variation?.id,
+          name: v.variation?.name,
+          offerPrice: v.offer_price,
+          currency: v.currency.name,
         })),
       };
       console.log(formattedOffer);
@@ -150,14 +162,9 @@ export default function OfferForm() {
       const selectedProductIds = formattedOffer.products.map(
         (p) => p.productId
       );
-      setSelectedProducts(
-        selectedProductIds.reduce(
-          (acc: Record<number, boolean>, id: number) => {
-            acc[id] = true;
-            return acc;
-          },
-          {}
-        )
+      formattedOffer.products.map((op) => handleProductSelection(op.id, true));
+      formattedOffer.variations.map((ov) =>
+        handleVariationSelection(ov.id, true)
       );
     }
     setLoading(false);
@@ -178,6 +185,7 @@ export default function OfferForm() {
     productId: number,
     isChecked: boolean
   ) => {
+    console.log(selectedProducts);
     setSelectedProducts((prev) => ({ ...prev, [productId]: isChecked }));
     if (isChecked) {
       setOffer((prev) => ({
@@ -194,6 +202,7 @@ export default function OfferForm() {
   const { shopId } = useAppSelector((state) => state.auth.user);
   const [selectedVariations, setSelectedVariations] = useState({});
   const [offersVariations, setOffersVariations] = useState([]);
+
   const handleVariationSelection = async (
     variationId: number,
     isChecked: boolean
@@ -521,7 +530,7 @@ export default function OfferForm() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {products.map((product, pkey) => (
-              <React.Fragment key={product.id}>
+              <React.Fragment key={pkey}>
                 <tr>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <input

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Table } from "@/components/ui";
 import supabase from "@/services/Supabase/BaseClient";
 import { useAppSelector } from "@/store";
+import { useNavigate } from "react-router-dom";
 const { TBody, THead, Td, Tr, Th } = Table;
 interface Offer {
   id: number;
@@ -43,7 +44,6 @@ const mockDataService = {
                 id,
                 name
               ),
-
               variations:offer_product_variations (
                 id,
                 variation:product_variations (
@@ -69,7 +69,7 @@ const mockDataService = {
 
     //Simple
 
-    const dataNew = data.map((offer) => ({
+    const formattedOffer = data.map((offer) => ({
       ...offer,
       startDate: offer.start_date,
       endDate: offer.end_date,
@@ -85,8 +85,8 @@ const mockDataService = {
       })),
     }));
 
-    console.log(dataNew);
-    return dataNew;
+    console.log(formattedOffer);
+    return formattedOffer;
   },
   deleteOffer: async (id: number): Promise<void> => {
     const { error } = await supabase.from("offers").delete().eq("id", id);
@@ -102,6 +102,7 @@ export default function OfferTable() {
   const [expandedOffers, setExpandedOffers] = useState<Record<number, boolean>>(
     {}
   );
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const { shopId, authority, email } = useAppSelector(
@@ -126,6 +127,7 @@ export default function OfferTable() {
   const handleEdit = (offerId: number) => {
     // Implement edit functionality (e.g., navigate to edit page)
     console.log(`Edit offer with id ${offerId}`);
+    navigate("/app/sales/editForm/" + offerId);
   };
 
   const handleDelete = async (offerId: number) => {
