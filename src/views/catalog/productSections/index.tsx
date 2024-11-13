@@ -1,10 +1,12 @@
 import { Table } from "@/components/ui";
 import { Button } from "@/components/ui/Button";
+import HandleFeedback from "@/components/ui/FeedBack";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import supabase from "@/services/Supabase/BaseClient";
 import { useAppSelector } from "@/store";
 import { useEffect, useState } from "react";
+import { FLEX, GRID } from "./constant/typeOfView";
 
 export const getProductsByShopId = async (shopId: number) => {
   const { data, error } = await supabase
@@ -20,8 +22,8 @@ export const getProductsByShopId = async (shopId: number) => {
 };
 
 const typeOfView = [
-  { label: "Grilla", value: "Grid" },
-  { label: "Flex", value: "Flex" },
+  { label: GRID, value: "Grid" },
+  { label: FLEX, value: "Flex" },
 ];
 
 export const saveCatalogSectionToApi = async (sectionData: {
@@ -43,6 +45,7 @@ export const saveCatalogSectionToApi = async (sectionData: {
 
   return data[0];
 };
+
 export const updateCatalogSection = async (
   sectionId: number,
   updatedData: {
@@ -115,16 +118,19 @@ export const addProductsToSection = async (
 
 const fetchSections = async (shopId: number) => {
   try {
-    const { data: sectionsData, error: sectionsError } = await supabase.from(
-      "catalog_sections"
-    ).select(`
+    const { data: sectionsData, error: sectionsError } = await supabase
+      .from("catalog_sections")
+      .select(
+        `
         *,
         products: catalog_section_products (
           product_id (
             *
           )
         )
-      `);
+      `
+      )
+      .eq("shop_id", shopId);
 
     if (sectionsError) throw sectionsError;
 
@@ -164,7 +170,7 @@ export default function Component() {
   const [viewType, setViewType] = useState();
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [products, setProducts] = useState([]);
-
+  const { handleSuccess, handleError, handleLoading } = HandleFeedback();
   const [isEditing, setIsEditing] = useState(false);
   // Función para iniciar la edición de una sección
   const handleEditSection = (section) => {
@@ -251,8 +257,8 @@ export default function Component() {
         )
       );
     } catch (error) {
-      console.error("No se pudo guardar la sección:", error);
-      alert("Error al guardar la sección.");
+      console.error("No se pudo guardar la sección:", error.message);
+      handleError("Error al guardar la sección.");
     }
   };
 
@@ -278,12 +284,12 @@ export default function Component() {
           />
         </div>
         <Button
-         //notifcationText="Exito en la Creacion de la Seccion"
-         onClick={() => {
-           handleSaveSection();
-         }}
-        >{isEditing ? "Actualizar Sección" : "Guardar Sección"}
-         
+          //notifcationText="Exito en la Creacion de la Seccion"
+          onClick={() => {
+            handleSaveSection();
+          }}
+        >
+          {isEditing ? "Actualizar Sección" : "Guardar Sección"}
         </Button>
         {isEditing && (
           <Button variant="secondary" onClick={handleCancelEdit}>
@@ -383,7 +389,7 @@ export default function Component() {
             {sections.map((section) => (
               <Tr key={section.id}>
                 <Td>{section.name}</Td>
-                <Td>{section.type_of_view}</Td>
+                <Td>{section.type_of_view == "Flex" ? FLEX: GRID}</Td>
                 <Td>{section.products.length}</Td>
                 <Td>
                   <Button onClick={() => handleEditSection(section)}>
