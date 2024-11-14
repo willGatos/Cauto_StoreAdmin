@@ -10,8 +10,11 @@ type Options = {
   label: string;
   value: string;
 }[];
+type ProductType = "manufactured" | "imported";
 
 type FormFieldsName = {
+  type: ProductType;
+  origin: string;
   category_id: string;
   brand: string;
   gender: string;
@@ -38,11 +41,20 @@ const forGender = [
   { label: "Unisex", value: "unisex" },
 ];
 
-const status =  [
+const status = [
   { value: 0, label: "Nuevo" },
   { value: 1, label: "Agotado" },
   { value: 2, label: "En existencia" },
   { value: 3, label: "Descontinuado" },
+];
+
+const productTypes = [
+  { value: "simple", label: "Simple" },
+  { value: "variable", label: "Variable" },
+];
+const productOrigin = [
+  { value: "manufactured", label: "Manufacturado" },
+  { value: "imported", label: "Importado" },
 ];
 
 const OrganizationFields = (props: OrganizationFieldsProps) => {
@@ -61,6 +73,60 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
     <AdaptableCard divider className="mb-4">
       <h5>Organización</h5>
       <p className="mb-6">Configurar como se organiza el producto</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="col-span-1">
+          <FormItem
+            label="Variedad Según Modelo"
+            invalid={(errors.type && touched.type) as boolean}
+            errorMessage={errors.type}
+          >
+            <Field name={`type`}>
+              {({ field, form }: FieldProps) => (
+                <Select
+                  field={field}
+                  form={form}
+                  placeholder={
+                    "Si tiene Color - Forma del mismo modelo o si es Simple"
+                  }
+                  options={productTypes}
+                  value={productTypes.find(
+                    (type) => type.value === values.type
+                  )}
+                  onChange={(option) => {
+                    console.log(field.name, field.value);
+                    form.setFieldValue(field.name, option?.value);
+                  }}
+                />
+              )}
+            </Field>
+          </FormItem>
+        </div>
+        <div className="col-span-1">
+          <FormItem
+            label="Origen del Producto"
+            invalid={(errors.origin && touched.origin) as boolean}
+            errorMessage={errors.origin}
+          >
+            <Field name={`origin`}>
+              {({ field, form }: FieldProps) => (
+                <Select
+                  field={field}
+                  form={form}
+                  options={productOrigin}
+                  placeholder="Importado o con Manufactura"
+                  value={productOrigin.find(
+                    (origin) => origin.value === values.origin
+                  )}
+                  onChange={(option) => {
+                    console.log(field.name, field.value);
+                    form.setFieldValue(field.name, option?.value);
+                  }}
+                />
+              )}
+            </Field>
+          </FormItem>
+        </div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="col-span-1">
           <FormItem
@@ -134,7 +200,7 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
           </FormItem>
         </div> */}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="col-span-1">
           <FormItem
             label="Género"
@@ -173,8 +239,22 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
             />
           </FormItem>
         </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      </div> */}
+
+      {/* <FormItem
+        label="Cantidad del Producto Disponible"
+        invalid={(errors.stock && touched.stock) as boolean}
+        errorMessage={errors.stock}
+      >
+        <Field
+          type="text"
+          autoComplete="off"
+          name="stock"
+          placeholder="Cantidad Disponible"
+          component={Input}
+        />
+      </FormItem> */}
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="col-span-1">
           <FormItem
             label="¿Es Visible para todos?"
@@ -190,7 +270,7 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
             </div>
           </FormItem>
         </div>
-      </div>
+      </div> */}
     </AdaptableCard>
   );
 };

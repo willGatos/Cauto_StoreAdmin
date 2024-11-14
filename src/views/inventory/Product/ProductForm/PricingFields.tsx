@@ -16,11 +16,9 @@ import { supabaseService } from "@/services/Supabase/AttributeService";
 import { transformArrayToObjectArray } from "./ProductForm";
 
 // Nuevos tipos
-type ProductType = "manufactured" | "imported";
 type ProductStatus = "new" | "out_of_stock" | "in_stock" | "discontinued";
 
 type ProductPricing = {
-  type: ProductType;
   cost?: number;
   standard_price: number;
   discount: number;
@@ -28,7 +26,6 @@ type ProductPricing = {
   commission_type: "percentage" | "fixed";
   reference_currency: string;
   status: ProductStatus;
-  origin: string;
 };
 
 type PricingFieldsProps = {
@@ -70,21 +67,11 @@ const PricingFields = (props: PricingFieldsProps) => {
     { value: "fixed", label: "Fijo" },
   ];
 
-  const productTypes = [
-    { value: "simple", label: "Simple" },
-    { value: "variable", label: "Variable" },
-  ];
-
   const [currencies, setCurrencies] = useState([
     { value: "CUP", label: "CUP" },
     { value: "USD", label: "USD" },
     { value: "EURO", label: "EURO" },
   ]);
-
-  const productOrigin = [
-    { value: "manufactured", label: "Manufacturado" },
-    { value: "imported", label: "Importado" },
-  ];
 
   useEffect(() => {
     const currenciesFetch = async () => {
@@ -106,57 +93,8 @@ const PricingFields = (props: PricingFieldsProps) => {
     <AdaptableCard divider className="mb-4">
       <h5>Sistema de Precios</h5>
       <p className="mb-6">Configuración de Precios</p>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="col-span-1">
-          <FormItem
-            label="Tipo de Producto"
-            invalid={(errors.type && touched.type) as boolean}
-            errorMessage={errors.type}
-          >
-            <Field name={`type`}>
-              {({ field, form }: FieldProps) => (
-                <Select
-                  field={field}
-                  form={form}
-                  options={productTypes}
-                  value={productTypes.find(
-                    (type) => type.value === values.type
-                  )}
-                  onChange={(option) => {
-                    console.log(field.name, field.value);
-                    form.setFieldValue(field.name, option?.value);
-                  }}
-                />
-              )}
-            </Field>
-          </FormItem>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="col-span-1">
-          <FormItem
-            label="Tipo de Producto"
-            invalid={(errors.origin && touched.origin) as boolean}
-            errorMessage={errors.origin}
-          >
-            <Field name={`origin`}>
-              {({ field, form }: FieldProps) => (
-                <Select
-                  field={field}
-                  form={form}
-                  options={productOrigin}
-                  value={productOrigin.find(
-                    (origin) => origin.value === values.origin
-                  )}
-                  onChange={(option) => {
-                    console.log(field.name, field.value);
-                    form.setFieldValue(field.name, option?.value);
-                  }}
-                />
-              )}
-            </Field>
-          </FormItem>
-        </div>
         <div className="col-span-1">
           <FormItem
             label="Moneda de Referencia"
@@ -183,29 +121,6 @@ const PricingFields = (props: PricingFieldsProps) => {
             </Field>
           </FormItem>
         </div>
-      </div>
-      {values.origin === "imported" && (
-        <div className="col-span-1">
-          <FormItem
-            label="Costo del Producto"
-            invalid={(errors.cost && touched.cost) as boolean}
-            errorMessage={errors.cost}
-          >
-            <Field name={`cost`}>
-              {({ field, form }: FieldProps) => (
-                <NumericFormatInput
-                  form={form}
-                  field={field}
-                  placeholder="Costo del producto importado"
-                  customInput={PriceInput as ComponentType}
-                  onValueChange={(e) => form.setFieldValue(field.name, e.value)}
-                />
-              )}
-            </Field>
-          </FormItem>
-        </div>
-      )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="col-span-1">
           <FormItem
             label="Precio Estándar"
@@ -227,6 +142,30 @@ const PricingFields = (props: PricingFieldsProps) => {
             </Field>
           </FormItem>
         </div>
+      </div>
+
+      {values.origin === "imported" && (
+        <div className="col-span-1">
+          <FormItem
+            label="Costo del Producto"
+            invalid={(errors.cost && touched.cost) as boolean}
+            errorMessage={errors.cost}
+          >
+            <Field name={`cost`}>
+              {({ field, form }: FieldProps) => (
+                <NumericFormatInput
+                  form={form}
+                  field={field}
+                  placeholder="Costo del producto importado"
+                  customInput={PriceInput as ComponentType}
+                  onValueChange={(e) => form.setFieldValue(field.name, e.value)}
+                />
+              )}
+            </Field>
+          </FormItem>
+        </div>
+      )}
+     {/*  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="col-span-1">
           <FormItem
             label="Descuento"
@@ -251,7 +190,7 @@ const PricingFields = (props: PricingFieldsProps) => {
             </Field>
           </FormItem>
         </div>
-      </div>
+      </div> */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="col-span-1">
           <FormItem

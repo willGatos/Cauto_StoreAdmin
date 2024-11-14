@@ -208,6 +208,7 @@ export default function ProductVariationGenerator({
     field: keyof ProductVariation,
     value: any
   ) => {
+    console.log("first", value);
     setVariations((prev) =>
       prev.map((variation, i) =>
         i === index ? { ...variation, [field]: value } : variation
@@ -311,11 +312,11 @@ export default function ProductVariationGenerator({
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">
-        Generador de Variaciones de Producto
+        Generador de Variantes de Producto
       </h1>
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-2">
-          Seleccione los atributos:
+          Seleccione los atributos del producto relavantes para el Cliente:
         </h2>
         {attributes.map((attribute) => (
           <div key={attribute.id} className="mb-4">
@@ -350,7 +351,9 @@ export default function ProductVariationGenerator({
         ))}
       </div>
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Seleccione la moneda:</h2>
+        <h2 className="text-xl font-semibold mb-2">
+          Seleccione la moneda para todos las variaciones:
+        </h2>
         <select
           className="w-full p-2 border border-gray-300 rounded-md"
           value={selectedCurrency?.id || ""}
@@ -363,19 +366,6 @@ export default function ProductVariationGenerator({
             </option>
           ))}
         </select>
-      </div>
-      <div className="mb-6 flex items-center space-x-2">
-        <Checkbox
-          checked={requiresStock}
-          onChange={setRequiresStock}
-          id="requires-stock"
-        />
-        <label
-          htmlFor="requires-stock"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          Producto requiere control de stock
-        </label>
       </div>
       <Button type="button" onClick={generateVariations} className="mb-6">
         Generar Variaciones
@@ -414,10 +404,10 @@ export default function ProductVariationGenerator({
                       }
                     />
                   </div>
-                  {requiresStock && (
+                  {values.origin == "imported" && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Stock
+                        Inventario
                       </label>
                       <Input
                         type="number"
@@ -511,41 +501,42 @@ export default function ProductVariationGenerator({
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Insumos
-                  </label>
-                  <Select
-                    isMulti
-                    name={`supplies-${index}`}
-                    placeholder="Seleccione insumos"
-                    options={supplies
-                      .map(({ supply_variation, value }) => {
-
-                        const data = supply_variation
-                          .filter(
-                            (variation) =>
-                              values.supplies.includes(value) &&
-                              variation.supply_id === value
-                          )
-                          .map((filteredVariation) => ({
-                            ...filteredVariation,
-                            label: filteredVariation.description,
-                            value: filteredVariation.id,
-                          }))
-                          .flat();
-                        return data;
-                      })
-                      .flat()}
-                    onChange={(option) => {
-                      handleVariationChange(
-                        index,
-                        "supply_variations",
-                        option.map((op) => (op.id ? op.id : op))
-                      );
-                    }}
-                  />
-                </div>
+                {values.origin == "manufactured" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Insumos
+                    </label>
+                    <Select
+                      isMulti
+                      name={`supplies-${index}`}
+                      placeholder="Seleccione insumos"
+                      options={supplies
+                        .map(({ supply_variation, value }) => {
+                          const data = supply_variation
+                            .filter(
+                              (variation) =>
+                                values.supplies.includes(value) &&
+                                variation.supply_id === value
+                            )
+                            .map((filteredVariation) => ({
+                              ...filteredVariation,
+                              label: filteredVariation.description,
+                              value: filteredVariation.id,
+                            }))
+                            .flat();
+                          return data;
+                        })
+                        .flat()}
+                      onChange={(option) => {
+                        handleVariationChange(
+                          index,
+                          "supply_variations",
+                          option.map((op) => (op.id ? op.id : op))
+                        );
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>

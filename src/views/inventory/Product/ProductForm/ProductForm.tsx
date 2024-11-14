@@ -17,6 +17,7 @@ import OrganizationFields from "./OrganizationFields";
 import PricingFields from "./PricingFields";
 import ProductImages from "./ProductImages";
 import Supplies from "./Supplies";
+import { useAppSelector } from "@/store";
 
 export type ProductVariation = {
   name: string;
@@ -53,11 +54,13 @@ export const createProduct = async (
       product_id: product.id,
     }));
 
-    const { error: errorCP } = await supabase
-      .from("product_supplies")
-      .insert(dos);
+    if (productData.origin == "manufactured") {
+      const { error: errorCP } = await supabase
+        .from("product_supplies")
+        .insert(dos);
+    }
     // Luego, insertamos las variaciones
-    if (variations && variations.length > 0 && productData.type !== "simple" ) {
+    if (variations && variations.length > 0 && productData.type !== "simple") {
       const variationsWithProductId = variations.map((variation) => ({
         name: variation.name,
         price: variation.price,
@@ -81,10 +84,18 @@ export const createProduct = async (
                 attribute_value_id: attribute.id,
               }));
             })
-            .flat(); // Add .flat() here to flatten the nested array
+            .flat(); // Aplana el arreglo anidado
         })
-        .flat(); // And add another .flat() here to ensure complete flattening
-
+        .flat() // Aplana nuevamente para asegurar que todos los elementos estén en un solo nivel
+        .filter(
+          (value, index, self) =>
+            index ===
+            self.findIndex(
+              (t) =>
+                t.product_variation_id === value.product_variation_id &&
+                t.attribute_value_id === value.attribute_value_id
+            )
+        ); // Filtra duplicados
       if (variationsError) throw variationsError;
 
       // Insertar relaciones en product_variation_attributes
@@ -95,22 +106,32 @@ export const createProduct = async (
 
       //supply_variation_product_variations
       if (variationsError) throw variationsError;
-
-      const combinedPermutations = variations
-        .flatMap((variation) => {
-          return variationsIds.map((varId) => {
-            return variation.supply_variations.map((supplyVariation) => ({
-              supply_variation_id: supplyVariation,
-              product_variation_id: varId.id,
-            }));
-          });
-        })
-        .flat();
-      console.log(combinedPermutations);
-
-      const { error: errorCP } = await supabase
-        .from("supply_variation_product_variations")
-        .insert(combinedPermutations);
+      if (productData.origin == "manufactured") {
+        console.log("HOLA", variations);
+        const combinedPermutations = variations
+          .flatMap((variation) => {
+            return variationsIds.map((varId) => {
+              return variation.supply_variations.map((supplyVariation) => ({
+                supply_variation_id: supplyVariation,
+                product_variation_id: varId.id,
+              }));
+            });
+          })
+          .flat()
+          .filter(
+            (value, index, self) =>
+              index ===
+              self.findIndex(
+                (t) =>
+                  t.product_variation_id === value.product_variation_id &&
+                  t.supply_variation_id === value.supply_variation_id
+              )
+          ); // Filtra duplicados;
+        console.log(combinedPermutations);
+        const { error: errorCP } = await supabase
+          .from("supply_variation_product_variations")
+          .insert(combinedPermutations);
+      }
     }
 
     return {};
@@ -438,7 +459,7 @@ const DeleteProductButton = ({ onDelete }: { onDelete: OnDelete }) => {
         type="button"
         onClick={onConfirmDialogOpen}
       >
-        Delete
+        Borrar
       </Button>
       <ConfirmDialog
         isOpen={dialogOpen}
@@ -451,8 +472,9 @@ const DeleteProductButton = ({ onDelete }: { onDelete: OnDelete }) => {
         onConfirm={handleConfirm}
       >
         <p>
-          Are you sure you want to delete this product? All record related to
-          this product will be deleted as well. This action cannot be undone.
+          ¿Estás seguro de que deseas eliminar este producto? Todos los
+          registros relacionados con este producto también serán eliminados.
+          Esta acción no se puede deshacer.
         </p>
       </ConfirmDialog>
     </>
@@ -497,10 +519,10 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
   });
 
   const [supplies, setSupplies] = useState<Supply[]>([]);
-
+  const { shopId } = useAppSelector((state) => state.auth.user);
   useEffect(() => {
     supabaseService
-      .getSupplies()
+      .getSupplies(shopId)
       .then((data) => setSupplies(transformArrayToObjectArray(data)));
   }, []);
 
@@ -598,12 +620,6 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                 <div className="lg:col-span-2">
                   <BasicInformationFields touched={touched} errors={errors} />
 
-                  <PricingFields
-                    touched={touched}
-                    errors={errors}
-                    values={values}
-                  />
-
                   <OrganizationFields
                     touched={touched}
                     errors={errors}
@@ -613,13 +629,20 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                     setFieldValue={setFieldValue}
                   />
 
-                  <Supplies
+                  <PricingFields
                     touched={touched}
                     errors={errors}
                     values={values}
-                    supplies={supplies}
                   />
 
+                  {values.origin == "manufactured" && (
+                    <Supplies
+                      touched={touched}
+                      errors={errors}
+                      values={values}
+                      supplies={supplies}
+                    />
+                  )}
                   {values.type !== "simple" && (
                     <Attribute
                       touched={touched}

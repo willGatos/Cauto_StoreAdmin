@@ -4,6 +4,8 @@ import { useAppSelector } from "@/store";
 import React from "react";
 import MainTable from "./MainTable"; // Asegúrate de ajustar la ruta correcta
 import SubTable from "./SubTable";
+import HandleFeedback from "@/components/ui/FeedBack";
+import { Loading } from "@/components/shared";
 
 export const getProducts = async (id) => {
   try {
@@ -26,8 +28,12 @@ export const getProducts = async (id) => {
 const MainComponent = () => {
   const [products, setProducts] = React.useState<Product[]>([]);
   const { shopId } = useAppSelector((state) => state.auth.user);
+  const { loading, handleLoadingState } = HandleFeedback();
   React.useEffect(() => {
-    getProducts(shopId).then(setProducts);
+    handleLoadingState(true);
+    getProducts(shopId)
+      .then(setProducts)
+      .then(() => handleLoadingState(false));
   }, []);
 
   const renderSubComponent = ({ row }) => {
@@ -36,13 +42,15 @@ const MainComponent = () => {
   };
 
   return (
-    <MainTable
-      data={products}
-      renderRowSubComponent={renderSubComponent}
-      getRowCanExpand={(row) =>
-        row.original.variations && row.original.variations.length > 0
-      }
-    />
+    <Loading loading={loading}>
+      <MainTable
+        data={products}
+        renderRowSubComponent={renderSubComponent}
+        getRowCanExpand={(row) =>
+          row.original.variations && row.original.variations.length > 0
+        }
+      />
+    </Loading>
   );
 };
 

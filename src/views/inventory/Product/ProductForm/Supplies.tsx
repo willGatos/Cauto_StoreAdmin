@@ -53,8 +53,6 @@ const NumericFormatInput = ({
 const Supplies = (props: SuppliesProps) => {
   const { values, touched, errors, supplies } = props;
 
-  
-
   return (
     <AdaptableCard divider className="mb-4">
       <h5>Sistema de Precios</h5>
@@ -80,7 +78,7 @@ const Supplies = (props: SuppliesProps) => {
                     .map((supply) => supplies.find((s) => s.value === supply))
                     .filter(Boolean)}
                   onChange={(option) => {
-                    console.log(option)
+                    console.log(option);
                     form.setFieldValue(
                       field.name,
                       option.map((op) => op.id)

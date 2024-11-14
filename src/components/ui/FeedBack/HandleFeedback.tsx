@@ -36,6 +36,11 @@ const HandleFeedback = () => {
     }
   };
 
+  // Manejar el estado de loading
+  const handleLoadingState = (isLoading: boolean) => {
+    setLoading(isLoading);
+  };
+
   // Manejar los errores
   const handleError = (errorMessage: string) => {
     setError(errorMessage);
@@ -55,6 +60,7 @@ const HandleFeedback = () => {
     handleLoading,
     handleError,
     handleSuccess,
+    handleLoadingState,
   };
 };
 

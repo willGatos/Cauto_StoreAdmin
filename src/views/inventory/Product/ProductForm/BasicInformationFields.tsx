@@ -51,20 +51,6 @@ const BasicInformationFields = (props: BasicInformationFields) => {
           )}
         </Field>
       </FormItem>
-
-      <FormItem
-        label="Cantidad del Producto Disponible"
-        invalid={(errors.stock && touched.stock) as boolean}
-        errorMessage={errors.stock}
-      >
-        <Field
-          type="text"
-          autoComplete="off"
-          name="stock"
-          placeholder="Cantidad Disponible"
-          component={Input}
-        />
-      </FormItem>
     </AdaptableCard>
   );
 };
