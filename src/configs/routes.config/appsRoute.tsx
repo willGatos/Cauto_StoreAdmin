@@ -127,12 +127,12 @@ const appsRoute: Routes = [
     },
   },
   {
-    key: "appsSales.offerForm",
+    key: "appsSales.offerFormEdit",
     path: `${APP_PREFIX_PATH}/sales/editForm/:id`,
     component: lazy(() => import("@/views/sales/Offers/Form")),
     authority: [OWNER],
     meta: {
-      header: "Crear Oferta",
+      header: "Editar Oferta",
     },
   },
   {

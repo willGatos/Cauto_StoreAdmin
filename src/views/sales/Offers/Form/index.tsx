@@ -89,7 +89,10 @@ export default function OfferForm() {
   }, [id]);
 
   const fetchProducts = async () => {
-    const { data, error } = await supabase.from("products").select(`
+    const { data, error } = await supabase
+      .from("products")
+      .select(
+        `
         id,
         name,
         variations:product_variations (
@@ -97,7 +100,9 @@ export default function OfferForm() {
           name,
           price
         )
-      `);
+      `
+      )
+      .eq("shop_id", shopId);
     if (error) {
       console.error("Error fetching products:", error);
     } else {
@@ -116,18 +121,21 @@ export default function OfferForm() {
             long_description,
             start_date,
             end_date,
+            images,
             products (
                 id,
                 name
               ),
               variations:offer_product_variations (
                 id,
+                required_quantity,
+                offer_price,
                 variation:product_variations (
                   id,
                   name
                 ),
-                offer_price,
                 currency:currency (
+                  id,
                   name,
                   exchange_rate
                 )
@@ -136,36 +144,80 @@ export default function OfferForm() {
           `
       )
       .eq("id", offerId)
+      .eq("shop_id", shopId)
       .single();
 
     if (error) {
       console.error("Error fetching offer:", error);
     } else if (data) {
-      const formattedOffer = {
-        ...data,
-        startDate: data.start_date,
-        endDate: data.end_date,
-        products: data.products?.map((product) => ({
-          id: product?.id,
-          name: product?.name,
-        })),
-        variations: data.variations?.map((v) => ({
-          id: v.variation?.id,
-          name: v.variation?.name,
+      const {
+        start_date,
+        end_date,
+        images,
+        products = [],
+        variations = [],
+      } = data;
+
+      const formattedProducts = [];
+      const formattedVariations = [];
+
+      // Emulando la selección de productos y creando el array formateado
+      products.forEach((product) => {
+        const productId = product.id;
+        formattedProducts.push({
+          id: productId,
+          name: product.name,
+        });
+
+        // Emulando handleProductSelection
+        setSelectedProducts((prev) => ({ ...prev, [productId]: true }));
+      });
+
+      // Emulando la selección de variaciones y creando el array formateado
+      variations.forEach((v) => {
+        const variationData = {
+          id: v.variation.id,
+          name: v.variation.name,
+          requiredQuantity: v.required_quantity,
           offerPrice: v.offer_price,
           currency: v.currency.name,
-        })),
+          currencyId: v.currency.id,
+        };
+
+        formattedVariations.push(variationData);
+
+        // Emulando handleUpdate para cada propiedad necesaria
+        setOffersVariations((prev) => {
+          const data = [
+            ...prev.filter((ov) => ov.variationId !== variationData.id),
+            {
+              variationId: variationData.id,
+              offer_price: variationData.offerPrice,
+              currencyId: variationData.currencyId,
+              required_quantity: variationData.requiredQuantity,
+            },
+          ];
+          return data;
+        });
+
+        // Emulando handleVariationSelection
+        setSelectedVariations((prev) => ({
+          ...prev,
+          [variationData.id]: true,
+        }));
+      });
+
+      const formattedOffer = {
+        ...data,
+        startDate: start_date,
+        endDate: end_date,
+        images,
+        products: formattedProducts,
+        variations: formattedVariations,
       };
-      console.log(formattedOffer);
 
       setOffer(formattedOffer);
-      const selectedProductIds = formattedOffer.products.map(
-        (p) => p.productId
-      );
-      formattedOffer.products.map((op) => handleProductSelection(op.id, true));
-      formattedOffer.variations.map((ov) =>
-        handleVariationSelection(ov.id, true)
-      );
+      setLocalImages(images);
     }
     setLoading(false);
   };
@@ -185,17 +237,17 @@ export default function OfferForm() {
     productId: number,
     isChecked: boolean
   ) => {
-    console.log(selectedProducts);
+    console.log(selectedProducts, offer);
     setSelectedProducts((prev) => ({ ...prev, [productId]: isChecked }));
     if (isChecked) {
       setOffer((prev) => ({
         ...prev,
-        products: [...prev.products, { productId, variations: [] }],
+        products: [...prev.products, { id: productId }],
       }));
     } else {
       setOffer((prev) => ({
         ...prev,
-        products: prev.products.filter((p) => p.productId !== productId),
+        products: prev.products.filter((p) => p.id !== productId),
       }));
     }
   };
@@ -246,14 +298,18 @@ export default function OfferForm() {
   };
 
   const handleUpdate = (variationId: number, target) => {
-    console.log(offersVariations, { [target.name]: target.value });
-    let price = null;
+    console.log("SOL", offersVariations, { [target.name]: target.value });
     setOffersVariations((prev) => {
-      return prev.map((v) => {
-        return v.variationId === variationId
-          ? { ...v, [target.name]: parseFloat(target.value) || 0 }
-          : v;
+      const ta = prev.map((v) => {
+        const da =
+          v.variationId == variationId
+            ? { ...v, [target.name]: parseFloat(target.value) || 0 }
+            : v;
+        console.log(da.offer_price, "Da");
+        return da;
       });
+      console.log(ta, "ta");
+      return ta;
     });
   };
   const handleSubmit = async (e: React.FormEvent) => {
@@ -292,7 +348,7 @@ export default function OfferForm() {
       const { data, error } = await supabase
         .from("offers")
         .insert(offerData)
-        .select();
+        .select("*");
 
       if (error) {
         console.error("Error creating offer:", error);
@@ -303,27 +359,21 @@ export default function OfferForm() {
     }
 
     // Evitando Repeticiones
-    const { data: offersProducts } = await supabase
-      .from("offer_products")
-      .select("id")
+    await supabase.from("offer_products").delete().eq("offer_id", offerId);
+
+    // Evitando Repeticiones
+    await supabase
+      .from("offer_product_variations")
+      .delete()
       .eq("offer_id", offerId);
 
-    // Eliminar variaciones existentes para todos los productos de la oferta
-    const { data: deletedVariations, error: deleteVariationError } =
-      await supabase
-        .from("offer_product_variations")
-        .delete()
-        .in(
-          "offer_product_id",
-          offersProducts.map((p) => p.id)
-        );
-
+    console.log(offer);
     // Insert new offer products and variations
     for (const product of offer.products) {
       const { data: offerProductData, error: offerProductError } =
         await supabase
           .from("offer_products")
-          .insert({ offer_id: offerId, product_id: product.productId })
+          .insert({ offer_id: offerId, product_id: product.id })
           .select();
 
       if (offerProductError) {
@@ -331,36 +381,36 @@ export default function OfferForm() {
         continue;
       }
 
-      const offerProductId = offerProductData![0].id;
-
-      // Insertar nuevas variaciones
-      const selectedVariations2 = Object.keys(selectedVariations)
-        .filter((variationId) => selectedVariations[variationId])
-        .map(Number);
-
-      const variationsToInsert = offersVariations.filter((v) =>
-        selectedVariations2.includes(v.variationId)
-      );
-
-      const { error: insertError } = await supabase
-        .from("offer_product_variations")
-        .insert(
-          variationsToInsert.map((v) => ({
-            product_variation_id: v.variationId,
-            offer_price: v.offer_price,
-            currency_id: v.currencyId,
-            offer_product_id: offerProductId,
-            required_quantity: v.required_quantity || 0,
-          }))
-        );
-
-      if (insertError) {
-        console.error("Error inserting offer product variations:", insertError);
-      }
+      console.log(product.id);
     }
 
+    // Insertar nuevas variaciones
+    const selectedVariations2 = Object.keys(selectedVariations)
+      .filter((variationId) => selectedVariations[variationId])
+      .map(Number);
+
+    const variationsToInsert = offersVariations.filter((v) =>
+      selectedVariations2.includes(v.variationId)
+    );
+
+    const { error: insertError } = await supabase
+      .from("offer_product_variations")
+      .insert(
+        variationsToInsert.map((v) => ({
+          product_variation_id: v.variationId,
+          offer_price: v.offer_price,
+          currency_id: v.currencyId,
+          offer_id: offerId,
+          required_quantity: v.required_quantity || 0,
+        }))
+      );
+
+    if (insertError) {
+      console.error("Error inserting offer product variations:", insertError);
+    }
+    console.log(selectedVariations);
+
     setLoading(false);
-    // Redirect or show success message
   };
 
   const handleImageUpload = async (error, result, widget) => {
@@ -615,10 +665,11 @@ export default function OfferForm() {
                             );
                             console.log(
                               !selectedVariations[variation.id],
-                              !selectedProducts[product.id]
+                              !selectedProducts[product.id],
+                              ov
                             );
                             return (
-                              <tr key={variation.id}>
+                              <tr key={key}>
                                 <td className="px-6 py-4 whitespace-nowrap" />
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <input
@@ -685,11 +736,8 @@ export default function OfferForm() {
                                     name="currencyId"
                                     className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                   >
-                                    {currency.map((currency) => (
-                                      <option
-                                        key={currency.id}
-                                        value={currency.id}
-                                      >
+                                    {currency.map((currency, k) => (
+                                      <option key={k} value={currency.id}>
                                         {currency.name}
                                       </option>
                                     ))}
