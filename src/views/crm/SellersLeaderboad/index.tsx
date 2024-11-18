@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/Badge";
 import { useAppSelector } from "@/store";
 import supabase from "@/services/Supabase/BaseClient";
 import { SELLER_FIXED } from "@/constants/roles.constant";
