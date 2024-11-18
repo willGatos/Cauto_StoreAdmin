@@ -1,20 +1,16 @@
 import { ProductVariation } from "@/@types/products";
-import NcInputNumber from "@/components/shared/FormNumericInput";
+import handleEmail from "@/components/email";
+import { Checkbox, Input } from "@/components/ui";
 import Button from "@/components/ui/Button";
+import HandleFeedback from "@/components/ui/FeedBack";
 import Label from "@/components/ui/Label";
 import Prices from "@/components/ui/Prices";
-import { useAppSelector } from "@/store";
-import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import supabase from "@/services/Supabase/BaseClient";
+import { setProductsSelected, useAppDispatch, useAppSelector } from "@/store";
+import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
+import { useEffect, useState } from "react";
 import ContactInfo from "./ContactInfo";
 import ShippingAddress from "./ShippingAddress";
-import HandleFeedback from "@/components/ui/FeedBack";
-import supabase from "@/services/Supabase/BaseClient";
-import { Checkbox, Input } from "@/components/ui";
-import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
-import { setProductsSelected, useAppDispatch } from "@/store";
-import FetchButton from "@/components/email";
-import handleEmail from "@/components/email";
 
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
