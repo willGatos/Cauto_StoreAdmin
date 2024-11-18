@@ -180,7 +180,7 @@ const appsNavigationConfig: NavigationTree[] = [
             authority: [OWNER],
             subMenu: [],
           },
-          {
+          /* {
             key: "appsSales.orderList",
             path: `${APP_PREFIX_PATH}/sales/orders`,
             title: "Lista de Orden",
@@ -189,7 +189,7 @@ const appsNavigationConfig: NavigationTree[] = [
             type: NAV_ITEM_TYPE_ITEM,
             authority: [SELLER_FIXED],
             subMenu: [],
-          },
+          }, */
           {
             key: "appsSales.productNew",
             path: `${APP_PREFIX_PATH}/sales/product-new`,
