@@ -26,7 +26,7 @@ const appsRoute: Routes = [
     key: "appsSales.leaderboardSellers",
     path: `${APP_PREFIX_PATH}/sales/leaderboardSellers`,
     component: lazy(() => import("@/views/crm/SellersLeaderboad")),
-    authority: [OWNER,SELLER_FIXED],
+    authority: [OWNER, SELLER_FIXED],
     meta: {
       header: "Tabla Insignea",
     },
@@ -44,7 +44,7 @@ const appsRoute: Routes = [
     key: "appsSales.checkout",
     path: `${APP_PREFIX_PATH}/sales/checkout`,
     component: lazy(() => import("@/views/orders/PageCheckout/CheckoutPage")),
-    authority: [OWNER],
+    authority: [OWNER, SELLER_FIXED],
   },
   {
     key: "appsSales.delivery",
@@ -236,16 +236,15 @@ const appsRoute: Routes = [
       header: "Anadir Nuevo Atributo",
     },
   },
-  {
+  /* {
     key: "appsSales.sellerList",
     path: `${APP_PREFIX_PATH}/sales/sellers`,
     component: lazy(() => import("@/views/sales/SellerList")),
     authority: [OWNER],
     meta: {
-      header: "Seller List",
+      header: "Lista de Vendedores",
     },
-  },
-
+  }, */
   {
     key: "appsSales.orderEdit",
     path: `${APP_PREFIX_PATH}/sales/order-edit/:orderId`,

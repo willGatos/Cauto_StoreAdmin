@@ -38,11 +38,6 @@ const StatisticCard = ({
   valuePrefix,
   date,
 }: StatisticCardProps) => {
-  console.log(
-    "DATESTATS",
-    dayjs(date.startDate).toDate(),
-    dayjs.unix(date[1]).format("DD MMM")
-  );
   const data1 = dayjs.unix(date[0]).format("DD MMM");
   const data2 = dayjs.unix(date[1]).format("DD MMM");
   return (
@@ -89,7 +84,7 @@ const Statistic = ({ data = {} }: StatisticProps) => {
       <StatisticCard data={data.orders} label="Ordenes" date={date} />
       <StatisticCard
         data={data.purchases}
-        label="Productos dentro de Ordenes "
+        label="Productos dentro de Ordenes"
         date={date}
       />
     </div>

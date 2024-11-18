@@ -57,6 +57,7 @@ export const getSalesDashboardData = createAsyncThunk(
   SLICE_NAME + "/getSalesDashboardData",
   async (dates) => {
     const response = await getDashboardData(dates);
+    console.log("HOLAS", response);
     return response;
   }
 );

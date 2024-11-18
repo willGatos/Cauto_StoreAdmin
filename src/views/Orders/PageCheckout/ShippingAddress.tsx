@@ -9,6 +9,7 @@ import { getDelivery } from "../Delievery/DeliveryWrapper";
 import { useAppSelector } from "@/store";
 import supabase from "@/services/Supabase/BaseClient";
 import HandleFeedback from "@/components/ui/FeedBack";
+
 interface Props {
   isActive: boolean;
   onCloseActive: () => void;
@@ -17,6 +18,7 @@ interface Props {
   formData;
   setFormSubmit;
 }
+
 const getProvinces = () => {
   return supabase.from("provinces").select("*, municipalities('*')");
 };
@@ -32,7 +34,7 @@ const ShippingAddress: FC<Props> = ({
   setFormSubmit,
 }) => {
   const arrayOfProvinces = [{ value: 1, label: "La Habana" }];
-  const { shopId } = useAppSelector((state) => state.auth.user);
+  const { shopId, sellersShops } = useAppSelector((state) => state.auth.user);
   const [delieveyData, setDelieveyData] = useState({
     id: null,
     description: "",
@@ -44,7 +46,7 @@ const ShippingAddress: FC<Props> = ({
   useEffect(() => {
     // getProvinces().then(console.log)
     getMunicipality().then(({ data }) => setMunicipality(data));
-    getDelivery(shopId).then(({ data }) => {
+    getDelivery(sellersShops[0]).then(({ data }) => {
       console.log(data[0]);
       setDelieveyData(data[0]);
     });

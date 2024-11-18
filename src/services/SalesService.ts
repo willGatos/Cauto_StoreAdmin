@@ -58,13 +58,14 @@ export const getDashboardData = async (dates) => {
   const startDate = dayjs.unix(dates.startDate).toDate().toISOString();
   //const startDate = new Date(startDate2).toISOString(); // Ajustar el formato
   //const endDate = new Date(endDate2).toISOString();
-  console.log("HOLA",startDate, endDate);
+  console.log("HOLA", startDate, endDate);
   // Obtener todas las órdenes y productos vendidos
   const { data: ordersData, error: ordersError } = await supabase
     .from("orders")
     .select("id, total, created_at, status, clients (name, email, phone)")
     .gte("created_at", startDate) // Filtrar por fecha de inicio
-    .lte("created_at", endDate); // Filtrar por fecha de fin
+    .lte("created_at", endDate)
+    .eq("shop_id", dates.shopId); // Filtrar por fecha de fin
 
   if (ordersError) throw new Error(ordersError.message);
 
@@ -129,20 +130,24 @@ export const getDashboardData = async (dates) => {
     data: ordersCategoriesData.map((category) => category.orders_count),
   };
 
+  const { data: supplyCostData, error: supplyCostError } = await supabase.rpc(
+    "get_supply_cost_by_orders",
+    {
+      start_date: startDate,
+      end_date: endDate,
+    }
+  );
 
- const { data: supplyCostData, error: supplyCostError } = await supabase.rpc("get_supply_cost_by_orders", {
-    start_date: startDate,
-    end_date: endDate,
-  });
-  console.log('das', supplyCostData)
+  console.log("das", supplyCostData);
+
   if (supplyCostError) {
     throw new Error(supplyCostError.message);
   }
+
   const supplyCostReportData = {
     labels: supplyCostData.map((category) => category.supply_description),
     data: supplyCostData.map((category) => category.total_supply_cost),
   };
-
 
   // Obtener productos más vendidos desde Supabase
   const { data: topProductsData, error: topProductsError } = await supabase.rpc(
@@ -155,6 +160,8 @@ export const getDashboardData = async (dates) => {
     "get_total_items_in_completed_orders",
     { start_date: startDate, end_date: endDate }
   ); // Llama a la función
+
+  console.log("AQUI LLEGAMOS");
   // Retornar el dashboard con los datos de insumos y estadísticas actualizadas
   return {
     statisticData: {
@@ -167,17 +174,17 @@ export const getDashboardData = async (dates) => {
         growShrink: 3,
       },
       purchases: {
-        value: itemsInOrders, // Contar órdenes en estado 'Completadas'
+        value: 1, //itemsInOrders, // Contar órdenes en estado 'Completadas'
         growShrink: 2,
       },
       income: {
         value: netIncome,
-        growShrink: growShrinkIncome,
+        growShrink: 1, // growShrinkIncome,
       },
       supplies: {
         // Añadimos los costos de insumos como estadística
         value: totalSupplyCost,
-        growShrink: growShrinkSupplies,
+        growShrink: 2, //growShrinkSupplies,
       },
     },
     topProductsData: topProductsData.map((product) => ({
@@ -186,10 +193,11 @@ export const getDashboardData = async (dates) => {
       img: product.images,
       sold: product.sold, // Número de ventas por producto
     })),
+
     salesReportData: salesReportData,
     supplyCostReportData,
     salesByCategoriesData, // Datos calculados de ventas por categoría
-    latestOrderData: ordersData.map((order) => ({
+    latestOrderData: [] /* ordersData.map((order) => ({
       id: order.id,
       date: order.created_at,
       customer: order.clients.name, // Aquí obtenemos el nombre del cliente
@@ -197,7 +205,7 @@ export const getDashboardData = async (dates) => {
       paymentMehod: "Tarjeta",
       paymentIdendifier: "Pago Completo",
       totalAmount: order.total,
-    })),
+    })), */,
   };
 };
 

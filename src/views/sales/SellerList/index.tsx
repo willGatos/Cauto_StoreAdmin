@@ -135,8 +135,11 @@ const supabaseDataService = {
     // .from("profiles")
     // .select("id, name, email, roles(*)")
     // .in("roles.name", ["seller"]);
-
-    console.log(sellers);
+    (
+    // 
+    //
+      console.log(sellers)
+    );
 
     if (sellersError) {
       throw sellersError;
@@ -194,7 +197,6 @@ export default function SellerOrdersTable() {
   const [expandedSeller, setExpandedSeller] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 5;
-
 
   useEffect(() => {
     const loadSellers = async () => {
@@ -348,10 +350,6 @@ export default function SellerOrdersTable() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-semibold text-gray-900 my-6">
-        Seller Orders
-      </h1>
-      <InviteButton />
 
       <div className="flex flex-col">
         <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

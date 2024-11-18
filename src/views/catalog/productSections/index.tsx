@@ -8,6 +8,38 @@ import { useAppSelector } from "@/store";
 import { useEffect, useState } from "react";
 import { FLEX, GRID } from "./constant/typeOfView";
 
+export const addProductsToSection = async (
+  sectionId: number,
+  productIds: number[]
+) => {
+  try {
+    console.log("HOLA", sectionId);
+    // Eliminar productos existentes de la sección
+    await supabase
+      .from("catalog_section_products")
+      .delete()
+      .eq("catalog_section_id", sectionId);
+
+    // Agregar nuevos productos a la sección
+    const { data, error } = await supabase
+      .from("catalog_section_products")
+      .insert(
+        productIds.map((productId) => ({
+          catalog_section_id: sectionId,
+          product_id: productId,
+        }))
+      );
+
+    if (error) throw error;
+
+    console.log("Productos agregados a la sección:", data);
+    return data;
+  } catch (error) {
+    console.error("Error al agregar productos a la sección:", error);
+    throw error;
+  }
+};
+
 export const getProductsByShopId = async (shopId: number) => {
   const { data, error } = await supabase
     .from("products")
@@ -81,38 +113,6 @@ export const updateCatalogSection = async (
     return updatedSection[0];
   } catch (error) {
     console.error("Error al actualizar la sección:", error);
-    throw error;
-  }
-};
-
-export const addProductsToSection = async (
-  sectionId: number,
-  productIds: number[]
-) => {
-  try {
-    console.log("HOLA", sectionId);
-    // Eliminar productos existentes de la sección
-    await supabase
-      .from("catalog_section_products")
-      .delete()
-      .eq("catalog_section_id", sectionId);
-
-    // Agregar nuevos productos a la sección
-    const { data, error } = await supabase
-      .from("catalog_section_products")
-      .insert(
-        productIds.map((productId) => ({
-          catalog_section_id: sectionId,
-          product_id: productId,
-        }))
-      );
-
-    if (error) throw error;
-
-    console.log("Productos agregados a la sección:", data);
-    return data;
-  } catch (error) {
-    console.error("Error al agregar productos a la sección:", error);
     throw error;
   }
 };

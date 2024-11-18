@@ -22,7 +22,9 @@ const CheckoutPage = () => {
   >("ContactInfo");
 
   const { handleError } = HandleFeedback();
-  const { shopId, id } = useAppSelector((state) => state.auth.user);
+  const { shopId, id, sellersShops } = useAppSelector(
+    (state) => state.auth.user
+  );
   const [orderItems, setOrderItems] = useState([
     {
       variation_id: 0,
@@ -185,7 +187,7 @@ const CheckoutPage = () => {
           .upsert({
             status: 2,
             total: order.total,
-            shop_id: shopId,
+            shop_id: sellersShops[0],
             client_id: clientIdForAPI,
             seller_id: id,
             shipping_cost: hasDel ? delivery.shipping_cost : 0,
@@ -220,7 +222,7 @@ const CheckoutPage = () => {
           .select("owner: owner_id(email)")
           .eq(
             "id",
-            shopId
+            sellersShops[0]
             // Debe tomar el Id desde alguno de los productos de la tienda o algo relacionado con eso.
             // Como esta ahora lo toma del Id del vendedor, pero ese vendedor tendr'a su propia tienda
             // El problema es que son variaciones de los productos lo que se esta trayendo.
@@ -238,7 +240,7 @@ const CheckoutPage = () => {
             price: personalizedOrder.price,
             quantity: personalizedOrder.quantity,
           }));
-
+        // TODO:
         handleEmail(0, email);
         handleEmail(0, dP.owner.email);
 

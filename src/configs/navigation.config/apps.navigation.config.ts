@@ -241,7 +241,7 @@ const appsNavigationConfig: NavigationTree[] = [
             authority: [OWNER, SELLER_FIXED],
             subMenu: [],
           },
-          {
+          /* {
             key: "appsSales.sellerList",
             path: `${APP_PREFIX_PATH}/sales/sellers`,
             title: "Lista de Vendedores",
@@ -250,7 +250,7 @@ const appsNavigationConfig: NavigationTree[] = [
             type: NAV_ITEM_TYPE_ITEM,
             authority: [OWNER],
             subMenu: [],
-          },
+          }, */
         ],
       },
       {

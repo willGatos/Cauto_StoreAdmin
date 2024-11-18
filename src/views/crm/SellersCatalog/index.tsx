@@ -123,7 +123,7 @@ export default function ProductsVariations() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="fixed bottom-5 bg left-0 right-0 ml-auto mr-auto text-center">
+      <div className="fixed bottom-5 bg z-50 left-0 right-0 ml-auto mr-auto text-center">
         <a href={"checkout"}>
           <Button
             type="button"
@@ -140,7 +140,7 @@ export default function ProductsVariations() {
       </div>
       <OfferDisplay />
       {products.map((product, key) => (
-        <section key={key}>
+        <section className="relative" key={key}>
           <h1 className="text-3xl font-bold mb-6">{product.name}</h1>
           <p
             className="text-gray-600 mb-8"

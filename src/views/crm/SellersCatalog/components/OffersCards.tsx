@@ -86,12 +86,10 @@ async function fetchOffers(shopId) {
         name,
         images,
         general_offer_price,
-        offer_products (
-          id,
-          products: product_id(
+          products(
             name
           ),
-          offer_product_variations (
+          variations: offer_product_variations (
             id,
             offer_price,
             required_quantity,
@@ -104,7 +102,7 @@ async function fetchOffers(shopId) {
         )
       `
     )
-    .eq("shop_id", shopId);
+    .in("shop_id", shopId);
 
   if (error) {
     console.error("Error fetching offers:", error);
@@ -112,30 +110,17 @@ async function fetchOffers(shopId) {
   }
 
   // Transformamos los datos para que coincidan con la estructura esperada por nuestro componente React
-  const transformedOffers = data.map((offer) => ({
-    id: offer.id,
-    name: offer.name,
-    price: offer.general_offer_price,
-    image: offer.images[0], // Asumimos que queremos la primera imagen
-    variations: offer.offer_products.flatMap((product) =>
-      product.offer_product_variations.map((variation) => ({
-        id: variation.product_variations.id,
-        name: `${product.products.name} - ${variation.product_variations.name}`,
-        pictures: variation.product_variations.pictures,
-        offer_price: variation.offer_price,
-        required_quantity: variation.required_quantity,
-      }))
-    ),
-  }));
 
-  return transformedOffers;
+  return data;
 }
 
 // Uso de la función
 
 export default function OfferDisplay() {
   const [offers, setOffers] = useState<Offer[]>([]);
-  const { shopId, authority } = useAppSelector((state) => state.auth.user);
+  const { shopId, authority, sellersShops } = useAppSelector(
+    (state) => state.auth.user
+  );
   const { productsSelected, offersSelected } = useAppSelector(
     (state) => state.products
   );
@@ -143,8 +128,9 @@ export default function OfferDisplay() {
   const { handleSuccess } = HandleFeedback();
 
   useEffect(() => {
+    console.log("SELELER", sellersShops);
     // Simula la carga de datos
-    fetchOffers(shopId)
+    fetchOffers(sellersShops)
       .then((offers) => {
         // Aquí puedes actualizar el estado de tu componente React con estos datos
         setOffers(offers);
@@ -202,7 +188,7 @@ export default function OfferDisplay() {
               <div>
                 <h2 className="text-2xl font-bold">{offer.name}</h2>
                 <p className="text-xl font-semibold text-blue-600">
-                  ${offer.price.toFixed(2)}
+                  ${offer.price}
                 </p>
               </div>
             </div>

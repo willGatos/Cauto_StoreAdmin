@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Loading from "@/components/shared/Loading";
 import Statistic from "./Statistic";
 import SalesReport from "./SalesReport";
@@ -11,18 +11,22 @@ import { useAppDispatch } from "@/store";
 const SalesDashboardBody = () => {
   const dispatch = useAppDispatch();
 
+  const { shopId } = useAppSelector((state) => state.auth.user);
   const { dashboardData, startDate, endDate } = useAppSelector(
     (state) => state.salesDashboard.data
   );
 
-  const loading = useAppSelector((state) => state.salesDashboard.data.loading);
-
+  //const loading = useAppSelector((state) => state.salesDashboard.data.loading);
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
+    setLoading(true);
     fetchData();
   }, []);
 
   const fetchData = () => {
-    dispatch(getSalesDashboardData({ startDate, endDate }));
+    dispatch(getSalesDashboardData({ startDate, endDate, shopId })).then(() =>
+      setLoading(false)
+    );
   };
 
   return (
@@ -33,14 +37,15 @@ const SalesDashboardBody = () => {
           data={dashboardData?.salesReportData}
           className="col-span-2"
         />
-      <SalesByCategories data={dashboardData?.salesByCategoriesData} />
-
+        <SalesByCategories data={dashboardData?.salesByCategoriesData} />
       </div>
       <SalesByCategories data={dashboardData?.supplyCostReportData} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <LatestOrder data={dashboardData?.latestOrderData} className="lg:col-span-2"
-        />
+        {/* <LatestOrder
+          data={dashboardData?.latestOrderData}
+          className="lg:col-span-2"
+        /> */}
         <TopProduct data={dashboardData?.topProductsData} />
       </div>
     </Loading>

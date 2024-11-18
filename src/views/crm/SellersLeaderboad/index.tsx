@@ -1,11 +1,29 @@
-import React, { useState, useEffect } from "react";
-import { ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
-import supabase from "@/services/Supabase/BaseClient";
-import { orderStatusColor } from "@/views/sales/SalesDashboard/components/LatestOrder";
-import { Badge } from "@/components/ui";
+"use client";
 
-// Types
+import React, { useState, useEffect } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useAppSelector } from "@/store";
+import supabase from "@/services/Supabase/BaseClient";
+import { SELLER_FIXED } from "@/constants/roles.constant";
+import InviteButton from "@/views/sales/SellerList/components/InviteButton";
+import { Loading } from "@/components/shared";
+
+interface Order {
+  id: number;
+  total: number;
+  status: number;
+  created_at: string;
+  order_items: {
+    product_variations: {
+      products: {
+        commission_type: string;
+        commission: number;
+      };
+    };
+  }[];
+}
+
 interface Seller {
   id: number;
   name: string;
@@ -15,128 +33,128 @@ interface Seller {
   orders: Order[];
 }
 
-interface Order {
-  id: number;
-  total: number;
-  status: string;
-  created_at: string;
-}
-
-// Supabase client
-// const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-
-// Mock data service
-const mockDataService = {
-  getSellers: (): Promise<Seller[]> => {
-    return Promise.resolve([
-      {
-        id: 1,
-        name: "Juan Pérez",
-        email: "juan@example.com",
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        orders: [
-          {
-            id: 1,
-            total: 150.0,
-            status: "Completada",
-            created_at: "2023-05-15T10:30:00Z",
-          },
-          {
-            id: 2,
-            total: 200.0,
-            status: "En proceso",
-            created_at: "2023-05-16T14:45:00Z",
-          },
-        ],
-      },
-      {
-        id: 2,
-        name: "María González",
-        email: "maria@example.com",
-        phone: "+0987654321",
-        created_at: "2023-02-01T00:00:00Z",
-        orders: [
-          {
-            id: 3,
-            total: 300.0,
-            status: "Completada",
-            created_at: "2023-05-17T09:15:00Z",
-          },
-          {
-            id: 4,
-            total: 175.5,
-            status: "Pendiente",
-            created_at: "2023-05-18T16:20:00Z",
-          },
-        ],
-      },
-    ]);
+const orderStatusColor = {
+  1: {
+    label: "Pendiente",
+    dotClass: "bg-yellow-500",
+    textClass: "text-yellow-500",
+  },
+  2: {
+    label: "En proceso",
+    dotClass: "bg-blue-500",
+    textClass: "text-blue-500",
+  },
+  3: {
+    label: "Completada",
+    dotClass: "bg-green-500",
+    textClass: "text-green-500",
+  },
+  4: { label: "Cancelada", dotClass: "bg-red-500", textClass: "text-red-500" },
+  5: {
+    label: "Reembolsada",
+    dotClass: "bg-purple-500",
+    textClass: "text-purple-500",
   },
 };
-
-const supabaseDataService = {
-  getSellersWithPendingOrders: async (): Promise<any[]> => {
-    const { data, error } = await supabase.rpc(
-      "get_sellers_with_pending_orders"
-    ); // Llamada a la función RPC
-
-    if (error) {
-      console.error("Error fetching sellers with pending orders:", error);
-      return [];
-    }
-
-    // Transformar los datos al formato deseado
-    const transformedData = data.reduce((result, current) => {
-      const sellerIndex = result.findIndex(
-        (seller) => seller.email === current.email
-      );
-
-      // Si el vendedor ya está en la lista, agregarle la nueva orden
-      if (sellerIndex !== -1) {
-        result[sellerIndex].orders.push({
-          id: current.order_id,
-          total: current.total,
-          status: current.status,
-          created_at: current.created_at,
-        });
-      } else {
-        // Si el vendedor no está en la lista, agregarlo con sus datos y su primera orden
-        result.push({
-          id: current.seller_id,
-          name: current.name || "Nombre no disponible",
-          email: current.email,
-          phone: current.phone,
-          created_at: current.created_at,
-          orders: [
-            {
-              id: current.order_id,
-              total: current.total,
-              status: current.status,
-              created_at: current.created_at,
-            },
-          ],
-        });
-      }
-      return result;
-    }, []);
-
-    return transformedData || [];
-  },
-};
-
-// Use mock data service
-const dataService = supabaseDataService;
 
 export default function Component() {
   const [sellers, setSellers] = useState<Seller[]>([]);
+  const [loading, setLoading] = useState(true);
   const [expandedSellers, setExpandedSellers] = useState<
     Record<number, boolean>
   >({});
+  const { shopId, sellersShops } = useAppSelector((state) => state.auth.user);
 
   useEffect(() => {
-    dataService.getSellersWithPendingOrders().then(setSellers);
-  }, []);
+    setLoading(true);
+    const fetchSellers = async () => {
+      if (shopId) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select(
+            `
+          id,
+          name,
+          email,
+          phone,
+          shops!shop_seller(id),
+          roles(name),
+          orders (
+            id,
+            total,
+            status,
+            created_at,
+            order_items (
+              product_variations (
+                products (
+                  commission_type,
+                  commission
+                )
+              )
+            )
+          )
+        `
+          )
+          .eq("shops.id", shopId)
+          .eq("roles.name", SELLER_FIXED)
+          .in("orders.status", [4, 5]);
+        if (error) {
+          console.error("Error fetching sellers:", error);
+        } else {
+          // Filtrar por shopId después de obtener los datos
+          const filteredSellers = data.filter((seller) =>
+            seller.shops.some((shop) => shop.id === shopId)
+          );
+
+          setSellers(filteredSellers);
+        }
+      } else if (sellersShops) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select(
+            `
+              id,
+              name,
+              email,
+              phone,
+              shops!shop_seller(id),
+              roles(name),
+              orders (
+                id,
+                total,
+                status,
+                created_at,
+                order_items (
+                  product_variations (
+                    products (
+                      commission_type,
+                      commission
+                    )
+                  )
+                )
+              )
+            `
+          )
+          .in("shops.id", sellersShops)
+          .eq("roles.name", SELLER_FIXED)
+          .in("orders.status", [4, 5]);
+        if (error) {
+          console.error("Error fetching sellers:", error);
+        } else {
+          // Filtrar por shopId después de obtener los datos
+          const filteredSellers = data.filter((seller) => {
+            return seller.shops.some((shop) =>
+              sellersShops.some((sellerShop) => sellerShop == shop.id)
+            );
+          });
+
+          setSellers(filteredSellers);
+        }
+      }
+    };
+
+    fetchSellers().then(() => setLoading(false));
+  }, [shopId]);
 
   const toggleSeller = (id: number) => {
     setExpandedSellers((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -160,147 +178,164 @@ export default function Component() {
   };
 
   const calculatePerformance = (orders: Order[]) => {
-    const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
-    const completedOrders = orders.filter(
-      (order) => order.status === "Completada"
-    ).length;
+    let totalSales = 0;
+    let totalCommission = 0;
+
+    orders.forEach((order) => {
+      totalSales += order.total;
+      order.order_items.forEach((item) => {
+        const product = item.product_variations.products;
+        if (product.commission_type === "percentage") {
+          totalCommission += order.total * (product.commission / 100);
+        } else {
+          totalCommission += product.commission;
+        }
+      });
+    });
+
+    const completedOrders = orders.filter((order) => order.status === 3).length;
+
     return {
       totalSales: formatCurrency(totalSales),
+      totalCommission: formatCurrency(totalCommission),
       completedOrders,
       totalOrders: orders.length,
     };
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-8">Rendimiento de Vendedores</h1>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="py-2 px-4 border-b text-left"></th>
-              <th className="py-2 px-4 border-b text-left">Nombre</th>
-              <th className="py-2 px-4 border-b text-left">Email</th>
-              <th className="py-2 px-4 border-b text-left">Teléfono</th>
-              <th className="py-2 px-4 border-b text-left">
-                Fecha de Registro
-              </th>
-              <th className="py-2 px-4 border-b text-left">Ventas Totales</th>
-              <th className="py-2 px-4 border-b text-left">
-                Órdenes Completadas
-              </th>
-              <th className="py-2 px-4 border-b text-left">Total de Órdenes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sellers.map((seller) => {
-              const performance = calculatePerformance(seller.orders);
-              return (
-                <React.Fragment key={seller.id}>
-                  <tr className="hover:bg-gray-50">
-                    <td className="py-2 px-4 border-b">
-                      <button
-                        onClick={() => toggleSeller(seller.id)}
-                        className="focus:outline-none"
-                        aria-label={
-                          expandedSellers[seller.id]
-                            ? "Contraer vendedor"
-                            : "Expandir vendedor"
-                        }
-                      >
-                        {expandedSellers[seller.id] ? (
-                          <ChevronDown className="h-5 w-5 text-gray-500" />
-                        ) : (
-                          <ChevronRight className="h-5 w-5 text-gray-500" />
-                        )}
-                      </button>
-                    </td>
-                    <td className="py-2 px-4 border-b">{seller.name}</td>
-                    <td className="py-2 px-4 border-b">{seller.email}</td>
-                    <td className="py-2 px-4 border-b">{seller.phone}</td>
-                    <td className="py-2 px-4 border-b">
-                      {formatDate(seller.created_at)}
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      {performance.totalSales}
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      {performance.completedOrders}
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      {performance.totalOrders}
-                    </td>
-                  </tr>
-                  {expandedSellers[seller.id] && (
-                    <tr>
-                      <td colSpan={9} className="py-2 px-4 border-b">
-                        <table className="min-w-full bg-gray-50">
-                          <thead>
-                            <tr className="bg-gray-100">
-                              <th className="py-2 px-4 border-b text-left">
-                                ID de Orden
-                              </th>
-                              <th className="py-2 px-4 border-b text-left">
-                                Total
-                              </th>
-                              <th className="py-2 px-4 border-b text-left">
-                                Estado
-                              </th>
-                              <th className="py-2 px-4 border-b text-left">
-                                Fecha de Creación
-                              </th>
-                              <th className="py-2 px-4 border-b text-left">
-                                Acción
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {seller.orders.map((order) => (
-                              <tr key={order.id} className="hover:bg-gray-100">
-                                <td className="py-2 px-4 border-b">
-                                  {order.id}
-                                </td>
-                                <td className="py-2 px-4 border-b">
-                                  {formatCurrency(order.total)}
-                                </td>
-                                <td className="py-2 px-4 border-b">
-
-                                  <Badge
-                                    className={
-                                      orderStatusColor[order.status].dotClass
-                                    }
-                                  />
-                                  <span
-                                    className={`ml-2 rtl:mr-2 capitalize font-semibold ${orderStatusColor[order.status].textClass}`}
-                                  >
-                                    {orderStatusColor[order.status].label}
-                                  </span>
-                                </td>
-                                <td className="py-2 px-4 border-b">
-                                  {formatDate(order.created_at)}
-                                </td>
-                                <td className="py-2 px-4 border-b">
-                                  <a
-                                    href={`/orders/${order.id}`}
-                                    className="text-blue-500 hover:text-blue-700 flex items-center"
-                                  >
-                                    <ExternalLink className="h-4 w-4 mr-1" />
-                                    Ver orden
-                                  </a>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+    <Loading loading={loading}>
+      <div className="container mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-8">Rendimiento de Vendedores</h1>
+        <div className="my-5">
+          <InviteButton />
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-300">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="py-2 px-4 border-b text-left"></th>
+                <th className="py-2 px-4 border-b text-left">Nombre</th>
+                <th className="py-2 px-4 border-b text-left">Email</th>
+                <th className="py-2 px-4 border-b text-left">Teléfono</th>
+                <th className="py-2 px-4 border-b text-left">
+                  Fecha de Registro
+                </th>
+                <th className="py-2 px-4 border-b text-left">Ventas Totales</th>
+                <th className="py-2 px-4 border-b text-left">Comisión Total</th>
+                <th className="py-2 px-4 border-b text-left">
+                  Órdenes Completadas
+                </th>
+                <th className="py-2 px-4 border-b text-left">
+                  Total de Órdenes
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {sellers.map((seller) => {
+                const performance = calculatePerformance(seller.orders);
+                return (
+                  <React.Fragment key={seller.id}>
+                    <tr className="hover:bg-gray-50">
+                      <td className="py-2 px-4 border-b">
+                        <button
+                          onClick={() => toggleSeller(seller.id)}
+                          className="focus:outline-none"
+                          aria-label={
+                            expandedSellers[seller.id]
+                              ? "Contraer vendedor"
+                              : "Expandir vendedor"
+                          }
+                        >
+                          {expandedSellers[seller.id] ? (
+                            <ChevronDown className="h-5 w-5 text-gray-500" />
+                          ) : (
+                            <ChevronRight className="h-5 w-5 text-gray-500" />
+                          )}
+                        </button>
+                      </td>
+                      <td className="py-2 px-4 border-b">{seller.name}</td>
+                      <td className="py-2 px-4 border-b">{seller.email}</td>
+                      <td className="py-2 px-4 border-b">{seller.phone}</td>
+                      <td className="py-2 px-4 border-b">
+                        {formatDate(seller.created_at)}
+                      </td>
+                      <td className="py-2 px-4 border-b">
+                        {performance.totalSales}
+                      </td>
+                      <td className="py-2 px-4 border-b">
+                        {performance.totalCommission}
+                      </td>
+                      <td className="py-2 px-4 border-b">
+                        {performance.completedOrders}
+                      </td>
+                      <td className="py-2 px-4 border-b">
+                        {performance.totalOrders}
                       </td>
                     </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+                    {expandedSellers[seller.id] && (
+                      <tr>
+                        <td colSpan={9} className="py-2 px-4 border-b">
+                          <table className="min-w-full bg-gray-50">
+                            <thead>
+                              <tr className="bg-gray-100">
+                                <th className="py-2 px-4 border-b text-left">
+                                  ID de Orden
+                                </th>
+                                <th className="py-2 px-4 border-b text-left">
+                                  Total
+                                </th>
+                                <th className="py-2 px-4 border-b text-left">
+                                  Estado
+                                </th>
+                                <th className="py-2 px-4 border-b text-left">
+                                  Fecha de Creación
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {seller.orders.map((order) => (
+                                <tr
+                                  key={order.id}
+                                  className="hover:bg-gray-100"
+                                >
+                                  <td className="py-2 px-4 border-b">
+                                    {order.id}
+                                  </td>
+                                  <td className="py-2 px-4 border-b">
+                                    {formatCurrency(order.total)}
+                                  </td>
+                                  <td className="py-2 px-4 border-b">
+                                    <Badge
+                                      className={
+                                        orderStatusColor[order.status].dotClass
+                                      }
+                                    />
+                                    <span
+                                      className={`ml-2 rtl:mr-2 capitalize font-semibold ${
+                                        orderStatusColor[order.status].textClass
+                                      }`}
+                                    >
+                                      {orderStatusColor[order.status].label}
+                                    </span>
+                                  </td>
+                                  <td className="py-2 px-4 border-b">
+                                    {formatDate(order.created_at)}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </Loading>
   );
 }

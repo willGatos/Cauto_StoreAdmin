@@ -78,10 +78,16 @@ export const orderStatusColor: Record<
     value: 4,
   },
   5: {
-    label: "Pagado a los Gestores",
-    dotClass: "bg-emerald-500", // Completado
+    label: "Pagar a al Gestor",
+    dotClass: "bg-emerald-500",
     textClass: "text-emerald-500",
     value: 5,
+  },
+  6: {
+    label: "Pagar a al Gestor",
+    dotClass: "bg-emerald-500", // Completado
+    textClass: "text-emerald-500",
+    value: 6,
   },
 };
 
