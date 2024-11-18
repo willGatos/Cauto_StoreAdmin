@@ -43,13 +43,13 @@ const appsRoute: Routes = [
   {
     key: "appsSales.checkout",
     path: `${APP_PREFIX_PATH}/sales/checkout`,
-    component: lazy(() => import("@/views/orders/PageCheckout/CheckoutPage")),
+    component: lazy(() => import("@/views/Orders/PageCheckout/CheckoutPage")),
     authority: [OWNER, SELLER_FIXED],
   },
   {
     key: "appsSales.delivery",
     path: `${APP_PREFIX_PATH}/sales/delivery`,
-    component: lazy(() => import("@/views/orders/Delievery/index")),
+    component: lazy(() => import("@/views/Orders/Delievery/index")),
     authority: [OWNER],
   },
   {
