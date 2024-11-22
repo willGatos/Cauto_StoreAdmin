@@ -1,18 +1,17 @@
 import { Currency } from "@/@types/currency";
-import { Dialog, FormItem, Select } from "@/components/ui";
+import { Dialog, Select } from "@/components/ui";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
 import supabase from "@/services/Supabase/BaseClient";
-import { Loader2, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import UploadWidget from "./Images";
-import { Field, FieldProps } from "formik";
 import {
   Supply,
   SupplyVariation,
 } from "@/views/inventory/Supply/List/Data/types";
+import { Loader2, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ProductData } from "../ProductForm";
+import UploadWidget from "./Images";
 
 interface Attribute {
   id: number;
@@ -65,21 +64,11 @@ const mockService = {
   },
 };
 
-// Supabase service (commented out)
-/*
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_KEY')
-
-const supabaseService = {
-
-}
-*/
-
 interface ProductVariationGeneratorProps {
   onVariationsChange?: (variations: ProductVariation[]) => void;
   supplies: Supply[];
   values: ProductData;
+  variations;
 }
 
 export default function ProductVariationGenerator({
@@ -148,6 +137,7 @@ export default function ProductVariationGenerator({
         [attributeId]: updatedValues,
       };
     });
+    console.log(selectedAttributes);
   };
 
   const generateVariations = () => {
@@ -208,49 +198,15 @@ export default function ProductVariationGenerator({
     field: keyof ProductVariation,
     value: any
   ) => {
-    console.log("first", value);
-    setVariations((prev) =>
-      prev.map((variation, i) =>
+    console.log(variations);
+    setVariations((prev) => {
+      return prev.map((variation, i) =>
         i === index ? { ...variation, [field]: value } : variation
-      )
-    );
+      );
+    });
   };
-  // function handleOnUpload(error, result, widget) {
-  //   setVariations((prevImages) => [...prevImages, ]);
-
-  //   //setFieldValue("images", [...localImages, result?.info?.secure_url]);
-  // }
-  // const handleImageUpload = async (error, result, widget, index: number) => {
-  //   console.log("VIDEO")
-  //   if (error) {
-  //     updateError(error);
-  //     widget.close({
-  //       quiet: true,
-  //     });
-  //     return;
-  //   }
-
-  //   const updatedVariation = { ...variations[index] };
-  //   updatedVariation.pictures = [...updatedVariation.pictures, "loading"];
-  //   console.log('first', updatedVariation, 'SS',[...updatedVariation.pictures, "loading"])
-
-  //   setVariations((prev) =>
-  //     prev.map((v, i) => (i === index ? updatedVariation : v))
-  //   );
-
-  //   // const imageUrl = await mockService.uploadImage(files[0]);
-
-  //   updatedVariation.pictures = updatedVariation.pictures.map((pic) =>
-  //     pic === "loading" ? result?.info?.secure_url : pic
-  //   );
-  //   console.log('second', updatedVariation)
-  //   setVariations((prev) =>
-  //     prev.map((v, i) => (i === index ? updatedVariation : v))
-  //   );
-  // };
 
   const handleImageUpload = async (error, result, widget, index: number) => {
-    console.log("VIDEO");
     if (error) {
       updateError(error);
       widget.close({
@@ -277,8 +233,6 @@ export default function ProductVariationGenerator({
       );
       return prev.map((v, i) => (i === index ? updatedVariation : v));
     });
-
-    console.log("Final", variations[index]);
   };
 
   const removeImage = (variationIndex: number, imageIndex: number) => {
@@ -510,6 +464,7 @@ export default function ProductVariationGenerator({
                       isMulti
                       name={`supplies-${index}`}
                       placeholder="Seleccione insumos"
+                      value={variation?.supply_variation}
                       options={supplies
                         .map(({ supply_variation, value }) => {
                           const data = supply_variation
@@ -532,6 +487,12 @@ export default function ProductVariationGenerator({
                           index,
                           "supply_variations",
                           option.map((op) => (op.id ? op.id : op))
+                        );
+
+                        handleVariationChange(
+                          index,
+                          "supply_variation",
+                          option
                         );
                       }}
                     />

@@ -42,10 +42,8 @@ const forGender = [
 ];
 
 const status = [
-  { value: 0, label: "Nuevo" },
-  { value: 1, label: "Agotado" },
-  { value: 2, label: "En existencia" },
-  { value: 3, label: "Descontinuado" },
+  { value: 0, label: "Agotado" },
+  { value: 1, label: "En existencia" },
 ];
 
 const productTypes = [

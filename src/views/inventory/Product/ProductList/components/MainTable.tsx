@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/Button";
+import HandleFeedback from "@/components/ui/FeedBack";
 import Table from "@/components/ui/Table";
+import supabase from "@/services/Supabase/BaseClient";
 import {
   flexRender,
   getCoreRowModel,
@@ -11,7 +13,37 @@ import { HiOutlineChevronDown, HiOutlineChevronRight } from "react-icons/hi";
 
 const { Tr, Th, Td, THead, TBody } = Table;
 
-function MainTable({ data, renderRowSubComponent, getRowCanExpand }) {
+function MainTable({
+  data,
+  setProducts,
+  renderRowSubComponent,
+  getRowCanExpand,
+}) {
+  const { handleSuccess, handleLoading } = HandleFeedback();
+  const deleteFunction = async (row) => {
+    console.log(row.original);
+    const varIds = row.original.variations.map((v) => v.id);
+    console.log("VAR ID", varIds);
+    await supabase
+      .from("supply_variation_product_variations")
+      .delete()
+      .in("product_variation_id", varIds);
+    await supabase
+      .from("product_variation_attributes")
+      .delete()
+      .in("product_variation_id", varIds);
+
+    await supabase
+      .from("product_supplies")
+      .delete()
+      .eq("product_id", row.original.id);
+
+    await supabase
+      .from("product_variations")
+      .delete()
+      .eq("product_id", row.original.id);
+    await supabase.from("products").delete().eq("id", row.original.id);
+  };
   const columns = useMemo(
     () => [
       {
@@ -55,10 +87,12 @@ function MainTable({ data, renderRowSubComponent, getRowCanExpand }) {
         //accessorKey: "type",
         cell: ({ row }) => {
           console.log(row);
-          return <div>{
-            row.original.type == "simple" && "Simple" ||
-            row.original.type == "variable" && "Con Variantes"
-        }</div>;
+          return (
+            <div>
+              {(row.original.type == "simple" && "Simple") ||
+                (row.original.type == "variable" && "Con Variantes")}
+            </div>
+          );
         },
       },
       {
@@ -66,10 +100,12 @@ function MainTable({ data, renderRowSubComponent, getRowCanExpand }) {
         //accessorKey: "origin",
         cell: ({ row }) => {
           console.log(row);
-          return <div>{
-            row.original.origin == "manufactured" && "Manufacturado" ||
-            row.original.origin == "imported" && "Importado"
-        }</div>;
+          return (
+            <div>
+              {(row.original.origin == "manufactured" && "Manufacturado") ||
+                (row.original.origin == "imported" && "Importado")}
+            </div>
+          );
         },
       },
       {
@@ -81,9 +117,27 @@ function MainTable({ data, renderRowSubComponent, getRowCanExpand }) {
         cell: ({ row }) => {
           console.log(row);
           return (
-            <a href={"product-edit/" + row.original.id}>
-              <Button>Editar</Button>
-            </a>
+            <div className="flex gap-5">
+              <a href={"product-edit/" + row.original.id}>
+                <Button>Editar</Button>
+              </a>
+              <div>
+                <Button
+                  onClick={async () => {
+                    handleLoading(true);
+                    await deleteFunction(row)
+                      .then(() => handleSuccess("Eliminado con Éxito"))
+                      .then(() =>
+                        setProducts((prev) =>
+                          prev.filter((prod) => prod.id != row.original.id)
+                        )
+                      );
+                  }}
+                >
+                  Eliminar
+                </Button>
+              </div>
+            </div>
           );
         },
       },

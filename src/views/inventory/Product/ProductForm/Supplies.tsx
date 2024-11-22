@@ -70,15 +70,21 @@ const Supplies = (props: SuppliesProps) => {
                   isMulti
                   name="supplies"
                   placeholder="Seleccione insumos"
-                  defaultValue={values.supplies
+                  defaultValue={
+                    values.supplies
                     .map((supply) => supplies.find((s) => s.value === supply))
-                    .filter(Boolean)}
+                    .filter(Boolean)
+                  }
                   options={supplies}
-                  value={values.supplies
+
+                  value={
+                    values.supplies
                     .map((supply) => supplies.find((s) => s.value === supply))
-                    .filter(Boolean)}
+                    .filter(Boolean)
+                  }
+ 
                   onChange={(option) => {
-                    console.log(option);
+                    console.log(field.name, option.map((op) => op.id));
                     form.setFieldValue(
                       field.name,
                       option.map((op) => op.id)

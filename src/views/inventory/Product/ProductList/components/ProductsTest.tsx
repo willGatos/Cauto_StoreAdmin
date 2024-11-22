@@ -45,6 +45,7 @@ const MainComponent = () => {
     <Loading loading={loading}>
       <MainTable
         data={products}
+        setProducts={setProducts}
         renderRowSubComponent={renderSubComponent}
         getRowCanExpand={(row) =>
           row.original.variations && row.original.variations.length > 0

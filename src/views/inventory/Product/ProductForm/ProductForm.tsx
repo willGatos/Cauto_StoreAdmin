@@ -18,8 +18,11 @@ import PricingFields from "./PricingFields";
 import ProductImages from "./ProductImages";
 import Supplies from "./Supplies";
 import { useAppSelector } from "@/store";
+import { Loading } from "@/components/shared";
+import HandleFeedback from "@/components/ui/FeedBack";
 
 export type ProductVariation = {
+  id: any;
   name: string;
   price: number;
   stock: number;
@@ -34,13 +37,50 @@ export const createProduct = async (
   supplies
 ) => {
   try {
-    const newProdData = productData;
+    const {
+      name,
+      description,
+      category_id,
+      shop_id,
+      cost,
+      discount,
+      state,
+      gender,
+      commission,
+      type,
+      origin,
+      commission_type,
+      reference_currency,
+      owner_id,
+      standard_price,
+      status,
+      images,
+      supplies,
+    } = productData;
     // Primero, insertamos el producto principal
+
+    // Descomponer el producto
     const { data: product, error: productError } = await supabase
       .from("products")
       .insert([
         {
-          ...productData,
+          name,
+          description,
+          category_id,
+          shop_id,
+          cost,
+          discount,
+          state,
+          gender,
+          commission,
+          type,
+          origin,
+          commission_type,
+          reference_currency,
+          owner_id,
+          standard_price,
+          status,
+          images, // Solo si necesitas actualizar las imágenes
         },
       ])
       .select("*")
@@ -48,7 +88,6 @@ export const createProduct = async (
 
     if (productError) throw productError;
 
-    console.log(newProdData);
     const dos = supplies.map((supplyVariation) => ({
       supply_id: supplyVariation,
       product_id: product.id,
@@ -59,7 +98,8 @@ export const createProduct = async (
         .from("product_supplies")
         .insert(dos);
     }
-    // Luego, insertamos las variaciones
+
+    // Cambiar la forma que se hacen las Variaciones.
     if (variations && variations.length > 0 && productData.type !== "simple") {
       const variationsWithProductId = variations.map((variation) => ({
         name: variation.name,
@@ -75,6 +115,7 @@ export const createProduct = async (
         .insert(variationsWithProductId)
         .select("id, name");
 
+      //
       const variationAttributes = variations
         .flatMap((variation) => {
           return variation.attributes
@@ -99,22 +140,30 @@ export const createProduct = async (
       if (variationsError) throw variationsError;
 
       // Insertar relaciones en product_variation_attributes
-
       const { error: attributesError } = await supabase
         .from("product_variation_attributes")
         .insert(variationAttributes);
 
       //supply_variation_product_variations
       if (variationsError) throw variationsError;
+
       if (productData.origin == "manufactured") {
         console.log("HOLA", variations);
         const combinedPermutations = variations
           .flatMap((variation) => {
             return variationsIds.map((varId) => {
-              return variation.supply_variations.map((supplyVariation) => ({
-                supply_variation_id: supplyVariation,
-                product_variation_id: varId.id,
-              }));
+              return variation.supply_variations
+                .map((supplyVariation) => {
+                  if (supplyVariation)
+                    return {
+                      supply_variation_id: supplyVariation,
+                      product_variation_id: varId.id,
+                    };
+                  else {
+                    return null;
+                  }
+                })
+                .filter(Boolean);
             });
           })
           .flat()
@@ -141,84 +190,13 @@ export const createProduct = async (
   }
 };
 
-/* export const upsertProduct = async (
-  productData: ProductData,
-  productId?: number,
-  variations?: ProductVariation[]
-) => {
-  try {
-    let product;
-    delete productData.id
-    // Actualización del producto principal
-    const { data: updateProduct, error: updateError } = await supabase
-      .from("products")
-      .update(productData)
-      .eq("id", productId)
-      .single();
-
-    if (updateError) throw updateError;
-    product = updateProduct;
-
-    // Manejar variaciones
-    if (variations && variations.length > 0) {
-      // Eliminar variaciones existentes si es una actualización
-      const { error: deleteError } = await supabase
-        .from("product_variations")
-        .delete()
-        .eq("product_id", productId);
-
-      if (deleteError) throw deleteError;
-
-      // Insertar nuevas variaciones
-      const variationsWithProductId = variations.map((variation) => ({
-        name: variation.name,
-        price: variation.price,
-        stock: variation.stock,
-        pictures: variation.pictures,
-        product_id: product.id,
-        currency_id: variation.currency.id,
-      }));
-
-      const { error: variationsError } = await supabase
-        .from("product_variations")
-        .insert(variationsWithProductId);
-
-      if (variationsError) throw variationsError;
-
-      // Actualizar relaciones en product_variation_attributes
-      const variationAttributes = variations
-        .flatMap((variation) => {
-          return variation.attributes
-            .map((attribute) => {
-              return variationsWithProductId.map((varWithIds) => ({
-                product_variation_id: varWithIds.id,
-                attribute_value_id: attribute.id,
-              }));
-            })
-            .flat();
-        })
-        .flat();
-
-      const { error: attributesError } = await supabase
-        .from("product_variation_attributes")
-        .upsert(variationAttributes, { onConflict: "product_variation_id" });
-
-      if (attributesError) throw attributesError;
-    }
-
-    return product;
-  } catch (error) {
-    console.error("Error updating product:", error);
-    throw error;
-  }
-};
- */
 export const upsertProduct = async (
   productData: ProductData,
   productId?: number,
   variations?: ProductVariation[]
 ) => {
   try {
+    console.log("first2");
     let product;
     if (productId) {
       const productVar = await supabase
@@ -226,49 +204,102 @@ export const upsertProduct = async (
         .select("id")
         .eq("product_id", productId);
       // Actualización del producto existente
-      // Eliminar variaciones y atributos existentes
-      await supabase
-        .from("product_variation_attributes")
-        .delete()
-        .in(
-          "product_variation_id",
-          productVar.data.map((prod) => prod.id)
-        );
+      const {
+        name,
+        description,
+        category_id,
+        shop_id,
+        cost,
+        discount,
+        state,
+        gender,
+        commission,
+        type,
+        origin,
+        commission_type,
+        reference_currency,
+        owner_id,
+        standard_price,
+        status,
+        images,
+        supplies,
+      } = productData;
 
-      await supabase
-        .from("product_variations")
-        .delete()
-        .eq("product_id", productId);
-
-      delete productData.id;
       // Actualizar el producto principal
       const { data: updateProduct, error: updateError } = await supabase
         .from("products")
-        .update(productData)
+        .update({
+          name,
+          description,
+          category_id,
+          shop_id,
+          cost,
+          discount,
+          state,
+          gender,
+          commission,
+          type,
+          origin,
+          commission_type,
+          reference_currency,
+          owner_id,
+          standard_price,
+          status,
+          images, // Solo si necesitas actualizar las imágenes
+        })
         .eq("id", productId)
         .single();
 
       if (updateError) throw updateError;
       product = updateProduct;
-      console.log(variations);
+      console.log("Variations", variations);
 
-      console.log(variations.map((e) => e.currency));
       // Insertar nuevas variaciones
       if (variations && variations.length > 0) {
-        const variationsWithProductId = variations.map((variation) => ({
-          name: variation.name,
-          price: variation.price,
-          stock: variation.stock,
-          pictures: variation.pictures,
-          product_id: productId,
-          currency_id: variation.currency_id,
-        }));
+        variations.map(async (variation) => {
+          console.log("Variations", variation);
 
-        const { error: variationsError } = await supabase
-          .from("product_variations")
-          .insert(variationsWithProductId);
+          const { error: variationsError } = await supabase
+            .from("product_variations")
+            .update({
+              name: variation.name,
+              price: variation.price,
+              stock: variation.stock,
+              pictures: variation.pictures,
+              product_id: productId,
+              currency_id: variation.currency_id,
+            })
+            .eq("id", variation.id);
+          if (variationsError) throw variationsError;
+        });
+        console.log("firstTTT");
+        if (productData.origin == "manufactured") {
+          console.log(variations);
 
-        if (variationsError) throw variationsError;
+          const combinedPermutations = variations
+            .flatMap((variation) => {
+              console.log("Variations2", variation);
+              return variation.supply_variations
+                .map((supplyVariation) => {
+                  console.log("Status", supplyVariation);
+                  if (supplyVariation)
+                    return {
+                      supply_variation_id: supplyVariation,
+                      product_variation_id: variation.id,
+                    };
+                  else return null;
+                })
+                .filter(Boolean);
+            })
+            .flat();
+
+          console.log(combinedPermutations);
+          const { error } = await supabase
+            .from("supply_variation_product_variations")
+            .upsert(combinedPermutations, {
+              onConflict: ["supply_variation_id", "product_variation_id"],
+            });
+        }
 
         // Insertar atributos de las variaciones
         const variationAttributes = variations.flatMap((variation) =>
@@ -297,51 +328,15 @@ export const getProductById = async (productId: number) => {
   try {
     const { data: product, error: productError } = await supabase
       .from("products")
-      .select("*")
+      .select(
+        "*, supplies(*),variations: product_variations (*, supply_variation(*),product_variation_attributes (attribute_value_id (*), product_variation_id(currency_id(*))))) "
+      )
       .eq("id", productId)
       .single();
-    console.log("GOL", product);
+
     if (productError) throw productError;
 
-    const { data: variations, error: variationsError } = await supabase
-      .from("product_variations")
-      .select(
-        `
-        *,
-        product_variation_attributes (
-          attribute_value_id (
-            *
-          ),
-          product_variation_id(
-          *,
-          currency_id(*)
-          )
-        )
-      `
-      )
-      .eq("product_id", productId);
-
-    if (variationsError) throw variationsError;
-    // Reestructurar las variaciones para que coincidan con el tipo ProductVariation
-    const formattedVariations = variations.map((variation) => {
-      const attributes = variation.product_variation_attributes.map(
-        (attr) => attr.attribute_value_id
-      );
-      return {
-        id: variation.id,
-        product_id: variation.product_id,
-        name: variation.name,
-        price: variation.price,
-        stock: variation.stock,
-        created_at: variation.created_at,
-        pictures: variation.pictures,
-        currency_id: variation.currency_id,
-        attributes: attributes,
-        currency: variation.currency_id,
-      };
-    });
-
-    return { ...product, variations: formattedVariations };
+    return product;
   } catch (error) {
     console.error("Error fetching product:", error);
     throw error;
@@ -373,7 +368,7 @@ export type ProductData = {
 export function transformArrayToObjectArray(array: any) {
   return array.map((item: any) => ({
     ...item,
-    label: item.name,
+    label: item.name || item.description,
     value: item.id,
   }));
 }
@@ -486,8 +481,20 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
   const [subcategories, setSubcategories] = useState([
     { label: "", value: "" },
   ]);
-  const [variations, setVariations] = useState<ProductVariation[]>([]);
+  const [variations, setVariations] = useState<ProductVariation[]>([
+    {
+      id: "",
+      supply_variation: [],
+      supply_variations: [],
+      name: "",
+      price: 0,
+      stock: 0,
+      pictures: [],
+      currency_id: 0,
+    },
+  ]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<Boolean>(true);
   const [localImages, setLocalImages] = useState([]);
   const user = useSelector((state) => state.auth.user);
   const productId =
@@ -520,14 +527,16 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
 
   const [supplies, setSupplies] = useState<Supply[]>([]);
   const { shopId } = useAppSelector((state) => state.auth.user);
+
   useEffect(() => {
+    setLoading(true);
     supabaseService
       .getSupplies(shopId)
       .then((data) => setSupplies(transformArrayToObjectArray(data)));
   }, []);
 
   useEffect(() => {
-    console.log("HOL", productId);
+    setLoading(true);
     async function fetchCategories() {
       try {
         const { data, error } = await supabase.from("categories").select("*");
@@ -550,24 +559,56 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
         console.error("Error fetching categories:", error);
       }
     }
+
     fetchCategories();
+
     if (productId) {
       getProductById(parseInt(productId))
         .then((prod) => {
           const formik = formRef.current;
-          formik.setValues(prod);
-          setVariations(prod.variations);
+
+          const data = prod.supplies
+            .map((supply) => supplies.find((s) => s.value === supply.id))
+            .filter(Boolean);
+
+          const transformedSupply = transformArrayToObjectArray(data);
+          const variations = prod.variations;
+          const vairationsTrans = variations.map((v) => ({
+            ...v,
+            supply_variation: transformArrayToObjectArray(v.supply_variation),
+            supply_variations: v.supply_variation.map((sv) => sv.id),
+          }));
+
+          console.log("TEM", vairationsTrans);
+          setVariations(vairationsTrans);
+
           delete prod.variations;
-          setInitialValues(prod);
+
+          setInitialValues({
+            ...prod,
+            supplies: transformedSupply.map((ts) => ts.id),
+          });
+
+          setLocalImages(prod.images);
+
+          formik.setValues({
+            ...prod,
+            supplies: transformedSupply.map((ts) => ts.id),
+          });
         })
         .catch((error) => {
           console.log(error);
           setError("No se encontró el producto");
-        });
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-    return () => {};
-  }, []);
-
+    return () => {
+      setLoading(false);
+    };
+  }, [supplies]);
+  const { handleSuccess, handleLoading } = HandleFeedback();
   const {
     type,
     initialData = initialValues,
@@ -581,12 +622,12 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
     { setSubmitting }: FormikHelpers<ProductData>
   ) => {
     try {
+      handleLoading(true);
+
       values.owner_id = user.id;
       values.images = localImages;
       const suppliesIds = values.supplies;
 
-      console.log(values, suppliesIds);
-      delete values.supplies;
       if (productId) {
         await upsertProduct(values, parseInt(productId), variations);
       } else {
@@ -594,7 +635,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
       }
 
       // Manejar el éxito (por ejemplo, mostrar un mensaje, redirigir, etc.)
-      console.log("Formulario enviado exitosamente");
+      handleSuccess("Formulario enviado exitosamente");
       setSubmitting(false);
     } catch (error) {
       console.error("Error al enviar formulario:", error);
@@ -605,97 +646,99 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
 
   return (
     <>
-      <Formik
-        innerRef={formRef}
-        initialValues={{
-          ...initialData,
-        }}
-        validationSchema={productSchema}
-        onSubmit={handleSubmit}
-      >
-        {({ values, touched, errors, isSubmitting, setFieldValue }) => (
-          <Form>
-            <FormContainer>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2">
-                  <BasicInformationFields touched={touched} errors={errors} />
+      <Loading loading={loading}>
+        <Formik
+          innerRef={formRef}
+          initialValues={{
+            ...initialData,
+          }}
+          validationSchema={productSchema}
+          onSubmit={handleSubmit}
+        >
+          {({ values, touched, errors, isSubmitting, setFieldValue }) => (
+            <Form>
+              <FormContainer>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="lg:col-span-2">
+                    <BasicInformationFields touched={touched} errors={errors} />
 
-                  <OrganizationFields
-                    touched={touched}
-                    errors={errors}
-                    values={values}
-                    categories={categories}
-                    subcategories={subcategories}
-                    setFieldValue={setFieldValue}
-                  />
-
-                  <PricingFields
-                    touched={touched}
-                    errors={errors}
-                    values={values}
-                  />
-
-                  {values.origin == "manufactured" && (
-                    <Supplies
+                    <OrganizationFields
                       touched={touched}
                       errors={errors}
                       values={values}
-                      supplies={supplies}
-                    />
-                  )}
-                  {values.type !== "simple" && (
-                    <Attribute
-                      touched={touched}
-                      errors={errors}
-                      values={values}
-                      supplies={supplies}
-                      variations={variations}
-                      setVariations={setVariations}
+                      categories={categories}
+                      subcategories={subcategories}
                       setFieldValue={setFieldValue}
                     />
-                  )}
-                </div>
-                <div className="lg:col-span-1">
-                  <ProductImages
-                    localImages={localImages}
-                    setLocalImages={setLocalImages}
-                  />
-                </div>
-              </div>
 
-              <StickyFooter
-                className="-mx-8 px-8 flex items-center justify-between py-4"
-                stickyClass="border-t bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-              >
-                <div>
-                  {type === "edit" && (
-                    <DeleteProductButton onDelete={onDelete as OnDelete} />
-                  )}
+                    <PricingFields
+                      touched={touched}
+                      errors={errors}
+                      values={values}
+                    />
+
+                    {values.origin == "manufactured" && (
+                      <Supplies
+                        touched={touched}
+                        errors={errors}
+                        values={values}
+                        supplies={supplies}
+                      />
+                    )}
+                    {values.type !== "simple" && (
+                      <Attribute
+                        touched={touched}
+                        errors={errors}
+                        values={values}
+                        supplies={supplies}
+                        variations={variations}
+                        setVariations={setVariations}
+                        setFieldValue={setFieldValue}
+                      />
+                    )}
+                  </div>
+                  <div className="lg:col-span-1">
+                    <ProductImages
+                      localImages={localImages}
+                      setLocalImages={setLocalImages}
+                    />
+                  </div>
                 </div>
-                <div className="md:flex items-center">
-                  <Button
-                    size="sm"
-                    className="ltr:mr-3 rtl:ml-3"
-                    type="button"
-                    onClick={() => onDiscard?.()}
-                  >
-                    Discard
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="solid"
-                    loading={isSubmitting}
-                    icon={<AiOutlineSave />}
-                    type="submit"
-                  >
-                    {productId ? "Actualizar Producto" : "Crear Producto"}
-                  </Button>
-                </div>
-              </StickyFooter>
-            </FormContainer>
-          </Form>
-        )}
-      </Formik>
+
+                <StickyFooter
+                  className="-mx-8 px-8 flex items-center justify-between py-4"
+                  stickyClass="border-t bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                >
+                  <div>
+                    {type === "edit" && (
+                      <DeleteProductButton onDelete={onDelete as OnDelete} />
+                    )}
+                  </div>
+                  <div className="md:flex items-center">
+                    <Button
+                      size="sm"
+                      className="ltr:mr-3 rtl:ml-3"
+                      type="button"
+                      onClick={() => onDiscard?.()}
+                    >
+                      Discard
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="solid"
+                      loading={isSubmitting}
+                      icon={<AiOutlineSave />}
+                      type="submit"
+                    >
+                      {productId ? "Actualizar Producto" : "Crear Producto"}
+                    </Button>
+                  </div>
+                </StickyFooter>
+              </FormContainer>
+            </Form>
+          )}
+        </Formik>
+      </Loading>
     </>
   );
 });
