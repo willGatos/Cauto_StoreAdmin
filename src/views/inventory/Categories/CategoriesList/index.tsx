@@ -6,7 +6,11 @@ import {
   ChevronRight,
   ChevronDown,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog } from "@/components/ui/dialog";
 import supabase from "@/services/Supabase/BaseClient";
+import { useAppSelector } from "@/store";
 
 interface Category {
   id: number;
@@ -18,104 +22,43 @@ interface Category {
 }
 
 const mockCategoryService = {
-  // getCategories: (): Promise<Category[]> => {
-  //   return Promise.resolve([
-  //     {
-  //       id: 1,
-  //       name: "Electrónicos",
-  //       description: "Dispositivos electrónicos y accesorios",
-  //       created_at: "2023-01-01T00:00:00Z",
-  //       parent_id: null,
-  //       subcategories: [
-  //         {
-  //           id: 2,
-  //           name: "Smartphones",
-  //           description: "Teléfonos móviles y accesorios",
-  //           created_at: "2023-01-02T00:00:00Z",
-  //           parent_id: 1
-  //         },
-  //         {
-  //           id: 3,
-  //           name: "Laptops",
-  //           description: "Computadoras portátiles",
-  //           created_at: "2023-01-03T00:00:00Z",
-  //           parent_id: 1
-  //         }
-  //       ]
-  //     },
-  //     {
-  //       id: 4,
-  //       name: "Ropa",
-  //       description: "Prendas de vestir y artículos de moda",
-  //       created_at: "2023-01-04T00:00:00Z",
-  //       parent_id: null,
-  //       subcategories: [
-  //         {
-  //           id: 5,
-  //           name: "Ropa para hombre",
-  //           description: "Prendas para caballeros",
-  //           created_at: "2023-01-05T00:00:00Z",
-  //           parent_id: 4
-  //         },
-  //         {
-  //           id: 6,
-  //           name: "Ropa para mujer",
-  //           description: "Prendas para damas",
-  //           created_at: "2023-01-06T00:00:00Z",
-  //           parent_id: 4
-  //         }
-  //       ]
-  //     }
-  //   ])
-  // },
-  // createCategory: (name: string, description: string, parent_id: number | null): Promise<Category> => {
-  //   return Promise.resolve({
-  //     id: Date.now(),
-  //     name,
-  //     description,
-  //     created_at: new Date().toISOString(),
-  //     parent_id,
-  //     subcategories: []
-  //   })
-  // },
-  // updateCategory: (id: number, name: string, description: string): Promise<Category> => {
-  //   return Promise.resolve({
-  //     id,
-  //     name,
-  //     description,
-  //     created_at: new Date().toISOString(),
-  //     parent_id: null,
-  //     subcategories: []
-  //   })
-  // },
-  // deleteCategory: (id: number): Promise<void> => {
-  //   return Promise.resolve()
-  // }
-
-  getCategories: async (): Promise<Category[]> => {
+  getCategories: async (shopId): Promise<Category[]> => {
     const { data, error } = await supabase
       .from("categories")
       .select("*")
+      .eq("shop_id", shopId)
       .order("id");
+
     if (error) throw error;
 
-    const categoriesFixed = data.map((category) => ({
-      ...category,
-      subcategories: data.filter(
-        (subcategory) => subcategory.parent_id === category.id
-      ),
-    }));
-    console.log(categoriesFixed);
-    return categoriesFixed || [];
+    // Función recursiva para construir la jerarquía de categorías
+    const buildCategoryTree = (
+      categories: Category[],
+      parentId: number | null
+    ): Category[] => {
+      return categories
+        .filter((category) => category.parent_id === parentId)
+        .map((category) => ({
+          ...category,
+          subcategories: buildCategoryTree(categories, category.id),
+        }));
+    };
+
+    // Construir el árbol de categorías comenzando desde las categorías principales (sin parent_id)
+    const categoriesTree = buildCategoryTree(data, null);
+
+    console.log(categoriesTree);
+    return categoriesTree || [];
   },
   createCategory: async (
     name: string,
     description: string,
-    parent_id: number | null
+    parent_id: number | null,
+    shopId
   ): Promise<Category> => {
     const { data, error } = await supabase
       .from("categories")
-      .upsert({ name, description, parent_id })
+      .upsert({ name, description, parent_id, shop_id: shopId })
       .select("*")
       .single();
     if (error) throw error;
@@ -130,8 +73,8 @@ const mockCategoryService = {
     const { data, error } = await supabase
       .from("categories")
       .update({ name, description })
-      .select("*")
       .eq("id", id)
+      .select("*")
       .single();
     if (error) throw error;
     return data;
@@ -142,9 +85,10 @@ const mockCategoryService = {
   },
 };
 
-export default function CategoriesManager() {
+export default function CategoryManager() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreateSubModalOpen, setIsCreateSubModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -155,13 +99,13 @@ export default function CategoriesManager() {
   const [expandedCategories, setExpandedCategories] = useState<
     Record<number, boolean>
   >({});
-
+  const { shopId } = useAppSelector((state) => state.auth.user);
   useEffect(() => {
     loadCategories();
   }, []);
 
   const loadCategories = async () => {
-    const data = await mockCategoryService.getCategories();
+    const data = await mockCategoryService.getCategories(shopId);
     setCategories(data);
   };
 
@@ -170,32 +114,47 @@ export default function CategoriesManager() {
       const newCategory = await mockCategoryService.createCategory(
         newCategoryName,
         newCategoryDescription,
-        newCategoryParentId
+        newCategoryParentId,
+        shopId
       );
-      console.log(newCategory);
 
-      newCategory.subcategories = [];
       if (newCategoryParentId) {
         setCategories(
-          categories.map((cat) => {
-            return cat.id === newCategoryParentId
-              ? {
-                  ...cat,
-                  subcategories: [...(cat.subcategories || []), newCategory],
-                }
-              : cat;
-          })
+          categories.map((cat) =>
+            addSubcategoryRecursive(cat, newCategoryParentId, newCategory)
+          )
         );
       } else {
-        newCategory.subcategories = [];
-        console.log(newCategory);
         setCategories([...categories, newCategory]);
       }
       setNewCategoryName("");
       setNewCategoryDescription("");
       setNewCategoryParentId(null);
       setIsCreateModalOpen(false);
+      setIsCreateSubModalOpen(false);
     }
+  };
+
+  const addSubcategoryRecursive = (
+    category: Category,
+    parentId: number,
+    newSubcategory: Category
+  ): Category => {
+    if (category.id === parentId) {
+      return {
+        ...category,
+        subcategories: [...(category.subcategories || []), newSubcategory],
+      };
+    }
+    if (category.subcategories) {
+      return {
+        ...category,
+        subcategories: category.subcategories.map((subcat) =>
+          addSubcategoryRecursive(subcat, parentId, newSubcategory)
+        ),
+      };
+    }
+    return category;
   };
 
   const handleUpdateCategory = async () => {
@@ -262,13 +221,15 @@ export default function CategoriesManager() {
       <React.Fragment key={category.id}>
         <tr className={`hover:bg-gray-50 ${depth > 0 ? "bg-gray-100" : ""}`}>
           <td
-            className="py-2 px-4 border-b"
-            style={{ paddingLeft: `${1 + depth * 2}rem` }}
+            className="py-1 px-2 border-b"
+            style={{ paddingLeft: `${0.5 + depth * 1}rem` }}
           >
             {category.subcategories && category.subcategories.length > 0 && (
-              <button
+              <Button
+                variant="default"
+                size="sm"
                 onClick={() => toggleCategory(category.id)}
-                className="focus:outline-none"
+                className="flex items-center justify-center w-10 p-0 h-5 "
                 aria-label={
                   expandedCategories[category.id]
                     ? "Contraer categoría"
@@ -276,34 +237,80 @@ export default function CategoriesManager() {
                 }
               >
                 {expandedCategories[category.id] ? (
-                  <ChevronDown className="h-5 w-5 text-gray-500" />
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
                 ) : (
-                  <ChevronRight className="h-5 w-5 text-gray-500" />
+                  <ChevronRight className="h-4 w-4 text-gray-500" />
                 )}
-              </button>
+              </Button>
             )}
           </td>
-          <td className="py-2 px-4 border-b">{category.id}</td>
-          <td className="py-2 px-4 border-b">{category.name}</td>
-          <td className="py-2 px-4 border-b">{category.description}</td>
-          <td className="py-2 px-4 border-b">
-            <button
-              onClick={() => {
-                setCurrentCategory(category);
-                setNewCategoryName(category.name);
-                setNewCategoryDescription(category.description);
-                setIsEditModalOpen(true);
-              }}
-              className="text-blue-500 hover:text-blue-700 mr-2"
-            >
-              <Pencil className="inline-block" />
-            </button>
-            <button
-              onClick={() => handleDeleteCategory(category.id)}
-              className="text-red-500 hover:text-red-700"
-            >
-              <Trash2 className="inline-block" />
-            </button>
+          <td className="py-1 px-2 border-b">{category.id}</td>
+          <td className="py-1 px-2 border-b">{category.name}</td>
+          <td className="py-1 px-2 border-b">{category.description}</td>
+          <td className="py-1 px-2 border-b">
+            <div className="flex space-x-1">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  setCurrentCategory(category);
+                  setNewCategoryName(category.name);
+                  setNewCategoryDescription(category.description);
+                  setIsEditModalOpen(true);
+                }}
+                className="p-1 h-6flex items-center justify-center w-10"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => handleDeleteCategory(category.id)}
+                className="p-1 h-6 flex items-center justify-center w-10"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  setNewCategoryParentId(category.id);
+                  setNewCategoryName("");
+                  setNewCategoryDescription("");
+                  setIsCreateSubModalOpen(true);
+                }}
+                className="p-1 h-6 flex items-center justify-center w-10"
+              >
+                <PlusCircle className="h-4 w-4" />
+              </Button>
+              <Dialog isOpen={isCreateSubModalOpen}>
+                <div className="sm:max-w-[425px]">
+                  <div>
+                    <h2>Agregar Subcategoría</h2>
+                  </div>
+                  <div className="grid gap-4 py-4">
+                    <Input
+                      id="name"
+                      placeholder="Nombre de la subcategoría"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                    />
+                    <Input
+                      textArea
+                      id="description"
+                      placeholder="Descripción de la subcategoría"
+                      value={newCategoryDescription}
+                      onChange={(e) =>
+                        setNewCategoryDescription(e.target.value)
+                      }
+                    />
+                  </div>
+                  <Button onClick={handleCreateCategory}>
+                    Crear Subcategoría
+                  </Button>
+                </div>
+              </Dialog>
+            </div>
           </td>
         </tr>
         {expandedCategories[category.id] &&
@@ -315,125 +322,81 @@ export default function CategoriesManager() {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Gestor de Categorías</h1>
-      <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
+    <div className="container mx-auto p-2">
+      <h1 className="text-xl font-bold mb-2">Gestor de Categorías</h1>
+      <Button
+        variant="solid"
+        className="mb-2 flex justify-center items-center"
         onClick={() => {
           setNewCategoryParentId(null);
           setIsCreateModalOpen(true);
         }}
       >
-        <PlusCircle className="inline-block mr-2" />
+        <PlusCircle className="mr-1 h-4 w-4" />
         Crear Categoría
-      </button>
-
-      <table className="min-w-full bg-white border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="py-2 px-4 border-b text-left"></th>
-            <th className="py-2 px-4 border-b text-left">ID</th>
-            <th className="py-2 px-4 border-b text-left">Nombre</th>
-            <th className="py-2 px-4 border-b text-left">Descripción</th>
-            <th className="py-2 px-4 border-b text-left">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>{renderCategories(categories)}</tbody>
-      </table>
-
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3 text-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Crear Nueva Categoría
-              </h3>
-              <div className="mt-2 px-7 py-3">
-                <input
-                  type="text"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 mb-3"
-                  placeholder="Nombre de la categoría"
-                />
-                <textarea
-                  value={newCategoryDescription}
-                  onChange={(e) => setNewCategoryDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 mb-3"
-                  placeholder="Descripción de la categoría"
-                  rows={3}
-                />
-                {/* <select
-                  value={newCategoryParentId || ''}
-                  onChange={(e) => setNewCategoryParentId(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
-                >
-                  <option value="">Categoría principal</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select> */}
-              </div>
-              <div className="items-center px-4 py-3">
-                <button
-                  onClick={handleCreateCategory}
-                  className="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                >
-                  Crear
-                </button>
-                <button
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
+      </Button>
+      <Dialog isOpen={isCreateModalOpen}>
+        <div className="sm:max-w-[425px]">
+          <div>
+            <h1>Crear Nueva Categoría</h1>
           </div>
-        </div>
-      )}
-
-      {isEditModalOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3 text-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Editar Categoría
-              </h3>
-              <div className="mt-2 px-7 py-3">
-                <input
-                  type="text"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 mb-3"
-                  placeholder="Nombre de la categoría"
-                />
-                <textarea
-                  value={newCategoryDescription}
-                  onChange={(e) => setNewCategoryDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 mb-3"
-                  placeholder="Descripción de la categoría"
-                  rows={3}
-                />
-              </div>
-              <div className="items-center px-4 py-3">
-                <button
-                  onClick={handleUpdateCategory}
-                  className="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                >
-                  Actualizar
-                </button>
-                <button
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
+          <div className="grid gap-4 py-4">
+            <Input
+              id="name"
+              placeholder="Nombre de la categoría"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+            />
+            <Input
+              textArea
+              id="description"
+              placeholder="Descripción de la categoría"
+              value={newCategoryDescription}
+              onChange={(e) => setNewCategoryDescription(e.target.value)}
+            />
           </div>
+          <Button onClick={handleCreateCategory}>Crear</Button>
         </div>
-      )}
+      </Dialog>
+
+      <div className="overflow-x-auto">
+        <table className="w-full bg-white border border-gray-300">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="py-1 px-2 border-b text-left"></th>
+              <th className="py-1 px-2 border-b text-left">ID</th>
+              <th className="py-1 px-2 border-b text-left">Nombre</th>
+              <th className="py-1 px-2 border-b text-left">Descripción</th>
+              <th className="py-1 px-2 border-b text-left">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>{renderCategories(categories)}</tbody>
+        </table>
+      </div>
+
+      <Dialog isOpen={isEditModalOpen}>
+        <div className="sm:max-w-[425px]">
+          <div>
+            <h1>Editar Categoría</h1>
+          </div>
+          <div className="grid gap-4 py-4">
+            <Input
+              id="edit-name"
+              placeholder="Nombre de la categoría"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+            />
+            <Input
+              textArea
+              id="edit-description"
+              placeholder="Descripción de la categoría"
+              value={newCategoryDescription}
+              onChange={(e) => setNewCategoryDescription(e.target.value)}
+            />
+          </div>
+          <Button onClick={handleUpdateCategory}>Actualizar</Button>
+        </div>
+      </Dialog>
     </div>
   );
 }
