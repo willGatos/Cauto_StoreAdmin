@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/Dialog";
 import supabase from "@/services/Supabase/BaseClient";
 import { useAppSelector } from "@/store";
 
