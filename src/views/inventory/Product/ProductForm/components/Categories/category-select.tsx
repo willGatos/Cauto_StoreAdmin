@@ -6,10 +6,10 @@ import {
   flattenCategories,
   searchCategories,
 } from "./utils/index";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/Input";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import { Dialog } from "@/components/ui";
 
 interface CategorySelectProps {

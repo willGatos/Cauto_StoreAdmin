@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Select from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import Table from "@/components/ui/Table";
 

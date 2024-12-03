@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/card";
-import { useParams } from "react-router-dom";
-import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
-import { useAppSelector } from "@/store";
-import supabase from "@/services/Supabase/BaseClient";
-import cloneDeep from "lodash/cloneDeep";
 import HandleFeedback from "@/components/ui/FeedBack";
+import { Input } from "@/components/ui/Input";
+import supabase from "@/services/Supabase/BaseClient";
+import { useAppSelector } from "@/store";
+import UploadWidget from "@/views/inventory/Product/ProductForm/components/Images";
+import cloneDeep from "lodash/cloneDeep";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
 interface Slide {
   id?: number;
