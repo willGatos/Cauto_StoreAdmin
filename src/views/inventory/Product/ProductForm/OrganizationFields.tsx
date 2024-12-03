@@ -5,6 +5,8 @@ import Select from "@/components/ui/Select";
 import CreatableSelect from "react-select/creatable";
 import { Field, FormikErrors, FormikTouched, FieldProps } from "formik";
 import { Switcher } from "@/components/ui";
+import { CategorySelect } from "./components/Categories/category-select";
+import { Category, mockCategories } from "./components/Categories/mock";
 
 type Options = {
   label: string;
@@ -15,7 +17,6 @@ type ProductType = "manufactured" | "imported";
 type FormFieldsName = {
   type: ProductType;
   origin: string;
-  category_id: string;
   brand: string;
   gender: string;
   status: string;
@@ -26,13 +27,14 @@ type OrganizationFieldsProps = {
   touched: FormikTouched<FormFieldsName>;
   errors: FormikErrors<FormFieldsName>;
   values: {
-    category_id: string;
     tags: Options;
     [key: string]: unknown;
   };
   categories: Options;
   subcategories: Options;
   gender: Options;
+  selectedIds;
+  setSelectedIds;
 };
 
 const forGender = [
@@ -58,13 +60,14 @@ const productOrigin = [
 const OrganizationFields = (props: OrganizationFieldsProps) => {
   const {
     values = {
-      category_id: "",
       brand: "",
       gender: "",
     },
     touched,
     errors,
     categories,
+    selectedIds,
+    setSelectedIds,
   } = props;
 
   return (
@@ -126,29 +129,7 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="col-span-1">
-          <FormItem
-            label="Categoría"
-            invalid={(errors.category_id && touched.category_id) as boolean}
-            errorMessage={errors.category_id}
-          >
-            <Field name="category_id">
-              {({ field, form }: FieldProps) => (
-                <Select
-                  field={field}
-                  form={form}
-                  options={categories}
-                  value={categories.filter(
-                    (category_id) => category_id.value === values.category_id
-                  )}
-                  onChange={(option) =>
-                    form.setFieldValue(field.name, option?.value)
-                  }
-                />
-              )}
-            </Field>
-          </FormItem>
-        </div>
+
         <div className="col-span-1">
           <FormItem
             label="Estado en Inventario"
@@ -172,6 +153,7 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
             </Field>
           </FormItem>
         </div>
+
         {/* <div className="col-span-1">
           <FormItem
             label="Subcategoría"
@@ -197,6 +179,18 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
             </Field>
           </FormItem>
         </div> */}
+      </div>
+
+      <div>
+        <h1 className="text-2xl font-bold mb-4">Selector de Categorías</h1>
+        <CategorySelect
+          categories={categories}
+          selectedIds={selectedIds}
+          setSelectedIds={setSelectedIds}
+          onSelectionChange={(selectedCategories: Category[]) => {
+            console.log("Categorías seleccionadas:", selectedCategories);
+          }}
+        />
       </div>
       {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="col-span-1">

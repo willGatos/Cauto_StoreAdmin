@@ -33,14 +33,15 @@ export type ProductVariation = {
 
 export const createProduct = async (
   productData: ProductData,
+  categories: Set,
   variations: ProductVariation[],
   supplies
 ) => {
+  console.log(categories);
   try {
     const {
       name,
       description,
-      category_id,
       shop_id,
       cost,
       discount,
@@ -66,7 +67,6 @@ export const createProduct = async (
         {
           name,
           description,
-          category_id,
           shop_id,
           cost,
           discount,
@@ -87,6 +87,16 @@ export const createProduct = async (
       .single();
 
     if (productError) throw productError;
+
+    {
+      // hacer que se tomen todas las categorias seleccionadas y se hagan las llamadas correspondientes segun el producto
+      await supabase.from("category_product").insert(
+        categories.map((c) => ({
+          category_id: c,
+          product_id: product.id,
+        }))
+      );
+    }
 
     const dos = supplies.map((supplyVariation) => ({
       supply_id: supplyVariation,
@@ -192,22 +202,27 @@ export const createProduct = async (
 
 export const upsertProduct = async (
   productData: ProductData,
+  categories,
   productId?: number,
   variations?: ProductVariation[]
 ) => {
   try {
-    console.log("first2");
+    console.log("first2", categories);
     let product;
     if (productId) {
       const productVar = await supabase
         .from("product_variations")
         .select("id")
         .eq("product_id", productId);
+
+      const categoriesArray = categories.map((c) => ({
+        category_id: c,
+        product_id: productId,
+      }));
       // Actualización del producto existente
       const {
         name,
         description,
-        category_id,
         shop_id,
         cost,
         discount,
@@ -231,7 +246,6 @@ export const upsertProduct = async (
         .update({
           name,
           description,
-          category_id,
           shop_id,
           cost,
           discount,
@@ -253,6 +267,14 @@ export const upsertProduct = async (
       if (updateError) throw updateError;
       product = updateProduct;
       console.log("Variations", variations);
+
+      // hacer que se tomen todas las categorias
+      // seleccionadas y se hagan las llamadas correspondientes segun el producto
+      await supabase
+        .from("category_product")
+        .delete(categoriesArray)
+        .eq("product_id", productId);
+      await supabase.from("category_product").insert(categoriesArray);
 
       // Insertar nuevas variaciones
       if (variations && variations.length > 0) {
@@ -329,7 +351,7 @@ export const getProductById = async (productId: number) => {
     const { data: product, error: productError } = await supabase
       .from("products")
       .select(
-        "*, supplies(*),variations: product_variations (*, supply_variation(*),product_variation_attributes (attribute_value_id (*), product_variation_id(currency_id(*))))) "
+        "*, categories(*), supplies(*),variations: product_variations (*, supply_variation(*),product_variation_attributes (attribute_value_id (*), product_variation_id(currency_id(*))))) "
       )
       .eq("id", productId)
       .single();
@@ -346,7 +368,6 @@ export const getProductById = async (productId: number) => {
 export type ProductData = {
   name: string;
   description: string | null;
-  category_id: number | null;
   shop_id: number | null;
   cost: number;
   discount: number;
@@ -395,7 +416,6 @@ type ProductForm = {
 const productSchema = Yup.object().shape({
   name: Yup.string().required("El nombre es requerido"),
   description: Yup.string().nullable(),
-  category_id: Yup.number().nullable(),
   shop_id: Yup.number().nullable(),
   cost: Yup.number().min(0, "El costo no puede ser negativo"),
   discount: Yup.number()
@@ -503,11 +523,11 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
       ? false
       : location.pathname.substring(location.pathname.lastIndexOf("/") + 1);
   const formRef = useRef<FormikRef>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const [initialValues, setInitialValues] = useState<ProductData>({
     name: "",
     description: null,
-    category_id: null,
     shop_id: user.shopId,
     images: [],
     cost: 0,
@@ -566,6 +586,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
       getProductById(parseInt(productId))
         .then((prod) => {
           const formik = formRef.current;
+          setSelectedIds(new Set(prod.categories.map((c) => c.id)));
 
           const data = prod.supplies
             .map((supply) => supplies.find((s) => s.value === supply.id))
@@ -628,10 +649,12 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
       values.images = localImages;
       const suppliesIds = values.supplies;
 
+      const miArray = Array.from(selectedIds);
+
       if (productId) {
-        await upsertProduct(values, parseInt(productId), variations);
+        await upsertProduct(values, miArray, parseInt(productId), variations);
       } else {
-        await createProduct(values, variations, suppliesIds);
+        await createProduct(values, miArray, variations, suppliesIds);
       }
 
       // Manejar el éxito (por ejemplo, mostrar un mensaje, redirigir, etc.)
@@ -668,7 +691,8 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                       values={values}
                       categories={categories}
                       subcategories={subcategories}
-                      setFieldValue={setFieldValue}
+                      selectedIds={selectedIds}
+                      setSelectedIds={setSelectedIds}
                     />
 
                     <PricingFields

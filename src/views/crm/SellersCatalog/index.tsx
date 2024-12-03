@@ -23,7 +23,6 @@ type Product = {
   name: string;
   description: string;
   price: number;
-  category_id: number;
   shop_id: number;
   cost: number;
   discount: number;

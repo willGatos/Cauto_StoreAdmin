@@ -12,7 +12,7 @@ export const getProducts = async (id) => {
     const { data, error } = await supabase
       .from("products")
       .select(
-        "*,category: category_id(name),variations:product_variations(*,  currency: currency_id(*),attribute_values(value, types: attributes(name)))"
+        "*,variations:product_variations(*,  currency: currency_id(*),attribute_values(value, types: attributes(name)))"
       )
       .eq("shop_id", id);
 
