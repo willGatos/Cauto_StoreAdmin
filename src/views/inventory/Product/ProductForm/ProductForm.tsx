@@ -20,6 +20,7 @@ import Supplies from "./Supplies";
 import { useAppSelector } from "@/store";
 import { Loading } from "@/components/shared";
 import HandleFeedback from "@/components/ui/FeedBack";
+import { useCategories } from "./components/Categories/hook/useCategories";
 
 export type ProductVariation = {
   id: any;
@@ -497,10 +498,7 @@ const DeleteProductButton = ({ onDelete }: { onDelete: OnDelete }) => {
 };
 
 const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
-  const [categories, setCategories] = useState([{ label: "", value: "" }]);
-  const [subcategories, setSubcategories] = useState([
-    { label: "", value: "" },
-  ]);
+  const [categoriesOpt, setCategoriesOpt] = useState();
   const [variations, setVariations] = useState<ProductVariation[]>([
     {
       id: "",
@@ -548,6 +546,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
   const [supplies, setSupplies] = useState<Supply[]>([]);
   const { shopId } = useAppSelector((state) => state.auth.user);
 
+  const { categories } = useCategories();
   useEffect(() => {
     setLoading(true);
     supabaseService
@@ -557,30 +556,6 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
 
   useEffect(() => {
     setLoading(true);
-    async function fetchCategories() {
-      try {
-        const { data, error } = await supabase.from("categories").select("*");
-
-        if (error) throw error;
-        const categories = transformArrayToObjectArray(
-          data.filter((category) => category.parent_id == null)
-        );
-        const subcategories: Array<{ label: string; value: string }> =
-          transformArrayToObjectArray(
-            data.filter((category) => category.parent_id !== null)
-          );
-        subcategories.push({
-          label: "Crear Nueva Subcategoría",
-          value: "newSub",
-        });
-        setCategories(categories);
-        setSubcategories(subcategories);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    }
-
-    fetchCategories();
 
     if (productId) {
       getProductById(parseInt(productId))
@@ -690,7 +665,6 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                       errors={errors}
                       values={values}
                       categories={categories}
-                      subcategories={subcategories}
                       selectedIds={selectedIds}
                       setSelectedIds={setSelectedIds}
                     />

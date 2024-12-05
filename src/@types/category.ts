@@ -5,7 +5,7 @@ export interface Category {
     description: string | null;
     created_at: string;
     parent_id: number | null;
-    subcategories?: Category[];
+    children?: Category[];
   }
   
 export interface Attribute {

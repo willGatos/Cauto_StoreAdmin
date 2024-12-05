@@ -33,6 +33,8 @@ export function CategorySelect({
   );
 
   const filteredCategories = React.useMemo(() => {
+    console.log("PROCESO", processedCategories);
+
     if (!searchTerm) return processedCategories;
     return searchCategories(processedCategories, searchTerm);
   }, [processedCategories, searchTerm]);

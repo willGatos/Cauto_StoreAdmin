@@ -23,8 +23,7 @@ export interface Product {
     category: Category;
     currency: Currency;
     variations: ProductVariation[];
-    
-  }
+}
   
 export  interface ProductVariation {
     id: number;

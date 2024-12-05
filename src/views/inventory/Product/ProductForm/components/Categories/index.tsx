@@ -1,9 +1,7 @@
-import React from "react";
-import { Field, FieldProps } from "formik";
-import { useCategories } from "./hook/useCategories"; // Importar el hook que creaste
 import { FormItem, Select } from "@/components/ui";
-import { CategorySelect } from "./category-select";
-import { Category, mockCategories } from "./mock";
+import { Field, FieldProps } from "formik";
+import React from "react";
+import { useCategories } from "./hook/useCategories"; // Importar el hook que creaste
 
 interface CategorySelectorProps {
   errors: any;
@@ -36,7 +34,8 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
 
   const getSubcategories = (parentId: number | null) => {
     const category = categories.find((c) => c.id === parentId);
-    return category?.subcategories || [];
+    console.log("Categoria",category);
+    return category?.children || [];
   };
 
   const currentSubcategories = getSubcategories(values.category);
@@ -91,7 +90,6 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           </Field>
         </FormItem>
       </div>
-      
     </div>
   );
 };

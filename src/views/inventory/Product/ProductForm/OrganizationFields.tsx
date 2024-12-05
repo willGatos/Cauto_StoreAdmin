@@ -30,8 +30,7 @@ type OrganizationFieldsProps = {
     tags: Options;
     [key: string]: unknown;
   };
-  categories: Options;
-  subcategories: Options;
+  categories;
   gender: Options;
   selectedIds;
   setSelectedIds;
@@ -129,7 +128,6 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
         <div className="col-span-1">
           <FormItem
             label="Estado en Inventario"
@@ -153,36 +151,11 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
             </Field>
           </FormItem>
         </div>
-
-        {/* <div className="col-span-1">
-          <FormItem
-            label="Subcategoría"
-            invalid={
-              (errors.subcategory && touched.subcategory) as boolean
-            }
-            errorMessage={errors.subcategory}
-          >
-            <Field name="subcategory">
-              {({ field, form }: FieldProps) => (
-                <Select
-                  field={field}
-                  form={form}
-                  options={subcategories}
-                  value={subcategories.filter(
-                    (subcategory) => subcategory.value === values.subcategory
-                  )}
-                  onChange={(option) =>
-                    form.setFieldValue(field.name, option?.value)
-                  }
-                />
-              )}
-            </Field>
-          </FormItem>
-        </div> */}
       </div>
 
       <div>
         <h1 className="text-2xl font-bold mb-4">Selector de Categorías</h1>
+        {console.log(categories)}
         <CategorySelect
           categories={categories}
           selectedIds={selectedIds}
@@ -192,77 +165,6 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
           }}
         />
       </div>
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="col-span-1">
-          <FormItem
-            label="Género"
-            invalid={(errors.gender && touched.gender) as boolean}
-            errorMessage={errors.gender}
-          >
-            <Field name="gender">
-              {({ field, form }: FieldProps) => (
-                <Select
-                  field={field}
-                  form={form}
-                  options={forGender}
-                  value={forGender.filter(
-                    (gender) => gender.value === values.gender
-                  )}
-                  onChange={(option) =>
-                    form.setFieldValue(field.name, option?.value)
-                  }
-                />
-              )}
-            </Field>
-          </FormItem>
-        </div>
-        <div className="col-span-1">
-          <FormItem
-            label="Marca"
-            invalid={(errors.brand && touched.brand) as boolean}
-            errorMessage={errors.brand}
-          >
-            <Field
-              type="text"
-              autoComplete="off"
-              name="brand"
-              placeholder="Marca"
-              component={Input}
-            />
-          </FormItem>
-        </div>
-      </div> */}
-
-      {/* <FormItem
-        label="Cantidad del Producto Disponible"
-        invalid={(errors.stock && touched.stock) as boolean}
-        errorMessage={errors.stock}
-      >
-        <Field
-          type="text"
-          autoComplete="off"
-          name="stock"
-          placeholder="Cantidad Disponible"
-          component={Input}
-        />
-      </FormItem> */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="col-span-1">
-          <FormItem
-            label="¿Es Visible para todos?"
-            className="flex justify-center items-center"
-          >
-            <div className="flex gap-5">
-              <p>No</p>
-              <Switcher
-                name={`isVisible`}
-                //onChange={()=> setFieldValue(`isVisible`, isVisible)}
-              />
-              <p>Si</p>
-            </div>
-          </FormItem>
-        </div>
-      </div> */}
     </AdaptableCard>
   );
 };

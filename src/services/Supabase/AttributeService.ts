@@ -104,10 +104,7 @@ export const supabaseService = {
       console.error("Supabase client is not initialized");
       return [];
     }
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*")
-      .order("id");
+    const { data, error } = await supabase.from("categories").select("*");
     if (error) {
       console.error("Error fetching categories:", error);
       return [];
@@ -116,7 +113,7 @@ export const supabaseService = {
     // Organize categories into a tree structure
     const categoryMap = new Map<number, Category>();
     data?.forEach((category) => {
-      categoryMap.set(category.id, { ...category, subcategories: [] });
+      categoryMap.set(category.id, { ...category, children: [] });
     });
 
     const rootCategories: Category[] = [];
@@ -125,10 +122,9 @@ export const supabaseService = {
         rootCategories.push(category);
       } else {
         const parent = categoryMap.get(category.parent_id);
-        parent?.subcategories?.push(category);
+        parent?.children?.push(category);
       }
     });
-
     return rootCategories;
   },
   getAttributes: async (): Promise<Attribute[]> => {
