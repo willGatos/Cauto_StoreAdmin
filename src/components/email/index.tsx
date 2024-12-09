@@ -1,6 +1,9 @@
 export default async function handleEmail(
   template,
-  email = "suxcesagency@gmail.com"
+  email = "suxcesagency@gmail.com",
+  orderId = null,
+  client = null,
+  seller = null
 ) {
   try {
     const response = await fetch(
@@ -10,6 +13,9 @@ export default async function handleEmail(
         body: JSON.stringify({
           email: email,
           template: template,
+          orderId,
+          client,
+          seller,
         }),
       }
     );

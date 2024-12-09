@@ -98,7 +98,8 @@ export default function OfferForm() {
         variations:product_variations (
           id,
           name,
-          price
+          price,
+          supply_variation ( cost )
         )
       `
       )
@@ -642,6 +643,11 @@ export default function OfferForm() {
                               scope="col"
                               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                             >
+                              Coste                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
                               Precio de oferta
                             </th>
                             <th
@@ -691,6 +697,12 @@ export default function OfferForm() {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   {variation.price}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {variation.supply_variation
+                                    .map((sv) => sv.cost)
+                                    .filter(Boolean)
+                                    .reduce((acc, current) => acc + current)}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <input

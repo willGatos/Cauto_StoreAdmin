@@ -169,8 +169,6 @@ const Profile = ({
       return;
     }
     setLocalImage(result);
-
-    // Actualizar el estado con una imagen de carga
   };
   return (
     <Formik

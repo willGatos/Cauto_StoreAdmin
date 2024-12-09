@@ -11,12 +11,21 @@ import { Input } from "@/components/ui/Input";
 import { Dialog } from "@/components/ui/Dialog";
 import supabase from "@/services/Supabase/BaseClient";
 import { useAppSelector } from "@/store";
+import UploadWidget from "../../Product/ProductForm/components/Images";
+import { Avatar } from "@/components/ui";
+import { HiOutlineUser } from "react-icons/hi";
+
+/*
+
+                      
+*/
 
 interface Category {
   id: number;
   name: string;
   description: string;
   created_at: string;
+  cover: string;
   parent_id: number | null;
   subcategories?: Category[];
 }
@@ -54,11 +63,18 @@ const mockCategoryService = {
     name: string,
     description: string,
     parent_id: number | null,
-    shopId
+    shopId,
+    localImage: string
   ): Promise<Category> => {
     const { data, error } = await supabase
       .from("categories")
-      .upsert({ name, description, parent_id, shop_id: shopId })
+      .upsert({
+        name,
+        description,
+        parent_id,
+        shop_id: shopId,
+        cover: localImage,
+      })
       .select("*")
       .single();
     if (error) throw error;
@@ -68,11 +84,12 @@ const mockCategoryService = {
   updateCategory: async (
     id: number,
     name: string,
-    description: string
+    description: string,
+    localImage
   ): Promise<Category> => {
     const { data, error } = await supabase
       .from("categories")
-      .update({ name, description })
+      .update({ name, description, cover: localImage })
       .eq("id", id)
       .select("*")
       .single();
@@ -93,6 +110,7 @@ export default function CategoryManager() {
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryDescription, setNewCategoryDescription] = useState("");
+  const [localImage, setLocalImage] = useState("");
   const [newCategoryParentId, setNewCategoryParentId] = useState<number | null>(
     null
   );
@@ -103,6 +121,16 @@ export default function CategoryManager() {
   useEffect(() => {
     loadCategories();
   }, []);
+
+  const handleImageUpload = async (error, result, widget) => {
+    if (error) {
+      widget.close({
+        quiet: true,
+      });
+      return;
+    }
+    setLocalImage(result);
+  };
 
   const loadCategories = async () => {
     const data = await mockCategoryService.getCategories(shopId);
@@ -115,7 +143,8 @@ export default function CategoryManager() {
         newCategoryName,
         newCategoryDescription,
         newCategoryParentId,
-        shopId
+        shopId,
+        localImage
       );
 
       if (newCategoryParentId) {
@@ -129,10 +158,15 @@ export default function CategoryManager() {
       }
       setNewCategoryName("");
       setNewCategoryDescription("");
+      setLocalImage("");
       setNewCategoryParentId(null);
       setIsCreateModalOpen(false);
       setIsCreateSubModalOpen(false);
     }
+  };
+
+  const onDialogClose = (setStateModel) => {
+    setStateModel(false);
   };
 
   const addSubcategoryRecursive = (
@@ -162,10 +196,12 @@ export default function CategoryManager() {
       const updatedCategory = await mockCategoryService.updateCategory(
         currentCategory.id,
         newCategoryName,
-        newCategoryDescription
+        newCategoryDescription,
+        localImage
       );
       setCategories(updateCategoryInTree(categories, updatedCategory));
       setNewCategoryName("");
+      setLocalImage("");
       setNewCategoryDescription("");
       setIsEditModalOpen(false);
     }
@@ -257,6 +293,7 @@ export default function CategoryManager() {
                   setNewCategoryName(category.name);
                   setNewCategoryDescription(category.description);
                   setIsEditModalOpen(true);
+                  setLocalImage(category.cover);
                 }}
                 className="p-1 h-6flex items-center justify-center w-10"
               >
@@ -283,7 +320,10 @@ export default function CategoryManager() {
               >
                 <PlusCircle className="h-4 w-4" />
               </Button>
-              <Dialog isOpen={isCreateSubModalOpen}>
+              <Dialog
+                onClose={() => onDialogClose(setIsCreateSubModalOpen)}
+                isOpen={isCreateSubModalOpen}
+              >
                 <div className="sm:max-w-[425px]">
                   <div>
                     <h2>Agregar Subcategoría</h2>
@@ -304,6 +344,30 @@ export default function CategoryManager() {
                         setNewCategoryDescription(e.target.value)
                       }
                     />
+                    <UploadWidget
+                      onUpload={(error, result, widget) => {
+                        const img = result?.info?.secure_url;
+                        handleImageUpload(error, img, widget);
+                      }}
+                    >
+                      {({ open }) => {
+                        function handleOnClick(e) {
+                          e.preventDefault();
+                          open();
+                        }
+                        return (
+                          <div onClick={handleOnClick}>
+                            <Avatar
+                              className="border-2 border-white dark:border-gray-800 shadow-lg"
+                              size={60}
+                              shape="circle"
+                              src={localImage}
+                              icon={<HiOutlineUser />}
+                            />
+                          </div>
+                        );
+                      }}
+                    </UploadWidget>
                   </div>
                   <Button onClick={handleCreateCategory}>
                     Crear Subcategoría
@@ -335,7 +399,10 @@ export default function CategoryManager() {
         <PlusCircle className="mr-1 h-4 w-4" />
         Crear Categoría
       </Button>
-      <Dialog isOpen={isCreateModalOpen}>
+      <Dialog
+        onClose={() => onDialogClose(setIsCreateModalOpen)}
+        isOpen={isCreateModalOpen}
+      >
         <div className="sm:max-w-[425px]">
           <div>
             <h1>Crear Nueva Categoría</h1>
@@ -354,6 +421,30 @@ export default function CategoryManager() {
               value={newCategoryDescription}
               onChange={(e) => setNewCategoryDescription(e.target.value)}
             />
+            <UploadWidget
+              onUpload={(error, result, widget) => {
+                const img = result?.info?.secure_url;
+                handleImageUpload(error, img, widget);
+              }}
+            >
+              {({ open }) => {
+                function handleOnClick(e) {
+                  e.preventDefault();
+                  open();
+                }
+                return (
+                  <div onClick={handleOnClick}>
+                    <Avatar
+                      className="border-2 border-white dark:border-gray-800 shadow-lg"
+                      size={60}
+                      shape="circle"
+                      src={localImage}
+                      icon={<HiOutlineUser />}
+                    />
+                  </div>
+                );
+              }}
+            </UploadWidget>
           </div>
           <Button onClick={handleCreateCategory}>Crear</Button>
         </div>
@@ -374,7 +465,10 @@ export default function CategoryManager() {
         </table>
       </div>
 
-      <Dialog isOpen={isEditModalOpen}>
+      <Dialog
+        onClose={() => onDialogClose(setIsEditModalOpen)}
+        isOpen={isEditModalOpen}
+      >
         <div className="sm:max-w-[425px]">
           <div>
             <h1>Editar Categoría</h1>
@@ -393,6 +487,30 @@ export default function CategoryManager() {
               value={newCategoryDescription}
               onChange={(e) => setNewCategoryDescription(e.target.value)}
             />
+            <UploadWidget
+              onUpload={(error, result, widget) => {
+                const img = result?.info?.secure_url;
+                handleImageUpload(error, img, widget);
+              }}
+            >
+              {({ open }) => {
+                function handleOnClick(e) {
+                  e.preventDefault();
+                  open();
+                }
+                return (
+                  <div onClick={handleOnClick}>
+                    <Avatar
+                      className="border-2 border-white dark:border-gray-800 shadow-lg"
+                      size={60}
+                      shape="circle"
+                      src={localImage}
+                      icon={<HiOutlineUser />}
+                    />
+                  </div>
+                );
+              }}
+            </UploadWidget>
           </div>
           <Button onClick={handleUpdateCategory}>Actualizar</Button>
         </div>

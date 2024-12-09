@@ -96,7 +96,7 @@ export const updateCatalogSection = async (
         type_of_view: updatedData.type_of_view,
       })
       .eq("id", sectionId)
-      .select();
+      .select("*");
 
     if (!updatedSection || !updatedSection.length) {
       throw new Error("Sección no encontrada");
@@ -168,7 +168,7 @@ export default function Component() {
     null
   );
   const [sectionName, setSectionName] = useState("");
-  const [viewType, setViewType] = useState();
+  const [viewType, setViewType] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [products, setProducts] = useState([]);
   const { handleSuccess, handleError, handleLoading } = HandleFeedback();
@@ -207,6 +207,7 @@ export default function Component() {
     setSelectedProducts(selectedProducts.filter((id) => id !== productId));
   };
 
+
   const handleSaveSection = async () => {
     // Verificar si el nombre de la sección está vacío
     if (!sectionName.trim()) {
@@ -243,6 +244,7 @@ export default function Component() {
             products: selectedProducts.map((id) => ({ id })),
           });
 
+          
       // Limpiar los campos de entrada
       setSectionName("");
       setSelectedProducts([]);
@@ -252,8 +254,12 @@ export default function Component() {
 
       // Actualizar la lista de secciones en el estado
       setSections((prevSections) => {
+        const filteredSections = prevSections.filter(
+          (ps) => ps.id != newSection.id
+        );
+        console.log(filteredSections);
         // Retornar un nuevo array con la nueva sección añadida
-        return [...prevSections, sectionToSave];
+        return [...filteredSections, sectionToSave];
       });
 
       // Mostrar mensaje de éxito
@@ -339,40 +345,43 @@ export default function Component() {
         </Table>
       </div>
 
-      {currentSection && (
+      {viewType && (
         <div className="space-y-4">
           <h5 className=" font-semibold">Previsualización:</h5>
-          <h3>{currentSection.name}</h3>
+          <h3>{sectionName}</h3>
           <div
             className={`
             ${
-              currentSection.type_of_view === "Grid"
+              viewType.value === "Grid"
                 ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-center"
                 : "flex overflow-x-auto pb-4 space-x-8"
             }
           `}
           >
-            {currentSection.products.map((product) => (
-              <div
-                key={product.id}
-                className={`
-                border p-6 rounded-lg shadow-md
-                ${
-                  currentSection.type_of_view === "Grid"
-                    ? "w-full"
-                    : "w-64 flex-shrink-0"
-                }
-              `}
-              >
-                <img
-                  src={product.images}
-                  alt={product.name}
-                  className="w-full h-48 object-cover mb-4 rounded"
-                />
-                <h4 className="font-semibold text-lg mb-2">{product.name}</h4>
-                <p className="text-xl font-bold">${product.standard_price}</p>
-              </div>
-            ))}
+            {selectedProducts?.map((product) => {
+              console.log(product);
+
+              const pro = products.filter((p) => p.id == product);
+              return pro.map((product) => (
+                <div
+                  key={product.id}
+                  className={`
+                  border p-6 rounded-lg shadow-md
+                  ${viewType.value === "Grid" ? "w-full" : "w-64 flex-shrink-0"}
+                `}
+                >
+                  <img
+                    src={product?.images && product?.images[0]}
+                    alt={product.name}
+                    className="w-full h-48 object-cover mb-4 rounded"
+                  />
+                  <h4 className="font-semibold text-lg mb-2">{product.name}</h4>
+                  <p className="text-xl font-bold">
+                    ${product?.standard_price}
+                  </p>
+                </div>
+              ));
+            })}
           </div>
         </div>
       )}

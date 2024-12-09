@@ -11,6 +11,7 @@ import UploadWidget from "@/views/inventory/Product/ProductForm/components/Image
 import { useEffect, useState } from "react";
 import ContactInfo from "./ContactInfo";
 import ShippingAddress from "./ShippingAddress";
+import { useNavigate } from "react-router-dom";
 
 const CheckoutPage = () => {
   const [tabActive, setTabActive] = useState<
@@ -18,9 +19,14 @@ const CheckoutPage = () => {
   >("ContactInfo");
 
   const { handleError } = HandleFeedback();
-  const { shopId, id, sellersShops } = useAppSelector(
-    (state) => state.auth.user
-  );
+  const {
+    shopId,
+    id,
+    name: sellerName,
+    sellersShops,
+  } = useAppSelector((state) => state.auth.user);
+  const navigate = useNavigate();
+
   const [orderItems, setOrderItems] = useState([
     {
       variation_id: 0,
@@ -122,6 +128,7 @@ const CheckoutPage = () => {
     }));
   };
 
+  const { handleSuccess } = HandleFeedback();
   const onSubmit = async () => {
     // TODO: Y ahora si la hay. La idea ser'ia que se analizara el modelo antiguo y en base a ese, se mirara si hacer un cambio o no
     // Adem'as de eso, esta creando la location sin que sea necesario en el caso de que sea igual, y si es diferente a la original
@@ -161,6 +168,10 @@ const CheckoutPage = () => {
             .select("id")
             .single();
           clientIdForAPI = data.id;
+
+          await supabase
+            .from("clients_seller")
+            .upsert({ seller_id: id, client_id: clientIdForAPI });
         } else {
           const { data } = await supabase
             .from("clients")
@@ -198,14 +209,11 @@ const CheckoutPage = () => {
           quantity: oi.quantity,
         }));
 
-        console.log(offersSelected);
         const allVariations = offersSelected.reduce((acc, os) => {
           return acc.concat(os.variations);
         }, []);
 
-        console.log(allVariations);
         const oiArray2 = createOrderItemsArray(allVariations, orderData.id);
-        console.log(oiArray2);
         oiArray = [...oiArray2, ...oiArray];
 
         const { error: OIError } = await supabase
@@ -216,17 +224,8 @@ const CheckoutPage = () => {
         const { data: dP } = await supabase
           .from("shops")
           .select("owner: owner_id(email)")
-          .eq(
-            "id",
-            sellersShops[0]
-            // Debe tomar el Id desde alguno de los productos de la tienda o algo relacionado con eso.
-            // Como esta ahora lo toma del Id del vendedor, pero ese vendedor tendr'a su propia tienda
-            // El problema es que son variaciones de los productos lo que se esta trayendo.
-            // Adem'as de eso, pueden pedir 2 productos de 2 tiendas diferentes.
-            // Tienes que traer las ofertas de las 2 Tiendas
-          )
+          .eq("id", sellersShops[0])
           .single();
-        console.log(dP.owner.email);
 
         hasPersonalizedOrder &&
           (await supabase.from("personalized_orders").upsert({
@@ -236,18 +235,30 @@ const CheckoutPage = () => {
             price: personalizedOrder.price,
             quantity: personalizedOrder.quantity,
           }));
-        // TODO:
-        handleEmail(0, email);
-        handleEmail(0, dP.owner.email);
 
-        // La idea sería enviar un correo al del de la tienda el cual debe estar con
-        // handleEmail(0, (await data).data.profiles.email);
+        handleEmail(0, email);
+        handleEmail(
+          3,
+          dP.owner.email,
+          orderData.id,
+          name + lastName,
+          sellerName
+        );
+
+        dispatch(
+          setProductsSelected({
+            productsSelected: [],
+            offersSelected: [],
+          })
+        );
+        navigate("/app/sales/sellerCatalog");
       } else {
         handleError("Tienes un campo en CONTACTO sin llenar.");
       }
     } catch (error) {
       handleError(error);
     }
+    handleSuccess("Éxito en Creación de Orden");
   };
   const dispatch = useAppDispatch();
 
