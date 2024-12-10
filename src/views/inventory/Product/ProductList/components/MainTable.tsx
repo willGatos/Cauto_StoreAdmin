@@ -19,30 +19,50 @@ function MainTable({
   renderRowSubComponent,
   getRowCanExpand,
 }) {
-  const { handleSuccess, handleLoading } = HandleFeedback();
+  const { handleSuccess, handleLoading, handleError } = HandleFeedback();
   const deleteFunction = async (row) => {
     console.log(row.original);
     const varIds = row.original.variations.map((v) => v.id);
     console.log("VAR ID", varIds);
-    await supabase
-      .from("supply_variation_product_variations")
-      .delete()
-      .in("product_variation_id", varIds);
-    await supabase
-      .from("product_variation_attributes")
-      .delete()
-      .in("product_variation_id", varIds);
+    try {
+      await supabase
+        .from("supply_variation_product_variations")
+        .delete()
+        .in("product_variation_id", varIds);
 
-    await supabase
-      .from("product_supplies")
-      .delete()
-      .eq("product_id", row.original.id);
+      await supabase
+        .from("product_variation_attributes")
+        .delete()
+        .in("product_variation_id", varIds);
 
-    await supabase
-      .from("product_variations")
-      .delete()
-      .eq("product_id", row.original.id);
-    await supabase.from("products").delete().eq("id", row.original.id);
+      await supabase
+        .from("category_product")
+        .delete()
+        .eq("product_id", row.original.id);
+
+      await supabase
+        .from("offer_products")
+        .delete()
+        .eq("product_id", row.original.id);
+
+      await supabase
+        .from("catalog_section_products")
+        .delete()
+        .eq("product_id", row.original.id);
+
+      await supabase
+        .from("product_supplies")
+        .delete()
+        .eq("product_id", row.original.id);
+
+      await supabase
+        .from("product_variations")
+        .delete()
+        .eq("product_id", row.original.id);
+      await supabase.from("products").delete().eq("id", row.original.id);
+    } catch {
+      handleError("Contacte con el Programador.");
+    }
   };
   const columns = useMemo(
     () => [
