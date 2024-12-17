@@ -12,15 +12,19 @@ export default defineConfig({
       workbox: {
         runtimeCaching: [
           {
-            urlPattern: /\.(js|css)$/, // Match all JS and CSS files
+            urlPattern: /^https:\/\/lnuqlwcfdxstcdbjfyun\.supabase\.co\/rest\/v1\/.*$/, // Ajusta la URL de Supabase
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'js-css-cache',
+              cacheName: 'supabase-api-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 24 * 60 * 60, // Cache for 1 day
+                maxAgeSeconds: 24 * 60 * 60, // Cache por 1 día
               },
             },
+          },
+          {
+            urlPattern: /\.(js|css)$/, // Match all JS and CSS files
+            handler: 'StaleWhileRevalidate',
           },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
