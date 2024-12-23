@@ -2,7 +2,7 @@ import { Supply } from "@/views/inventory/Supply/List/Data/types";
 import supabase from "./BaseClient";
 import { Attribute, Category } from "@/@types/category";
 import { Currency } from "@/@types/currency";
-import { SupplyVariation } from "@/@types/orders";
+import {  } from "@/@types/orders";
 import { Product, ProductVariation } from "@/@types/products";
 // Supabase service
 export const supabaseService = {
@@ -299,7 +299,7 @@ export const supabaseService = {
   },
   getSupplyVariationsBySupplies: async (
     supplyIds: number[]
-  ): Promise<SupplyVariation[]> => {
+  ): Promise => {
     const { data: supplyVariations, error: variationsError } = await supabase
       .from("supply_variation")
       .select("*")
