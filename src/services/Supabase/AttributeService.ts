@@ -103,7 +103,7 @@ export const supabaseService = {
     const { data, error: valuesError } = await supabase
       .from("attributes")
       .select("id, name, values:attribute_values(id, value)")
-      .eq("shopId", shopId);
+      .eq("shop_id", shopId);
     if (valuesError) throw valuesError;
     if (valuesError) {
       console.error("Error fetching attribute values:", valuesError);
