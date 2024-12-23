@@ -282,7 +282,7 @@ export default function CategoryManager() {
           </td>
           <td className="py-1 px-2 border-b">{category.id}</td>
           <td className="py-1 px-2 border-b">{category.name}</td>
-          <td className="py-1 px-2 border-b">{category.description}</td>
+          {/* <td className="py-1 px-2 border-b">{category.description}</td> */}
           <td className="py-1 px-2 border-b">
             <div className="flex space-x-1">
               <Button
@@ -335,7 +335,7 @@ export default function CategoryManager() {
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
                     />
-                    <Input
+                    {/* <Input
                       textArea
                       id="description"
                       placeholder="Descripción de la subcategoría"
@@ -343,7 +343,7 @@ export default function CategoryManager() {
                       onChange={(e) =>
                         setNewCategoryDescription(e.target.value)
                       }
-                    />
+                    /> */}
                     <UploadWidget
                       onUpload={(error, result, widget) => {
                         const img = result?.info?.secure_url;
@@ -414,13 +414,13 @@ export default function CategoryManager() {
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
             />
-            <Input
+            {/* <Input
               textArea
               id="description"
               placeholder="Descripción de la categoría"
               value={newCategoryDescription}
               onChange={(e) => setNewCategoryDescription(e.target.value)}
-            />
+            /> */}
             <UploadWidget
               onUpload={(error, result, widget) => {
                 const img = result?.info?.secure_url;
@@ -457,7 +457,7 @@ export default function CategoryManager() {
               <th className="py-1 px-2 border-b text-left"></th>
               <th className="py-1 px-2 border-b text-left">ID</th>
               <th className="py-1 px-2 border-b text-left">Nombre</th>
-              <th className="py-1 px-2 border-b text-left">Descripción</th>
+              {/* <th className="py-1 px-2 border-b text-left">Descripción</th> */}
               <th className="py-1 px-2 border-b text-left">Acciones</th>
             </tr>
           </thead>
@@ -480,13 +480,13 @@ export default function CategoryManager() {
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
             />
-            <Input
+            {/* <Input
               textArea
               id="edit-description"
               placeholder="Descripción de la categoría"
               value={newCategoryDescription}
               onChange={(e) => setNewCategoryDescription(e.target.value)}
-            />
+            /> */}
             <UploadWidget
               onUpload={(error, result, widget) => {
                 const img = result?.info?.secure_url;

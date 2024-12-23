@@ -101,6 +101,15 @@ const appsRoute: Routes = [
   },
   {
     key: "appsSales.productEdit",
+    path: `${APP_PREFIX_PATH}/sales/gallery/`,
+    component: lazy(() => import("@/views/inventory/Gallery")),
+    authority: [OWNER],
+    meta: {
+      header: "Galería",
+    },
+  },
+  {
+    key: "appsSales.productEdit",
     path: `${APP_PREFIX_PATH}/sales/delievery/`,
     component: lazy(() => import("@/views/inventory/Delievery")),
     authority: [OWNER],

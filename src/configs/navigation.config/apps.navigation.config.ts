@@ -59,6 +59,27 @@ const appsNavigationConfig: NavigationTree[] = [
         ],
       },
       {
+        key: "apps.gallery",
+        path: "",
+        title: "Galería",
+        translateKey: "nav.appsCrm.gallery",
+        icon: "knowledgeBase",
+        type: NAV_ITEM_TYPE_COLLAPSE,
+        authority: [OWNER],
+        subMenu: [
+          {
+            key: "appsSales.gallery",
+            path: `${APP_PREFIX_PATH}/sales/gallery`,
+            title: "Galería",
+            translateKey: "nav.appsSales.gallery",
+            icon: "",
+            type: NAV_ITEM_TYPE_ITEM,
+            authority: [OWNER],
+            subMenu: [],
+          }
+        ],
+      },
+      {
         key: "apps.supplies",
         path: "",
         title: "Insumo",

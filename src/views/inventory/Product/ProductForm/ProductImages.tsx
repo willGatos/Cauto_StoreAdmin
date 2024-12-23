@@ -8,10 +8,10 @@ import Upload from "@/components/ui/Upload";
 import { HiEye, HiTrash } from "react-icons/hi";
 import cloneDeep from "lodash/cloneDeep";
 import { Field, FieldProps, FieldInputProps, FormikProps } from "formik";
-import axios from "axios";
 import Spinner from "@/components/ui/Spinner";
 import Progress from "@/components/ui/Progress";
 import UploadWidget from "./components/Images";
+import supabase from "@/services/Supabase/BaseClient";
 
 type FormModel = {
   images: string[];
@@ -115,10 +115,6 @@ const ProductImages = (props: ProductImagesProps) => {
   const [progressBar, setProgressBar] = useState(0);
   const [error, updateError] = useState();
 
-  //   const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  //   const CLOUDINARY_UPLOAD_PRESET = import.meta.env
-  //     .VITE_CLOUDINARY_UPLOAD_PRESET;
-
   function handleOnUpload(error, result, widget) {
     if (error) {
       updateError(error);
@@ -128,8 +124,6 @@ const ProductImages = (props: ProductImagesProps) => {
       return;
     }
     setLocalImages((prevImages) => [...prevImages, result?.info?.secure_url]);
-
-    //setFieldValue("images", [...localImages, result?.info?.secure_url]);
   }
 
   //   const beforeUpload = (file: FileList | null) => {
@@ -248,6 +242,8 @@ const ProductImages = (props: ProductImagesProps) => {
         </Field>
       </FormItem>
 
+      <Gallery setLocalImages={setLocalImages} />
+
       {isLoading && (
         <div className="flex items-center">
           <Progress percent={progressBar} />
@@ -260,28 +256,168 @@ const ProductImages = (props: ProductImagesProps) => {
 
 export default ProductImages;
 
-// return (
-//   <Upload
-//     draggable
-//     beforeUpload={beforeUpload}
-//     showList={false}
-//     onChange={(files) => onUpload(form, field, files)}
-//   >
-//     <div className="my-16 text-center">
-//       <DoubleSidedImage
-//         className="mx-auto"
-//         src="/img/others/upload.png"
-//         darkModeSrc="/img/others/upload-dark.png"
-//       />
-//       <p className="font-semibold">
-//         <span className="text-gray-800 dark:text-white">
-//           Deja caer la imagen acá, o{" "}
-//         </span>
-//         <span className="text-blue-500">busca</span>
-//       </p>
-//       <p className="mt-1 opacity-60 dark:text-white">
-//         Aguanta: jpeg, png.
-//       </p>
-//     </div>
-//   </Upload>
-// );
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+
+function Gallery({ setLocalImages }) {
+  const [galleries, setGalleries] = useState([]);
+  const [selectedGallery, setSelectedGallery] = useState(null);
+  const [images, setImages] = useState([]);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [isGalleryDialogOpen, setIsGalleryDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchGalleries();
+  }, []);
+
+  async function fetchGalleries() {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await supabase.from("galleries").select("*");
+      if (error) throw error;
+      setGalleries(data);
+    } catch (error) {
+      console.error("Error al obtener galerías:", error);
+      setError(
+        "No se pudieron cargar las galerías. Por favor, intente de nuevo."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function fetchImages(galleryId) {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await supabase
+        .from("galleries_images")
+        .select("*")
+        .eq("gallery_id", galleryId);
+      if (error) throw error;
+      setImages(data);
+    } catch (error) {
+      console.error("Error al obtener imágenes:", error);
+      setError(
+        "No se pudieron cargar las imágenes. Por favor, intente de nuevo."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleSelectGallery = (gallery) => {
+    setSelectedGallery(gallery);
+    fetchImages(gallery.id);
+  };
+
+  const handleSelectImage = (image) => {
+    setSelectedImages((prev) => {
+      if (prev.find((img) => img.id === image.id)) {
+        return prev.filter((img) => img.id !== image.id);
+      } else {
+        return [...prev, image];
+      }
+    });
+    setLocalImages((prev) => {
+      if (prev.find((img) => img.id === image.id)) {
+        return prev.filter((img) => img !== image.url);
+      } else {
+        return [...prev, image.url];
+      }
+    });
+  };
+
+  return (
+    <div className="container mx-auto p-4">
+      {error && (
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
+      <Button type="button" onClick={() => setIsGalleryDialogOpen(true)}>
+        Acceder a Bibliotecas Imágenes
+      </Button>
+
+      <div>
+        <Dialog
+          isOpen={isGalleryDialogOpen}
+          onClose={() => setIsGalleryDialogOpen(false)}
+        >
+          <div className="max-w-4xl max-h-[80vh] flex flex-col">
+            <div>
+              <div>
+                {selectedGallery
+                  ? `Imágenes de ${selectedGallery.name}`
+                  : "Seleccionar Galería"}
+              </div>
+            </div>
+            <div className="flex-grow overflow-auto">
+              {isLoading ? (
+                <div className="flex justify-center items-center h-full">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : !selectedGallery ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
+                  {galleries.map((gallery) => (
+                    <Button
+                      key={gallery.id}
+                      type="button"
+                      variant="plain"
+                      onClick={() => handleSelectGallery(gallery)}
+                      className="h-24 flex flex-col items-center justify-center text-center"
+                    >
+                      <span className="font-semibold">{gallery.name}</span>
+                      <span className="text-sm text-gray-500">Seleccionar</span>
+                    </Button>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {images.map((image) => (
+                      <div
+                        key={image.id}
+                        className={`relative cursor-pointer border-2 ${
+                          selectedImages.find((img) => img.id === image.id)
+                            ? "border-blue-500"
+                            : "border-transparent"
+                        }`}
+                        onClick={() => handleSelectImage(image)}
+                      >
+                        <img
+                          src={image.url}
+                          alt={image.title}
+                          className="w-full h-24 object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            {selectedGallery && (
+              <div className="mt-4 flex justify-between">
+                <Button type="button" onClick={() => setSelectedGallery(null)}>
+                  Volver a Galerías
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setIsGalleryDialogOpen(false)}
+                >
+                  Confirmar Selección
+                </Button>
+              </div>
+            )}
+          </div>
+        </Dialog>
+      </div>
+    </div>
+  );
+}
