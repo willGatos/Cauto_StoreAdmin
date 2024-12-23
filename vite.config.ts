@@ -11,17 +11,17 @@ export default defineConfig({
       registerType: "autoUpdate",
       workbox: {
         runtimeCaching: [
-          // {
-          //   urlPattern: /^https:\/\/lnuqlwcfdxstcdbjfyun\.supabase\.co\/rest\/v1\/.*$/, // Ajusta la URL de Supabase
-          //   handler: 'StaleWhileRevalidate',
-          //   options: {
-          //     cacheName: 'supabase-api-cache',
-          //     expiration: {
-          //       maxEntries: 50,
-          //       maxAgeSeconds: 24 * 60 * 60, // Cache por 1 día
-          //     },
-          //   },
-          // },
+          {
+            urlPattern: /^https:\/\/lnuqlwcfdxstcdbjfyun\.supabase\.co\/rest\/v1\/.*$/, // Ajusta la URL de Supabase
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'supabase-api-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 24 * 60 * 60, // Cache por 1 día
+              },
+            },
+          },
           {
             urlPattern: /\.(js|css)$/, // Match all JS and CSS files
             handler: 'StaleWhileRevalidate',

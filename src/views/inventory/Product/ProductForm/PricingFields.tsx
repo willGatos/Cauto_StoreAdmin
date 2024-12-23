@@ -123,7 +123,7 @@ const PricingFields = (props: PricingFieldsProps) => {
         </div>
         <div className="col-span-1">
           <FormItem
-            label="Precio Estándar"
+            label="Precio en el Catálogo"
             invalid={
               (errors.standard_price && touched.standard_price) as boolean
             }
@@ -223,7 +223,7 @@ const PricingFields = (props: PricingFieldsProps) => {
         </div>
         <div className="col-span-1">
           <FormItem
-            label="Comisión"
+            label="Comisión del Gestor"
             invalid={(errors.commission && touched.commission) as boolean}
             errorMessage={errors.commission}
           >

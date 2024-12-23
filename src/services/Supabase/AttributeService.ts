@@ -99,6 +99,18 @@ export const supabaseService = {
 
     return productsWithVariations;
   },
+  getAttributes: async (shopId): Promise<Attribute[]> => {
+    const { data, error: valuesError } = await supabase
+      .from("attributes")
+      .select("id, name, values:attribute_values(id, value)")
+      .eq("shopId", shopId);
+    if (valuesError) throw valuesError;
+    if (valuesError) {
+      console.error("Error fetching attribute values:", valuesError);
+      return [];
+    }
+    return data;
+  },
   getCategories: async (): Promise<Category[]> => {
     if (!supabase) {
       console.error("Supabase client is not initialized");
@@ -126,37 +138,6 @@ export const supabaseService = {
       }
     });
     return rootCategories;
-  },
-  getAttributes: async (): Promise<Attribute[]> => {
-    if (!supabase) {
-      console.error("Supabase client is not initialized");
-      return [];
-    }
-    const { data: attributes, error: attributesError } = await supabase
-      .from("attributes")
-      .select("*")
-      .order("id");
-    if (attributesError) {
-      console.error("Error fetching attributes:", attributesError);
-      return [];
-    }
-
-    const { data: attributeValues, error: valuesError } = await supabase
-      .from("attribute_values")
-      .select("*")
-      .order("id");
-    if (valuesError) {
-      console.error("Error fetching attribute values:", valuesError);
-      return [];
-    }
-
-    return (
-      attributes?.map((attribute) => ({
-        ...attribute,
-        values:
-          attributeValues?.filter((value) => value.type === attribute.id) || [],
-      })) || []
-    );
   },
   getSupplies: async (shopId): Promise<Supply[]> => {
     const { data: supplies, error: suppliesError } = await supabase

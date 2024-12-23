@@ -13,16 +13,6 @@ import { useEffect, useState } from "react";
 import { ProductData } from "../ProductForm";
 import UploadWidget from "./Images";
 
-interface Attribute {
-  id: number;
-  name: string;
-  values: AttributeValue[];
-}
-
-interface AttributeValue {
-  id: number;
-  value: string;
-}
 
 interface ProductVariation {
   id?: number;
@@ -38,14 +28,8 @@ interface ProductVariation {
 }
 
 // Mock service
-const mockService = {
-  getAttributes: async (): Promise<Attribute[]> => {
-    const { data, error } = await supabase
-      .from("attributes")
-      .select("id, name, values:attribute_values(id, value)");
-    if (error) throw error;
-    return data;
-  },
+export const mockService = {
+  
   getCurrencies: async (): Promise<Currency[]> => {
     const { data, error } = await supabase.from("currency").select("*");
     if (error) throw error;
@@ -109,7 +93,6 @@ export default function ProductVariationGenerator({
 
   useEffect(() => {
     const loadData = async () => {
-      const attributesData = await mockService.getAttributes();
       const currenciesData = await mockService.getCurrencies();
       setAttributes(attributesData);
       setCurrencies(currenciesData);
@@ -498,6 +481,17 @@ export default function ProductVariationGenerator({
                     />
                   </div>
                 )}
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={() => {
+                    setVariations((preVariation) =>
+                      preVariation.filter((_, i) => i !== index)
+                    );
+                  }}
+                >
+                  Eliminar Variación
+                </Button>
               </div>
             ))}
           </div>

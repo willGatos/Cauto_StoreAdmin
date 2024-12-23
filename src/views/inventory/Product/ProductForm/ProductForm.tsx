@@ -21,6 +21,8 @@ import { useAppSelector } from "@/store";
 import { Loading } from "@/components/shared";
 import HandleFeedback from "@/components/ui/FeedBack";
 import { useCategories } from "./components/Categories/hook/useCategories";
+import Attributes from "./Attributes";
+import { Attribute as TypeAttribute } from "@/@types/products";
 
 export type ProductVariation = {
   id: any;
@@ -435,6 +437,7 @@ const productSchema = Yup.object().shape({
     "El precio estándar no puede ser negativo"
   ),
   status: Yup.number().oneOf([0, 1, 2, 3]),
+
   variations: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required("El nombre de la variación es requerido"),
@@ -544,6 +547,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
   });
 
   const [supplies, setSupplies] = useState<Supply[]>([]);
+  const [attributes, setAttributes] = useState<TypeAttribute[]>([]);
   const { shopId } = useAppSelector((state) => state.auth.user);
 
   const { categories } = useCategories();
@@ -551,6 +555,10 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
     setLoading(true);
     supabaseService
       .getSupplies(shopId)
+      .then((data) => setSupplies(transformArrayToObjectArray(data)));
+
+    supabaseService
+      .getAttributes(shopId)
       .then((data) => setSupplies(transformArrayToObjectArray(data)));
   }, []);
 
@@ -684,6 +692,14 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                       />
                     )}
                     {values.type !== "simple" && (
+                      <Attributes
+                        attributes={attributes}
+                        touched={touched}
+                        errors={errors}
+                        values={values}
+                      />
+                    )}
+                    {values.type !== "simple" && (
                       <Attribute
                         touched={touched}
                         errors={errors}
@@ -694,6 +710,29 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                         setFieldValue={setFieldValue}
                       />
                     )}
+                  </div>
+                  <div>
+                    <Button
+                      variant="default"
+                      type="button"
+                      onClick={() => {
+                        setVariations((preVariation) => [
+                          ...preVariation,
+                          {
+                            id: "",
+                            supply_variation: [],
+                            supply_variations: [],
+                            name: "",
+                            price: 0,
+                            stock: 0,
+                            pictures: [],
+                            currency_id: 0,
+                          },
+                        ]);
+                      }}
+                    >
+                      Añadir Variación
+                    </Button>
                   </div>
                   <div className="lg:col-span-1">
                     <ProductImages
