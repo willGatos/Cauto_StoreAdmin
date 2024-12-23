@@ -14,7 +14,7 @@ const WithRouterLink = () => {
                     </Link>
                 </Dropdown.Item>
                 <Dropdown.Item>
-                    <Link className="menu-item-link" to="/ui-components/button">
+                    <Link className="menu-item-link" to="/ui-components/Button">
                         Button
                     </Link>
                 </Dropdown.Item>
@@ -24,7 +24,7 @@ const WithRouterLink = () => {
                     </Link>
                 </Dropdown.Item>
                 <Dropdown.Item>
-                    <Link className="menu-item-link" to="/ui-components/dialog">
+                    <Link className="menu-item-link" to="/ui-components/Dialog">
                         Dialog
                     </Link>
                 </Dropdown.Item>

@@ -256,7 +256,7 @@ const ProductImages = (props: ProductImagesProps) => {
 
 export default ProductImages;
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Loader2 } from "lucide-react";
 
 function Gallery({ setLocalImages }) {

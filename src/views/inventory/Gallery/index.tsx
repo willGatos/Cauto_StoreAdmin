@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import supabase from "@/services/Supabase/BaseClient";
 import GalleryList from "./GalleryList";
 import ImageList from "./ImageList";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/Button";
 import { Loader2 } from "lucide-react";
 import UploadWidget from "../Product/ProductForm/components/Images";
 
