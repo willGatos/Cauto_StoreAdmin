@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Upload } from "lucide-react";
 import axios from "axios";
 import Compressor from "compressorjs";
-import { Progress } from "@/components/ui/progress";
+import Progress from "@/components/ui/progress";
 
 interface UploadProgress {
   [key: string]: {

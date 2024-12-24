@@ -8,7 +8,7 @@ import {
   Supply,
   SupplyVariation,
 } from "@/views/inventory/Supply/List/Data/types";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, FolderPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ProductData } from "../ProductForm";
 import UploadWidget from "./Images";
@@ -91,9 +91,87 @@ export default function ProductVariationGenerator({
   const [requiresStock, setRequiresStock] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [progressBar, setProgressBar] = useState(0);
-  const [error, updateError] = useState();
   const [selectedImg, setSelectedImg] = useState<string>({} as string);
   const [viewOpen, setViewOpen] = useState(false);
+  const [selectedGallery, setSelectedGallery] = useState(null);
+  const [images, setImages] = useState([]);
+  const [isGalleryDialogOpen, setIsGalleryDialogOpen] = useState(false);
+  const [galleries, setGalleries] = useState([]);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [error, setError] = useState(null);
+
+  const handleSelectGallery = (gallery) => {
+    setSelectedGallery(gallery);
+    fetchImages(gallery.id);
+  };
+
+  useEffect(() => {
+    fetchGalleries();
+  }, []);
+
+  async function fetchGalleries() {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await supabase.from("galleries").select("*");
+      if (error) throw error;
+      setGalleries(data);
+    } catch (error) {
+      console.error("Error al obtener galerías:", error);
+      setError(
+        "No se pudieron cargar las galerías. Por favor, intente de nuevo."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function fetchImages(galleryId) {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await supabase
+        .from("galleries_images")
+        .select("*")
+        .eq("gallery_id", galleryId);
+      if (error) throw error;
+      setImages(data);
+    } catch (error) {
+      console.error("Error al obtener imágenes:", error);
+      setError(
+        "No se pudieron cargar las imágenes. Por favor, intente de nuevo."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  const handleSelectImage = (image, index) => {
+    setSelectedImages((prev) => {
+      if (prev.find((img) => img.id === image.id)) {
+        return prev.filter((img) => img.id !== image.id);
+      } else {
+        return [...prev, image];
+      }
+    });
+    // Actualizar el estado con una imagen de carga
+    setVariations((prev) => {
+      const updatedVariation = { ...prev[index] };
+      updatedVariation.pictures = [...updatedVariation.pictures, "loading"];
+      return prev.map((v, i) => (i === index ? updatedVariation : v));
+    });
+
+    // Simular la subida de la imagen (reemplaza esto con tu lógica real de subida)
+    const imageUrl = image.url;
+
+    // Actualizar el estado con la URL real de la imagen
+    setVariations((prev) => {
+      const updatedVariation = { ...prev[index] };
+      updatedVariation.pictures = updatedVariation.pictures.map((pic) =>
+        pic === "loading" ? imageUrl : pic
+      );
+      return prev.map((v, i) => (i === index ? updatedVariation : v));
+    });
+  };
 
   const onViewOpen = (img: string) => {
     setSelectedImg(img);
@@ -208,7 +286,7 @@ export default function ProductVariationGenerator({
 
   const handleImageUpload = async (error, result, widget, index: number) => {
     if (error) {
-      updateError(error);
+      setError(error);
       widget.close({
         quiet: true,
       });
@@ -452,6 +530,12 @@ export default function ProductVariationGenerator({
                         );
                       }}
                     </UploadWidget>
+                    <Button
+                      type="button"
+                      onClick={() => setIsGalleryDialogOpen(true)}
+                    >
+                      <FolderPlus />
+                    </Button>
                   </div>
                 </div>
 
@@ -498,6 +582,45 @@ export default function ProductVariationGenerator({
                     />
                   </div>
                 )}
+
+                {/* <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Insumos
+                  </label>
+                  <Select
+                    isMulti
+                    name={`supplies-${index}`}
+                    placeholder="Seleccione Valores del Atributo"
+                    value={variation?.supply_variation}
+                    options={supplies
+                      .map(({ supply_variation, value }) => {
+                        const data = supply_variation
+                          .filter(
+                            (variation) =>
+                              values.supplies.includes(value) &&
+                              variation.supply_id === value
+                          )
+                          .map((filteredVariation) => ({
+                            ...filteredVariation,
+                            label: filteredVariation.description,
+                            value: filteredVariation.id,
+                          }))
+                          .flat();
+                        return data;
+                      })
+                      .flat()}
+                    onChange={(option) => {
+                      handleVariationChange(
+                        index,
+                        "supply_variations",
+                        option.map((op) => (op.id ? op.id : op))
+                      );
+
+                      handleVariationChange(index, "supply_variation", option);
+                    }}
+                  />
+                </div> */}
+
                 <Button
                   type="button"
                   variant="default"
@@ -509,6 +632,86 @@ export default function ProductVariationGenerator({
                 >
                   Eliminar Variación
                 </Button>
+                <Dialog
+                  isOpen={isGalleryDialogOpen}
+                  onClose={() => setIsGalleryDialogOpen(false)}
+                >
+                  <div className="max-w-4xl max-h-[80vh] flex flex-col">
+                    <div>
+                      <div>
+                        {selectedGallery
+                          ? `Imágenes de ${selectedGallery.name}`
+                          : "Seleccionar Galería"}
+                      </div>
+                    </div>
+                    <div className="flex-grow overflow-auto">
+                      {isLoading ? (
+                        <div className="flex justify-center items-center h-full">
+                          <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                      ) : !selectedGallery ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
+                          {galleries.map((gallery) => (
+                            <Button
+                              key={gallery.id}
+                              type="button"
+                              variant="plain"
+                              onClick={() => handleSelectGallery(gallery)}
+                              className="h-24 flex flex-col items-center justify-center text-center"
+                            >
+                              <span className="font-semibold">
+                                {gallery.name}
+                              </span>
+                              <span className="text-sm text-gray-500">
+                                Seleccionar
+                              </span>
+                            </Button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-4">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            {images.map((image) => (
+                              <div
+                                key={image.id}
+                                className={`relative cursor-pointer border-2 ${
+                                  selectedImages.find(
+                                    (img) => img.id === image.id
+                                  )
+                                    ? "border-blue-500"
+                                    : "border-transparent"
+                                }`}
+                                onClick={() => handleSelectImage(image, index)}
+                              >
+                                <img
+                                  src={image.url}
+                                  alt={image.title}
+                                  className="w-full h-24 object-cover"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    {selectedGallery && (
+                      <div className="mt-4 flex justify-between">
+                        <Button
+                          type="button"
+                          onClick={() => setSelectedGallery(null)}
+                        >
+                          Volver a Galerías
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => setIsGalleryDialogOpen(false)}
+                        >
+                          Confirmar Selección
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </Dialog>
               </div>
             ))}
           </div>
@@ -521,6 +724,7 @@ export default function ProductVariationGenerator({
       >
         <img className="w-full" src={selectedImg} alt={"img"} />
       </Dialog>
+      <div></div>
     </div>
   );
 }

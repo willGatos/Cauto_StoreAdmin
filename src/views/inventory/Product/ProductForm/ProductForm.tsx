@@ -387,6 +387,7 @@ export type ProductData = {
   variations?: ProductVariation[];
   images: string[];
   supplies: string[];
+  attributes: [];
 };
 
 export function transformArrayToObjectArray(array: any) {
@@ -511,7 +512,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
       price: 0,
       stock: 0,
       pictures: [],
-      currency_id: 0,
+      currency_id: 1,
     },
   ]);
   const [error, setError] = useState<string | null>(null);
@@ -544,6 +545,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
     standard_price: 0,
     status: 0,
     supplies: [],
+    attributes: [],
   });
 
   const [supplies, setSupplies] = useState<Supply[]>([]);
@@ -559,7 +561,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
 
     supabaseService
       .getAttributes(shopId)
-      .then((data) => setSupplies(transformArrayToObjectArray(data)));
+      .then((data) => setAttributes(transformArrayToObjectArray(data)));
   }, []);
 
   useEffect(() => {

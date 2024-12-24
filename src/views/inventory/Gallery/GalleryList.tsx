@@ -1,8 +1,7 @@
-import React from "react";
 import { Loader2 } from 'lucide-react';
 import CreateGallery from "./CRUD/Create";
-import EditGallery from "./CRUD/Edit";
 import DeleteGallery from "./CRUD/Delete";
+import EditGallery from "./CRUD/Edit";
 
 interface Gallery {
   id: string;

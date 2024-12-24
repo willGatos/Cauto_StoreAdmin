@@ -55,12 +55,10 @@ const Attributes = (props: SuppliesProps) => {
 
   return (
     <AdaptableCard divider className="mb-4">
-      <h5>Sistema de Precios</h5>
-      <p className="mb-6">Configuración de Precios</p>
+      <h5>Atributos</h5>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="col-span-1">
           <FormItem
-            label="Insumos"
             invalid={(errors.attributes && touched.attributes) as boolean}
             errorMessage={errors.attributes}
           >
@@ -69,7 +67,7 @@ const Attributes = (props: SuppliesProps) => {
                 <Select
                   isMulti
                   name="attributes"
-                  placeholder="Seleccione insumos"
+                  placeholder="Seleccione Atributos"
                   defaultValue={values.attributes
                     .map((supply) => attributes.find((s) => s.value === supply))
                     .filter(Boolean)}

@@ -55,8 +55,6 @@ const Supplies = (props: SuppliesProps) => {
 
   return (
     <AdaptableCard divider className="mb-4">
-      <h5>Sistema de Precios</h5>
-      <p className="mb-6">Configuración de Precios</p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="col-span-1">
           <FormItem
