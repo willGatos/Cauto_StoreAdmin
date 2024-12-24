@@ -2,16 +2,29 @@ import React, { useState, useEffect } from "react";
 import supabase from "@/services/Supabase/BaseClient";
 import GalleryList from "./GalleryList";
 import ImageList from "./ImageList";
-import { Button } from "@/components/ui/Button";
-import { Loader2 } from "lucide-react";
-import UploadWidget from "../Product/ProductForm/components/Images";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Loader2, Upload } from "lucide-react";
+import axios from "axios";
+import Compressor from "compressorjs";
+import { Progress } from "@/components/ui/progress";
+
+interface UploadProgress {
+  [key: string]: {
+    progress: number;
+    status: "preparing" | "uploading" | "completed";
+  };
+}
 
 export default function GalleryManager() {
   const [galleries, setGalleries] = useState([]);
   const [selectedGallery, setSelectedGallery] = useState(null);
+  const [images, setImages] = useState([]);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGalleryDialogOpen, setIsGalleryDialogOpen] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({});
+  const [totalProgress, setTotalProgress] = useState(0);
 
   useEffect(() => {
     fetchGalleries();
@@ -22,6 +35,19 @@ export default function GalleryManager() {
       fetchImages(selectedGallery.id);
     }
   }, [selectedGallery]);
+
+  useEffect(() => {
+    // Calculate total progress whenever uploadProgress changes
+    const progressValues = Object.values(uploadProgress);
+    if (progressValues.length > 0) {
+      const totalProgressSum = progressValues.reduce(
+        (sum, current) => sum + current.progress,
+        0
+      );
+      const averageProgress = totalProgressSum / progressValues.length;
+      setTotalProgress(averageProgress);
+    }
+  }, [uploadProgress]);
 
   async function fetchGalleries() {
     setIsLoading(true);
@@ -49,7 +75,7 @@ export default function GalleryManager() {
         .select("*")
         .eq("gallery_id", galleryId);
       if (error) throw error;
-      setLocalImages(data);
+      setImages(data);
     } catch (error) {
       console.error("Error al obtener imágenes:", error);
       setError(
@@ -107,7 +133,7 @@ export default function GalleryManager() {
       fetchGalleries();
       if (selectedGallery && selectedGallery.id === id) {
         setSelectedGallery(null);
-        setLocalImages([]);
+        setImages([]);
       }
     } catch (error) {
       console.error("Error al eliminar galería:", error);
@@ -162,21 +188,86 @@ export default function GalleryManager() {
     setIsGalleryDialogOpen(true);
   };
 
-  const [localImages, setLocalImages] = useState([]);
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !selectedGallery) return;
 
-  function handleOnUpload(error, result, widget) {
-    if (error) {
-      setError(error);
-      widget.close({
-        quiet: true,
-      });
-      return;
+    setIsLoading(true);
+    setError(null);
+    setUploadProgress({});
+
+    // Initialize progress for all files
+    const initialProgress: UploadProgress = {};
+    Array.from(files).forEach((_, index) => {
+      initialProgress[index] = { progress: 0, status: "preparing" };
+    });
+    setUploadProgress(initialProgress);
+
+    const uploadPromises = Array.from(files).map(
+      (file, index) =>
+        new Promise<string>((resolve, reject) => {
+          new Compressor(file, {
+            quality: 0.6,
+            success(result) {
+              setUploadProgress((prev) => ({
+                ...prev,
+                [index]: { ...prev[index], status: "uploading" },
+              }));
+
+              const formData = new FormData();
+              formData.append("file", result);
+              formData.append("upload_preset", "events");
+
+              axios
+                .post(
+                  "https://api.cloudinary.com/v1_1/dolzgvsos/image/upload",
+                  formData,
+                  {
+                    onUploadProgress: (progressEvent) => {
+                      const percentCompleted = Math.round(
+                        (progressEvent.loaded * 100) / progressEvent.total!
+                      );
+                      setUploadProgress((prev) => ({
+                        ...prev,
+                        [index]: {
+                          progress: percentCompleted,
+                          status: "uploading",
+                        },
+                      }));
+                    },
+                  }
+                )
+                .then((response) => {
+                  setUploadProgress((prev) => ({
+                    ...prev,
+                    [index]: { progress: 100, status: "completed" },
+                  }));
+                  resolve(response.data.secure_url);
+                })
+                .catch((error) => {
+                  console.error("Error uploading image:", error);
+                  reject(error);
+                });
+            },
+            error(err) {
+              console.error("Error compressing image:", err);
+              reject(err);
+            },
+          });
+        })
+    );
+
+    try {
+      const uploadedUrls = await Promise.all(uploadPromises);
+      for (const url of uploadedUrls) {
+        await addImage(url);
+      }
+    } catch (err) {
+      setError("Error uploading images. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-    const re = result?.info?.secure_url;
-    if (re.trim()) {
-      addImage(re.trim());
-    }
-  }
+  };
 
   return (
     <div className="container mx-auto p-4">
@@ -209,39 +300,45 @@ export default function GalleryManager() {
                 <div className="flex justify-center items-center h-full">
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
-              ) : localImages.length === 0 ? (
+              ) : images.length === 0 ? (
                 <p className="text-gray-500 mt-4 text-center">
                   No hay imágenes en esta galería.
                 </p>
               ) : (
-                <ImageList images={localImages} onRemoveImage={removeImage} />
+                <ImageList images={images} onRemoveImage={removeImage} />
               )}
             </div>
-            <div className="mt-4 flex items-center gap-2">
-              {/* <Input
-                type="text"
-                value={newImageUrl}
-                onChange={(e) => setNewImageUrl(e.target.value)}
-                placeholder="URL de la nueva imagen"
-                className="flex-grow"
-              /> */}
-              <UploadWidget onUpload={handleOnUpload}>
-                {({ open }) => {
-                  function handleOnClick(e) {
-                    e.preventDefault();
-                    open();
-                  }
-                  return (
-                    <Button onClick={handleOnClick} disabled={isLoading}>
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "Añadir"
-                      )}
-                    </Button>
-                  );
-                }}
-              </UploadWidget>
+            <div className="mt-4">
+              <Input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={isLoading}
+              />
+              {isLoading && Object.keys(uploadProgress).length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-lg font-semibold mb-2">Total Progress</h3>
+                  <Progress percent={totalProgress} className="w-full" />
+                  <div className="mt-4">
+                    {Object.entries(uploadProgress).map(
+                      ([index, { progress, status }]) => (
+                        <div key={index} className="mb-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Image {parseInt(index) + 1}</span>
+                            <span>
+                              {status === "preparing"
+                                ? "Preparing..."
+                                : `${progress}%`}
+                            </span>
+                          </div>
+                          <Progress percent={progress} className="w-full" />
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="mt-4 flex justify-end">
               <Button onClick={() => setIsGalleryDialogOpen(false)}>
