@@ -13,6 +13,8 @@ import { useEffect, useState } from "react";
 import { ProductData } from "../ProductForm";
 import UploadWidget from "./Images";
 import { Attribute, AttributeValue } from "@/@types/products";
+import VariationSelectionType from "./variationSelectionType";
+import Attributes from "../Attributes";
 
 interface ProductVariation {
   id?: number;
@@ -90,6 +92,8 @@ export default function ProductVariationGenerator({
   const [galleries, setGalleries] = useState([]);
   const [selectedImages, setSelectedImages] = useState([]);
   const [error, setError] = useState(null);
+  const [variationSelectionType, setVariationSelectionType] =
+    useState("generate");
 
   const handleSelectGallery = (gallery) => {
     setSelectedGallery(gallery);
@@ -336,45 +340,66 @@ export default function ProductVariationGenerator({
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        Generador de Variantes de Producto
-      </h1>
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">
-          Seleccione los atributos del producto relavantes para el Cliente:
-        </h2>
-        {attributes.map((attribute) => (
-          <div key={attribute.id} className="mb-4">
-            <h3 className="text-lg font-medium mb-2">{attribute.name}</h3>
-            <div className="flex flex-wrap gap-4">
-              {attribute.values.map((value) => (
-                <div key={value.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`attr-${attribute.id}-${value.id}`}
-                    checked={
-                      selectedAttributes[attribute.id]?.includes(value.id) ||
-                      false
-                    }
-                    onChange={(checked) =>
-                      handleAttributeValueChange(
-                        attribute.id,
-                        value.id,
-                        checked === true
-                      )
-                    }
-                  />
-                  <label
-                    htmlFor={`attr-${attribute.id}-${value.id}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {value.value}
-                  </label>
+      <VariationSelectionType
+        value={variationSelectionType}
+        setValue={setVariationSelectionType}
+      />
+      {variationSelectionType == "generate" ? (
+        <>
+          <h1 className="text-2xl font-bold mb-4">
+            Generador de Variantes de Producto
+          </h1>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-2">
+              Seleccione los atributos del producto relavantes para el Cliente:
+            </h2>
+            {attributes.map((attribute) => (
+              <div key={attribute.id} className="mb-4">
+                <h3 className="text-lg font-medium mb-2">{attribute.name}</h3>
+                <div className="flex flex-wrap gap-4">
+                  {attribute.values.map((value) => (
+                    <div key={value.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`attr-${attribute.id}-${value.id}`}
+                        checked={
+                          selectedAttributes[attribute.id]?.includes(
+                            value.id
+                          ) || false
+                        }
+                        onChange={(checked) =>
+                          handleAttributeValueChange(
+                            attribute.id,
+                            value.id,
+                            checked === true
+                          )
+                        }
+                      />
+                      <label
+                        htmlFor={`attr-${attribute.id}-${value.id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {value.value}
+                      </label>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+          <Button type="button" onClick={generateVariations} className="mb-6">
+            Generar Variaciones
+          </Button>
+        </>
+      ) : (
+        values.type !== "simple" && (
+          <Attributes
+            attributes={attributes}
+            touched={touched}
+            errors={errors}
+            values={values}
+          />
+        )
+      )}
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-2">
           Seleccione la moneda para todos las variaciones:
@@ -392,9 +417,6 @@ export default function ProductVariationGenerator({
           ))}
         </select>
       </div>
-      <Button type="button" onClick={generateVariations} className="mb-6">
-        Generar Variaciones
-      </Button>
       {variations.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-2">Variaciones Generadas:</h2>
@@ -606,6 +628,7 @@ export default function ProductVariationGenerator({
                 </div>
 
                 <Button
+                  className="mt-5"
                   type="button"
                   variant="default"
                   onClick={() => {
@@ -708,7 +731,30 @@ export default function ProductVariationGenerator({
       >
         <img className="w-full" src={selectedImg} alt={"img"} />
       </Dialog>
-      <div></div>
+      <div>
+        <Button
+          className="mt-5"
+          variant="default"
+          type="button"
+          onClick={() => {
+            setVariations((preVariation) => [
+              ...preVariation,
+              {
+                id: "",
+                supply_variation: [],
+                supply_variations: [],
+                name: "",
+                price: 0,
+                stock: 0,
+                pictures: [],
+                currency_id: 1,
+              },
+            ]);
+          }}
+        >
+          Añadir Variación
+        </Button>
+      </div>
     </div>
   );
 }

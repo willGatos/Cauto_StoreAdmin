@@ -10,10 +10,10 @@ function SubTable({ data }) {
       header: 'ID',
       accessorKey: 'id',
     },
-    {
-      header: 'Nombre',
-      accessorKey: 'name',
-    },
+    // {
+    //   header: 'Nombre',
+    //   accessorKey: 'name',
+    // },
     {
       header: 'Precio',
       accessorKey: 'price',

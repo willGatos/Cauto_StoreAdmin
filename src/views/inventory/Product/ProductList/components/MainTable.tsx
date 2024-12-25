@@ -98,10 +98,10 @@ function MainTable({
         header: "Precio",
         accessorKey: "standard_price",
       },
-      {
-        header: "Categoría",
-        accessorKey: "category.name",
-      },
+      // {
+      //   header: "Categoría",
+      //   accessorKey: "category.name",
+      // },
       {
         header: "Tipo",
         //accessorKey: "type",
@@ -127,10 +127,6 @@ function MainTable({
             </div>
           );
         },
-      },
-      {
-        header: "Estado",
-        accessorKey: "state",
       },
       {
         header: "Acciones",

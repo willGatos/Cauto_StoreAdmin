@@ -123,7 +123,7 @@ const PricingFields = (props: PricingFieldsProps) => {
         </div>
         <div className="col-span-1">
           <FormItem
-            label="Precio en el Catálogo"
+            label="Precio en el Catálogo( $0 No se Presentará el precio en el Catálogo)"
             invalid={
               (errors.standard_price && touched.standard_price) as boolean
             }

@@ -693,14 +693,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                         supplies={supplies}
                       />
                     )}
-                    {values.type !== "simple" && (
-                      <Attributes
-                        attributes={attributes}
-                        touched={touched}
-                        errors={errors}
-                        values={values}
-                      />
-                    )}
+                    
                     {values.type !== "simple" && (
                       <Attribute
                         touched={touched}
@@ -714,30 +707,8 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                       />
                     )}
                   </div>
+                  
                   <div>
-                    <Button
-                      variant="default"
-                      type="button"
-                      onClick={() => {
-                        setVariations((preVariation) => [
-                          ...preVariation,
-                          {
-                            id: "",
-                            supply_variation: [],
-                            supply_variations: [],
-                            name: "",
-                            price: 0,
-                            stock: 0,
-                            pictures: [],
-                            currency_id: 0,
-                          },
-                        ]);
-                      }}
-                    >
-                      Añadir Variación
-                    </Button>
-                  </div>
-                  <div className="lg:col-span-1">
                     <ProductImages
                       localImages={localImages}
                       setLocalImages={setLocalImages}
