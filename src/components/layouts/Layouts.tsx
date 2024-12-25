@@ -12,6 +12,7 @@ import {
 import useAuth from '@/utils/hooks/useAuth'
 import useDirection from '@/utils/hooks/useDirection'
 import useLocale from '@/utils/hooks/useLocale'
+import { ConnectionBadge } from '../ui/Connection'
 
 const layouts = {
     [LAYOUT_TYPE_CLASSIC]: lazy(() => import('./ClassicLayout')),
@@ -47,6 +48,8 @@ const Layout = () => {
             }
         >
             <AppLayout />
+            <ConnectionBadge />
+
         </Suspense>
     )
 }
