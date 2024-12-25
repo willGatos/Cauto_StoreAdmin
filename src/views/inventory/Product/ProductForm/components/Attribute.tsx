@@ -12,17 +12,7 @@ import { Loader2, X, FolderPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ProductData } from "../ProductForm";
 import UploadWidget from "./Images";
-
-interface Attribute {
-  id: number;
-  name: string;
-  values: AttributeValue[];
-}
-
-interface AttributeValue {
-  id: number;
-  value: string;
-}
+import { Attribute, AttributeValue } from "@/@types/products";
 
 interface ProductVariation {
   id?: number;
@@ -69,18 +59,19 @@ interface ProductVariationGeneratorProps {
   supplies: Supply[];
   values: ProductData;
   variations;
+  attributes: Attribute[];
 }
 
 export default function ProductVariationGenerator({
   onVariationsChange = () => {},
   variations,
+  attributes,
   setVariations,
   supplies,
   values,
   errors,
   touched,
 }: ProductVariationGeneratorProps) {
-  const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [selectedAttributes, setSelectedAttributes] = useState<
     Record<number, number[]>
@@ -187,9 +178,7 @@ export default function ProductVariationGenerator({
 
   useEffect(() => {
     const loadData = async () => {
-      const attributesData = await mockService.getAttributes();
       const currenciesData = await mockService.getCurrencies();
-      setAttributes(attributesData);
       setCurrencies(currenciesData);
       setSelectedCurrency(currenciesData[0]);
     };
@@ -264,7 +253,11 @@ export default function ProductVariationGenerator({
         created_at: new Date().toISOString(),
         pictures: [],
         currency_id: 1,
-        attributes: combo,
+        attributes: combo.map((atV) => ({
+          ...atV,
+          label: atV.value,
+          value: atV.id,
+        })),
       })
     );
 
@@ -583,26 +576,23 @@ export default function ProductVariationGenerator({
                   </div>
                 )}
 
-                {/* <div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Insumos
+                    Valores de los Atributos
                   </label>
                   <Select
                     isMulti
                     name={`supplies-${index}`}
                     placeholder="Seleccione Valores del Atributo"
-                    value={variation?.supply_variation}
-                    options={supplies
-                      .map(({ supply_variation, value }) => {
-                        const data = supply_variation
-                          .filter(
-                            (variation) =>
-                              values.supplies.includes(value) &&
-                              variation.supply_id === value
-                          )
+                    value={variation?.attributes}
+                    options={attributes
+                      .map((at) => {
+                        console.log("AS", at);
+                        const data = at.values
+                          .filter((value) => values.attributes.includes(at.id))
                           .map((filteredVariation) => ({
                             ...filteredVariation,
-                            label: filteredVariation.description,
+                            label: filteredVariation.value,
                             value: filteredVariation.id,
                           }))
                           .flat();
@@ -610,16 +600,10 @@ export default function ProductVariationGenerator({
                       })
                       .flat()}
                     onChange={(option) => {
-                      handleVariationChange(
-                        index,
-                        "supply_variations",
-                        option.map((op) => (op.id ? op.id : op))
-                      );
-
-                      handleVariationChange(index, "supply_variation", option);
+                      handleVariationChange(index, "attributes", option);
                     }}
                   />
-                </div> */}
+                </div>
 
                 <Button
                   type="button"

@@ -693,19 +693,20 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                         supplies={supplies}
                       />
                     )}
-                    {/* {values.type !== "simple" && (
+                    {values.type !== "simple" && (
                       <Attributes
                         attributes={attributes}
                         touched={touched}
                         errors={errors}
                         values={values}
                       />
-                    )} */}
+                    )}
                     {values.type !== "simple" && (
                       <Attribute
                         touched={touched}
                         errors={errors}
                         values={values}
+                        attributes={attributes}
                         supplies={supplies}
                         variations={variations}
                         setVariations={setVariations}
