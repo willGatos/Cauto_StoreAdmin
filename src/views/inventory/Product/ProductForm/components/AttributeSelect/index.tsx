@@ -1,58 +1,49 @@
 import * as React from "react";
 import { Search, X, ChevronDown } from "lucide-react";
-import { Category } from "./mock";
-import {
-  processCategories,
-  flattenCategories,
-  searchCategories,
-} from "./utils/index";
+import { Attribute } from "@/@types/products";
+import { searchCategories } from "./utils/index";
 import { Input } from "@/components/ui/Input";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Dialog } from "@/components/ui";
 
-interface CategorySelectProps {
-  categories: Category[];
-  onSelectionChange: (selectedCategories: Category[]) => void;
+interface AttributeSelectProps {
+  attributes: Attribute[];
+  onSelectionChange: (selectedCategories) => void;
   setSelectedIds;
   selectedIds;
 }
 
-export function CategorySelect({
-  categories,
+export function AttributeSelect({
+  attributes,
   onSelectionChange,
   selectedIds,
   setSelectedIds,
-}: CategorySelectProps) {
+}: AttributeSelectProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [open, setOpen] = React.useState(false);
-  const processedCategories = React.useMemo(
-    () => processCategories(categories),
-    [categories]
-  );
 
   const filteredCategories = React.useMemo(() => {
-    console.log("PROCESO", processedCategories);
-
-    if (!searchTerm) return processedCategories;
-    return searchCategories(processedCategories, searchTerm);
-  }, [processedCategories, searchTerm]);
+    if (!searchTerm) return attributes;
+    return searchCategories(attributes, searchTerm);
+  }, [attributes, searchTerm]);
 
   const selectedCategories = React.useMemo(() => {
-    const allCategories = flattenCategories(categories);
-    return allCategories.filter((c) => selectedIds.has(c.id));
-  }, [categories, selectedIds]);
+    return attributes.filter((c) => selectedIds.has(c.value));
+  }, [attributes, selectedIds]);
 
-  const handleSelect = (category: Category) => {
+  const handleSelect = (attribute) => {
     const newSelectedIds = new Set(selectedIds);
-    if (selectedIds.has(category.id)) {
-      newSelectedIds.delete(category.id);
+    console.log(attribute);
+    if (selectedIds.has(attribute)) {
+      newSelectedIds.delete(attribute);
     } else {
-      newSelectedIds.add(category.id);
+      newSelectedIds.add(attribute);
     }
     setSelectedIds(newSelectedIds);
-    onSelectionChange(selectedCategories);
+    console.log("LOL", Array.from(newSelectedIds));
+    onSelectionChange(Array.from(newSelectedIds));
   };
 
   const onDialogClose = (e: MouseEvent) => {
@@ -64,24 +55,19 @@ export function CategorySelect({
     setOpen(true);
   };
 
-  const renderCategory = (category: Category) => {
-    const paddingLeft = category.level ? category.level * 20 : 0;
-
+  const renderAttribute = (attribute: Attribute) => {
     return (
-      <div key={category.id} >
+      <div key={attribute.value}>
         <div
           className="flex items-center gap-2 py-2 px-3 hover:bg-accent rounded-sm cursor-pointer"
-          style={{ paddingLeft: `${paddingLeft}px` }}
-          onClick={() => handleSelect(category)}
+          onClick={() => handleSelect(attribute.value)}
         >
           <Checkbox
-            checked={selectedIds.has(category.id)}
-            onChange={() => handleSelect(category)}
+            checked={selectedIds.has(attribute.value)}
+            onChange={() => handleSelect(attribute.value)}
           />
-          <span className="text-sm">{category.name}</span>
+          <span className="text-sm">{attribute.label}</span>
         </div>
-        {category.children &&
-          category.children.map((child) => renderCategory(child))}
       </div>
     );
   };
@@ -99,19 +85,19 @@ export function CategorySelect({
             <>
               <div className="w-full max-h-20">
                 <div className="flex flex-wrap gap-1">
-                  {selectedCategories.map((category) => (
-                    <Badge key={category.id} className="mr-1">
-                      {category.name}
+                  {selectedCategories.map((attribute) => (
+                    <Badge key={attribute.value} className="mr-1">
+                      {attribute.name}
                       <button
                         className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
-                            handleSelect(category);
+                            handleSelect(attribute);
                           }
                         }}
                         onMouseDown={(e) => {
                           e.preventDefault();
-                          handleSelect(category);
+                          handleSelect(attribute);
                         }}
                       >
                         <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
@@ -133,7 +119,7 @@ export function CategorySelect({
         closable={true}
         onClose={onDialogClose}
         isOpen={open}
-        className="w-full max-w-[350px] p-0 "
+        className="w-full max-w-[350px] p-0"
       >
         <div>
           <div className="p-2 border-b">
@@ -148,7 +134,7 @@ export function CategorySelect({
             </div>
           </div>
           <div className="ml-3 h-[300px] overflow-scroll">
-            {filteredCategories.map((category) => renderCategory(category))}
+            {filteredCategories.map((attribute) => renderAttribute(attribute))}
           </div>
         </div>
       </Dialog>

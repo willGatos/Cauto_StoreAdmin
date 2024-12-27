@@ -155,7 +155,6 @@ const OrganizationFields = (props: OrganizationFieldsProps) => {
 
       <div>
         <h1 className="text-2xl font-bold mb-4">Selector de Categorías</h1>
-        {console.log(categories)}
         <CategorySelect
           categories={categories}
           selectedIds={selectedIds}

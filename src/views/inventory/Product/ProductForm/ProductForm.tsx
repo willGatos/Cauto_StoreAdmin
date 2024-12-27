@@ -135,7 +135,7 @@ export const createProduct = async (
             .map((attribute) => {
               return variationsIds.map((varWithIds) => ({
                 product_variation_id: varWithIds.id,
-                attribute_value_id: attribute.id,
+                attribute_value_id: attribute,
               }));
             })
             .flat(); // Aplana el arreglo anidado
@@ -513,6 +513,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
       stock: 0,
       pictures: [],
       currency_id: 1,
+      attributes: [],
     },
   ]);
   const [error, setError] = useState<string | null>(null);
@@ -526,7 +527,11 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
       : location.pathname.substring(location.pathname.lastIndexOf("/") + 1);
   const formRef = useRef<FormikRef>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-
+  const [selectedIdsForAttributes, setSelectedIdsForAttributes] = useState<
+    Set<number>
+  >(new Set());
+  const [selectedIdsForAttributeValues, setSelectedIdsForAttributeValues] =
+    useState<Set<number>>(new Set());
   const [initialValues, setInitialValues] = useState<ProductData>({
     name: "",
     description: null,
@@ -693,7 +698,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                         supplies={supplies}
                       />
                     )}
-                    
+
                     {values.type !== "simple" && (
                       <Attribute
                         touched={touched}
@@ -704,10 +709,16 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                         variations={variations}
                         setVariations={setVariations}
                         setFieldValue={setFieldValue}
+                        selectIds={{
+                          selectedIdsForAttributes,
+                          setSelectedIdsForAttributes,
+                          selectedIdsForAttributeValues,
+                          setSelectedIdsForAttributeValues,
+                        }}
                       />
                     )}
                   </div>
-                  
+
                   <div>
                     <ProductImages
                       localImages={localImages}

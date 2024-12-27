@@ -1,5 +1,5 @@
 import { Currency } from "@/@types/currency";
-import { Dialog, Select } from "@/components/ui";
+import { Dialog, FormItem, Select } from "@/components/ui";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
@@ -15,6 +15,8 @@ import UploadWidget from "./Images";
 import { Attribute, AttributeValue } from "@/@types/products";
 import VariationSelectionType from "./variationSelectionType";
 import Attributes from "../Attributes";
+import { AttributeSelect } from "./AttributeSelect";
+import { Field } from "formik";
 
 interface ProductVariation {
   id?: number;
@@ -67,6 +69,7 @@ interface ProductVariationGeneratorProps {
 export default function ProductVariationGenerator({
   onVariationsChange = () => {},
   variations,
+  selectIds,
   attributes,
   setVariations,
   supplies,
@@ -74,6 +77,12 @@ export default function ProductVariationGenerator({
   errors,
   touched,
 }: ProductVariationGeneratorProps) {
+  const {
+    selectedIdsForAttributes,
+    setSelectedIdsForAttributes,
+    selectedIdsForAttributeValues,
+    setSelectedIdsForAttributeValues,
+  } = selectIds;
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [selectedAttributes, setSelectedAttributes] = useState<
     Record<number, number[]>
@@ -208,7 +217,6 @@ export default function ProductVariationGenerator({
         [attributeId]: updatedValues,
       };
     });
-    console.log(selectedAttributes);
   };
 
   const generateVariations = () => {
@@ -273,7 +281,6 @@ export default function ProductVariationGenerator({
     field: keyof ProductVariation,
     value: any
   ) => {
-    console.log(variations);
     setVariations((prev) => {
       return prev.map((variation, i) =>
         i === index ? { ...variation, [field]: value } : variation
@@ -324,6 +331,7 @@ export default function ProductVariationGenerator({
       )
     );
   };
+
   const handleGlobalCurrencyChange = (currencyId: string) => {
     const newCurrency = currencies.find((c) => c.id === Number(currencyId));
     if (newCurrency) {
@@ -392,12 +400,27 @@ export default function ProductVariationGenerator({
         </>
       ) : (
         values.type !== "simple" && (
-          <Attributes
-            attributes={attributes}
-            touched={touched}
-            errors={errors}
-            values={values}
-          />
+          <FormItem
+            invalid={(errors.attributes && touched.attributes) as boolean}
+            errorMessage={errors.attributes}
+          >
+            <Field name={`attributes`}>
+              {({ field, form }) => (
+                <AttributeSelect
+                  attributes={attributes}
+                  selectedIds={selectedIdsForAttributes}
+                  setSelectedIds={setSelectedIdsForAttributes}
+                  onSelectionChange={(selectedCategories) => {
+                    form.setFieldValue(
+                      field.name,
+                      Array.from(selectedIdsForAttributes)
+                    );
+                    //handleVariationChange(index, "attributes", selectedCategories);
+                  }}
+                />
+              )}
+            </Field>
+          </FormItem>
         )
       )}
       <div className="mb-6">
@@ -598,7 +621,7 @@ export default function ProductVariationGenerator({
                   </div>
                 )}
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Valores de los Atributos
                   </label>
@@ -625,7 +648,35 @@ export default function ProductVariationGenerator({
                       handleVariationChange(index, "attributes", option);
                     }}
                   />
-                </div>
+                </div> */}
+
+                <AttributeSelect
+                  attributes={attributes
+                    .map((at) => {
+                      const data = at.values
+                        .filter((value) =>
+                          Array.from(selectedIdsForAttributes).includes(at.id)
+                        )
+                        .map((filteredVariation) => ({
+                          ...filteredVariation,
+                          label: filteredVariation.value,
+                          name: filteredVariation.value,
+                          value: filteredVariation.id,
+                        }))
+                        .flat();
+                      return data;
+                    })
+                    .flat()}
+                  selectedIds={new Set(variation.attributes)}
+                  setSelectedIds={setSelectedIdsForAttributeValues}
+                  onSelectionChange={(selectedCategories) => {
+                    handleVariationChange(
+                      index,
+                      "attributes",
+                      selectedCategories
+                    );
+                  }}
+                />
 
                 <Button
                   className="mt-5"
@@ -748,6 +799,7 @@ export default function ProductVariationGenerator({
                 stock: 0,
                 pictures: [],
                 currency_id: 1,
+                attributes: [],
               },
             ]);
           }}
