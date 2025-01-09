@@ -17,6 +17,7 @@ import VariationSelectionType from "./variationSelectionType";
 import Attributes from "../Attributes";
 import { AttributeSelect } from "./AttributeSelect";
 import { Field } from "formik";
+import Label from "@/components/ui/Label";
 
 interface ProductVariation {
   id?: number;
@@ -677,6 +678,18 @@ export default function ProductVariationGenerator({
                     );
                   }}
                 />
+
+                <div className="flex justify-center text-center">
+                  <Checkbox
+                    checked={variation.enablesd}
+                    onChange={(isEnabled) =>
+                      handleVariationChange(index, "enabled", isEnabled)
+                    }
+                    className="!text-sm"
+                    name="hasDelivery"
+                  />
+                  <Label className="text-sm">Visible</Label>
+                </div>
 
                 <Button
                   className="mt-5"

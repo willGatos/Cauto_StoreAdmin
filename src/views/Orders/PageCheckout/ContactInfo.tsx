@@ -98,8 +98,6 @@ const ContactInfo: FC<Props> = ({
     setFormSubmit((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
   const onCheck = (value: boolean, e) => {
-    console.log(value, e, formSubmit);
-
     setFormSubmit((prev) => ({ ...prev, hasDelivery: value }));
   };
   const renderAccount = () => {

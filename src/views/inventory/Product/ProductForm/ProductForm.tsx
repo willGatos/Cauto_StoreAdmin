@@ -32,11 +32,12 @@ export type ProductVariation = {
   pictures?: string[];
   currency_id?: number;
   supply_variations?: number[];
+  enabled: boolean;
 };
 
 export const createProduct = async (
   productData: ProductData,
-  categories: Set,
+  categories,
   variations: ProductVariation[],
   supplies
 ) => {
@@ -121,6 +122,7 @@ export const createProduct = async (
         pictures: variation.pictures,
         product_id: product.id,
         currency_id: variation.currency_id,
+        enabled: variation.enabled,
       }));
 
       const { data: variationsIds, error: variationsError } = await supabase
