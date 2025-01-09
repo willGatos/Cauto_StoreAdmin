@@ -154,6 +154,7 @@ export const createProduct = async (
         ); // Filtra duplicados
       if (variationsError) throw variationsError;
 
+      console.log("ATRIBUTOS", variationAttributes);
       // Insertar relaciones en product_variation_attributes
       const { error: attributesError } = await supabase
         .from("product_variation_attributes")
@@ -507,7 +508,6 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
   const [categoriesOpt, setCategoriesOpt] = useState();
   const [variations, setVariations] = useState<ProductVariation[]>([
     {
-      id: "",
       supply_variation: [],
       supply_variations: [],
       name: "",

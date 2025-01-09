@@ -104,7 +104,7 @@ export default function ProductVariationGenerator({
   const [error, setError] = useState(null);
   const [variationSelectionType, setVariationSelectionType] =
     useState("generate");
-
+  const [variationIndex, setVariationIndex] = useState(0);
   const handleSelectGallery = (gallery) => {
     setSelectedGallery(gallery);
     fetchImages(gallery.id);
@@ -150,32 +150,41 @@ export default function ProductVariationGenerator({
       setIsLoading(false);
     }
   }
-  const handleSelectImage = (image, index) => {
+  const handleSelectImage = (image) => {
+    console.log("VariationIndex", variationIndex);
     setSelectedImages((prev) => {
-      if (prev.find((img) => img.id === image.id)) {
-        return prev.filter((img) => img.id !== image.id);
-      } else {
-        return [...prev, image];
-      }
+      const updatedImages = prev.find((img) => img.id === image.id)
+        ? prev.filter((img) => img.id !== image.id)
+        : [...prev, image];
+      return updatedImages;
     });
+
     // Actualizar el estado con una imagen de carga
-    setVariations((prev) => {
-      const updatedVariation = { ...prev[index] };
-      updatedVariation.pictures = [...updatedVariation.pictures, "loading"];
-      return prev.map((v, i) => (i === index ? updatedVariation : v));
-    });
+    setVariations((prev) =>
+      prev.map((v, i) =>
+        i === variationIndex
+          ? { ...v, pictures: [...v.pictures, "loading"] }
+          : v
+      )
+    );
 
     // Simular la subida de la imagen (reemplaza esto con tu lógica real de subida)
     const imageUrl = image.url;
 
     // Actualizar el estado con la URL real de la imagen
-    setVariations((prev) => {
-      const updatedVariation = { ...prev[index] };
-      updatedVariation.pictures = updatedVariation.pictures.map((pic) =>
-        pic === "loading" ? imageUrl : pic
-      );
-      return prev.map((v, i) => (i === index ? updatedVariation : v));
-    });
+    setVariations((prev) =>
+      prev.map((v, i) =>
+        i === variationIndex
+          ? {
+              ...v,
+              pictures: v.pictures.map((pic) =>
+                pic === "loading" ? imageUrl : pic
+              ),
+            }
+          : v
+      )
+    );
+    console.log("Variation", variations);
   };
 
   const onViewOpen = (img: string) => {
@@ -571,7 +580,10 @@ export default function ProductVariationGenerator({
                     </UploadWidget>
                     <Button
                       type="button"
-                      onClick={() => setIsGalleryDialogOpen(true)}
+                      onClick={() => {
+                        setIsGalleryDialogOpen(true);
+                        setVariationIndex(index);
+                      }}
                     >
                       <FolderPlus />
                     </Button>
@@ -621,35 +633,6 @@ export default function ProductVariationGenerator({
                     />
                   </div>
                 )}
-
-                {/* <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Valores de los Atributos
-                  </label>
-                  <Select
-                    isMulti
-                    name={`supplies-${index}`}
-                    placeholder="Seleccione Valores del Atributo"
-                    value={variation?.attributes}
-                    options={attributes
-                      .map((at) => {
-                        console.log("AS", at);
-                        const data = at.values
-                          .filter((value) => values.attributes.includes(at.id))
-                          .map((filteredVariation) => ({
-                            ...filteredVariation,
-                            label: filteredVariation.value,
-                            value: filteredVariation.id,
-                          }))
-                          .flat();
-                        return data;
-                      })
-                      .flat()}
-                    onChange={(option) => {
-                      handleVariationChange(index, "attributes", option);
-                    }}
-                  />
-                </div> */}
 
                 <AttributeSelect
                   attributes={attributes
@@ -742,25 +725,31 @@ export default function ProductVariationGenerator({
                       ) : (
                         <div className="p-4">
                           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                            {images.map((image) => (
-                              <div
-                                key={image.id}
-                                className={`relative cursor-pointer border-2 ${
-                                  selectedImages.find(
-                                    (img) => img.id === image.id
-                                  )
-                                    ? "border-blue-500"
-                                    : "border-transparent"
-                                }`}
-                                onClick={() => handleSelectImage(image, index)}
-                              >
-                                <img
-                                  src={image.url}
-                                  alt={image.title}
-                                  className="w-full h-24 object-cover"
-                                />
-                              </div>
-                            ))}
+                            {images.map((image, imageIndex) => {
+                              const onClickImage = () => {
+                                console.log("INDEX", variationIndex);
+                                handleSelectImage(image, variationIndex);
+                              };
+                              return (
+                                <div
+                                  key={image.id}
+                                  className={`relative cursor-pointer border-2 ${
+                                    selectedImages.find(
+                                      (img) => img.id === image.id
+                                    )
+                                      ? "border-blue-500"
+                                      : "border-transparent"
+                                  }`}
+                                  onClick={onClickImage}
+                                >
+                                  <img
+                                    src={image.url}
+                                    alt={image.title}
+                                    className="w-full h-24 object-cover"
+                                  />
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -804,7 +793,6 @@ export default function ProductVariationGenerator({
             setVariations((preVariation) => [
               ...preVariation,
               {
-                id: "",
                 supply_variation: [],
                 supply_variations: [],
                 name: "",
