@@ -35,6 +35,19 @@ export type ProductVariation = {
   enabled: boolean;
 };
 
+function mergeArraysByIndex(arr1, arr2) {
+  if (arr1.length !== arr2.length) {
+    throw new Error("Los arrays deben tener la misma longitud");
+  }
+  return arr1.flatMap((item1, index) => {
+    const item2 = arr2[index];
+    return item2.attributes.map((attribute) => ({
+      product_variation_id: item1.id,
+      attribute_value_id: attribute,
+    }));
+  });
+}
+
 export const createProduct = async (
   productData: ProductData,
   categories,
@@ -131,30 +144,14 @@ export const createProduct = async (
         .select("id, name");
 
       //
-      const variationAttributes = variations
-        .flatMap((variation) => {
-          return variation.attributes
-            .map((attribute) => {
-              return variationsIds.map((varWithIds) => ({
-                product_variation_id: varWithIds.id,
-                attribute_value_id: attribute,
-              }));
-            })
-            .flat(); // Aplana el arreglo anidado
-        })
-        .flat() // Aplana nuevamente para asegurar que todos los elementos estén en un solo nivel
-        .filter(
-          (value, index, self) =>
-            index ===
-            self.findIndex(
-              (t) =>
-                t.product_variation_id === value.product_variation_id &&
-                t.attribute_value_id === value.attribute_value_id
-            )
-        ); // Filtra duplicados
+      const variationAttributes = mergeArraysByIndex(variationsIds, variations);
+
+      console.log(
+        `Resultado final de variationAttributes:`,
+        variationAttributes
+      ); // Filtra duplicados
       if (variationsError) throw variationsError;
 
-      console.log("ATRIBUTOS", variationAttributes);
       // Insertar relaciones en product_variation_attributes
       const { error: attributesError } = await supabase
         .from("product_variation_attributes")
