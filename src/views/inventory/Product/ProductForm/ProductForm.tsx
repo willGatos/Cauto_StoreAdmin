@@ -513,6 +513,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
       pictures: [],
       currency_id: 1,
       attributes: [],
+      enabled: true,
     },
   ]);
   const [error, setError] = useState<string | null>(null);

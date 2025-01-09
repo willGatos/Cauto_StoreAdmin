@@ -27,6 +27,7 @@ interface ProductVariation {
   stock: number;
   created_at: string;
   pictures: string[];
+  enabled: boolean;
   currency_id: string | number;
   attributes?: AttributeValue[];
   supply_variations: SupplyVariation[];
@@ -662,9 +663,9 @@ export default function ProductVariationGenerator({
                   }}
                 />
 
-                <div className="flex justify-center text-center">
+                <div className="flex mt-5 justify-center text-center">
                   <Checkbox
-                    checked={variation.enablesd}
+                    checked={variation.enabled}
                     onChange={(isEnabled) =>
                       handleVariationChange(index, "enabled", isEnabled)
                     }
@@ -801,6 +802,7 @@ export default function ProductVariationGenerator({
                 pictures: [],
                 currency_id: 1,
                 attributes: [],
+                enabled: true,
               },
             ]);
           }}
