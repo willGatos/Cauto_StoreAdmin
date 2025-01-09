@@ -13,7 +13,7 @@ function InviteButton() {
       onClick={() => {
         createInvitation(user.shopId, user.id).then((e) => {
           navigator.clipboard.writeText(
-            "http://localhost:5173/s/sign-up/" + e?.invitationId?.id
+            "http://www.dexito.shop/s/sign-up/" + e?.invitationId?.id
           );
           console.log(e?.invitationId?.id);
         });
