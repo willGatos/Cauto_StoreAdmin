@@ -354,7 +354,7 @@ export const getProductById = async (productId: number) => {
     const { data: product, error: productError } = await supabase
       .from("products")
       .select(
-        "*, categories(*), supplies(*),variations: product_variations (*, supply_variation(*),product_variation_attributes (attribute_value_id (*), product_variation_id(currency_id(*))))) "
+        "*, categories(*), supplies(*),variations: product_variations (*, supply_variation(*), attribute_values(*)))) "
       )
       .eq("id", productId)
       .single();

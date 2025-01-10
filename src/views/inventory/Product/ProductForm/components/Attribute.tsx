@@ -92,9 +92,7 @@ export default function ProductVariationGenerator({
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(
     null
   );
-  const [requiresStock, setRequiresStock] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [progressBar, setProgressBar] = useState(0);
   const [selectedImg, setSelectedImg] = useState<string>({} as string);
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedGallery, setSelectedGallery] = useState(null);
@@ -105,6 +103,7 @@ export default function ProductVariationGenerator({
   const [error, setError] = useState(null);
   const [variationSelectionType, setVariationSelectionType] =
     useState("generate");
+
   const [variationIndex, setVariationIndex] = useState(0);
   const handleSelectGallery = (gallery) => {
     setSelectedGallery(gallery);
