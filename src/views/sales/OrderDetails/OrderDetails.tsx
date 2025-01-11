@@ -31,6 +31,7 @@ type SalesOrderDetailsResponse = {
   paymentSummary?: {
     subTotal: number;
     tax: number;
+    personalization: number;
     deliveryFees: number;
     total: number;
   };
@@ -86,6 +87,7 @@ const initialState: SalesOrderDetailsResponse = {
   dateTime: 0,
   paymentSummary: {
     subTotal: 0,
+    personalization: 0,
     tax: 0,
     deliveryFees: 0,
     total: 0,
@@ -172,6 +174,7 @@ export const getOrderDetails = async (
             delivery_state,
             created_at,
             shipping_cost,
+            personalized_orders(*)
             clients (id, name, email, phone, locations(description, municipalities(name)))
         `
     )
@@ -198,7 +201,7 @@ export const getOrderDetails = async (
         `
     )
     .eq("order_id", orderId);
-
+  const personalization = order.personalized_orders[0];
   if (itemsError) throw itemsError;
   console.log(order.created_at, dayjs(order.created_at).format("MM/DD/YYYY"));
   // Map the data to the required format
@@ -210,6 +213,7 @@ export const getOrderDetails = async (
     paymentSummary: {
       subTotal: parseFloat(order.total) - parseFloat(order.shipping_cost),
       tax: 0, // Not available in the current schema
+      personalization: personalization ? personalization.price : 0,
       deliveryFees: parseFloat(order.shipping_cost),
       total: parseFloat(order.total),
     },

@@ -201,16 +201,16 @@ const appsNavigationConfig: NavigationTree[] = [
             authority: [OWNER],
             subMenu: [],
           },
-          /* {
+          {
             key: "appsSales.orderList",
             path: `${APP_PREFIX_PATH}/sales/orders`,
             title: "Lista de Orden",
             translateKey: "nav.appsSales.orderList",
             icon: "",
             type: NAV_ITEM_TYPE_ITEM,
-            authority: [SELLER_FIXED],
+            authority: [OWNER],
             subMenu: [],
-          }, */
+          },
           {
             key: "appsSales.productNew",
             path: `${APP_PREFIX_PATH}/sales/product-new`,
@@ -314,26 +314,6 @@ const appsNavigationConfig: NavigationTree[] = [
             authority: [OWNER],
             subMenu: [],
           },
-          /*  {
-            key: "appsSales.profit",
-            path: `${APP_PREFIX_PATH}/sales/profit`,
-            title: "Beneficio",
-            translateKey: "nav.appsSales.profit",
-            icon: "",
-            type: NAV_ITEM_TYPE_ITEM,
-            authority: [OWNER],
-            subMenu: [],
-          } 
-          {
-            key: "appsSales.orderDetails",
-            path: `${APP_PREFIX_PATH}/sales/order-details/95954`,
-            title: "Order Details",
-            translateKey: "nav.appsSales.orderDetails",
-            icon: "",
-            type: NAV_ITEM_TYPE_ITEM,
-            authority: [OWNER],
-            subMenu: [],
-          }, */
         ],
       },
     ],
