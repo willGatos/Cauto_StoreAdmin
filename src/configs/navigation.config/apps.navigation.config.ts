@@ -76,7 +76,7 @@ const appsNavigationConfig: NavigationTree[] = [
             type: NAV_ITEM_TYPE_ITEM,
             authority: [OWNER],
             subMenu: [],
-          }
+          },
         ],
       },
       {
@@ -314,7 +314,7 @@ const appsNavigationConfig: NavigationTree[] = [
             authority: [OWNER],
             subMenu: [],
           },
-          {
+          /*  {
             key: "appsSales.profit",
             path: `${APP_PREFIX_PATH}/sales/profit`,
             title: "Beneficio",
@@ -323,7 +323,7 @@ const appsNavigationConfig: NavigationTree[] = [
             type: NAV_ITEM_TYPE_ITEM,
             authority: [OWNER],
             subMenu: [],
-          } /* 
+          } 
           {
             key: "appsSales.orderDetails",
             path: `${APP_PREFIX_PATH}/sales/order-details/95954`,
@@ -333,198 +333,11 @@ const appsNavigationConfig: NavigationTree[] = [
             type: NAV_ITEM_TYPE_ITEM,
             authority: [OWNER],
             subMenu: [],
-          }, */,
+          }, */
         ],
       },
     ],
   },
 ];
 
-export default appsNavigationConfig; /* {
-/* 
-
-{
-                key: 'apps.project',
-                path: '',
-                title: 'Project',
-                translateKey: 'nav.appsProject.project',
-                icon: 'project',
-                type: NAV_ITEM_TYPE_COLLAPSE,
-                authority: [OWNER, USER],
-                subMenu: [
-                    {
-                        key: 'appsProject.dashboard',
-                        path: `${APP_PREFIX_PATH}/project/dashboard`,
-                        title: 'Dashboard',
-                        translateKey: 'nav.appsProject.dashboard',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                    {
-                        key: 'appsProject.projectList',
-                        path: `${APP_PREFIX_PATH}/project/project-list`,
-                        title: 'Project List',
-                        translateKey: 'nav.appsProject.projectList',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                    {
-                        key: 'appsProject.scrumBoard',
-                        path: `${APP_PREFIX_PATH}/project/scrum-board`,
-                        title: 'Scrum Board',
-                        translateKey: 'nav.appsProject.scrumBoard',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                    {
-                        key: 'appsProject.issue',
-                        path: `${APP_PREFIX_PATH}/project/issue`,
-                        title: 'Issue',
-                        translateKey: 'nav.appsProject.issue',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                ],
-            }, */
-
-/* */
-
-/*  {
-                key: 'apps.crypto',
-                path: '',
-                title: 'Crypto',
-                translateKey: 'nav.appsCrypto.crypto',
-                icon: 'crypto',
-                type: NAV_ITEM_TYPE_COLLAPSE,
-                authority: [OWNER, USER],
-                subMenu: [
-                    {
-                        key: 'appsCrypto.dashboard',
-                        path: `${APP_PREFIX_PATH}/crypto/dashboard`,
-                        title: 'Dashboard',
-                        translateKey: 'nav.appsCrypto.dashboard',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                    {
-                        key: 'appsCrypto.portfolio',
-                        path: `${APP_PREFIX_PATH}/crypto/portfolio`,
-                        title: 'Portfolio',
-                        translateKey: 'nav.appsCrypto.portfolio',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                    {
-                        key: 'appsCrypto.market',
-                        path: `${APP_PREFIX_PATH}/crypto/market`,
-                        title: 'Market',
-                        translateKey: 'nav.appsCrypto.market',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                    {
-                        key: 'appsCrypto.wallets',
-                        path: `${APP_PREFIX_PATH}/crypto/wallets`,
-                        title: 'Wallets',
-                        translateKey: 'nav.appsCrypto.wallets',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                ],
-            }, */
-/*  {
-                key: 'apps.knowledgeBase',
-                path: '',
-                title: 'Knowledge Base',
-                translateKey: 'nav.appsknowledgeBase.knowledgeBase',
-                icon: 'knowledgeBase',
-                type: NAV_ITEM_TYPE_COLLAPSE,
-                authority: [OWNER, USER],
-                subMenu: [
-                    {
-                        key: 'appsknowledgeBase.helpCenter',
-                        path: `${APP_PREFIX_PATH}/knowledge-base/help-center`,
-                        title: 'Help Center',
-                        translateKey: 'nav.appsknowledgeBase.helpCenter',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                    {
-                        key: 'appsknowledgeBase.article',
-                        path: `${APP_PREFIX_PATH}/knowledge-base/article?id=rZjCbSyae5`,
-                        title: 'Article',
-                        translateKey: 'nav.appsknowledgeBase.article',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                    {
-                        key: 'appsknowledgeBase.manageArticles',
-                        path: `${APP_PREFIX_PATH}/knowledge-base/manage-articles`,
-                        title: 'Manage Articles',
-                        translateKey: 'nav.appsknowledgeBase.manageArticles',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                    {
-                        key: 'appsknowledgeBase.editArticle',
-                        path: `${APP_PREFIX_PATH}/knowledge-base/edit-article?id=rZjCbSyae5&categoryLabel=Survey&categoryValue=survey`,
-                        title: 'Edit Article',
-                        translateKey: 'nav.appsknowledgeBase.editArticle',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                ],
-            }, {
-                        key: 'appsAccount.invoice',
-                        path: `${APP_PREFIX_PATH}/account/invoice/36223`,
-                        title: 'Invoice',
-                        translateKey: 'nav.appsAccount.invoice',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                    {
-                        key: 'appsAccount.activityLog',
-                        path: `${APP_PREFIX_PATH}/account/activity-log`,
-                        title: 'Activity Log',
-                        translateKey: 'nav.appsAccount.activityLog',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    },
-                    {
-                        key: 'appsAccount.kycForm',
-                        path: `${APP_PREFIX_PATH}/account/kyc-form`,
-                        title: 'KYC Form',
-                        translateKey: 'nav.appsAccount.kycForm',
-                        icon: '',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [OWNER, USER],
-                        subMenu: [],
-                    }, */
+export default appsNavigationConfig;
