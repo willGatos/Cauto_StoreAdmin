@@ -42,7 +42,6 @@ export function AttributeSelect({
       newSelectedIds.add(attribute);
     }
     setSelectedIds(newSelectedIds);
-    console.log("LOL", Array.from(newSelectedIds));
     onSelectionChange(Array.from(newSelectedIds));
   };
 

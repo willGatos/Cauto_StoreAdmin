@@ -11,12 +11,13 @@ type FormFieldsName = {
 };
 
 type BasicInformationFields = {
+  values;
   touched: FormikTouched<FormFieldsName>;
   errors: FormikErrors<FormFieldsName>;
 };
 
 const BasicInformationFields = (props: BasicInformationFields) => {
-  const { touched, errors } = props;
+  const { values,touched, errors } = props;
 
   return (
     <AdaptableCard divider className="mb-4">
@@ -51,6 +52,27 @@ const BasicInformationFields = (props: BasicInformationFields) => {
           )}
         </Field>
       </FormItem>
+      <Field
+        name="socialMediaLink"
+        label="Enlace de Redes Sociales"
+        placeholder="https://ejemplo.com"
+        component={Input} // Asumiendo que tienes un componente Input
+        type="url"
+      />
+
+      {/* Ejemplo de previsualización */}
+      {values.socialMediaLink && (
+        <div className="mt-2">
+          <a
+            href={values.socialMediaLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            Ver ejemplo ↗
+          </a>
+        </div>
+      )}
     </AdaptableCard>
   );
 };

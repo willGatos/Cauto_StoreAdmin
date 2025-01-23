@@ -22,9 +22,7 @@ const CustomerInfo = ({ data }: CustomerInfoProps) => {
     <Card>
       <h5 className="mb-4">Cliente</h5>
       <hr className="my-5" />
-      <IconText
-        className="mb-4"
-      >
+      <IconText className="mb-4">
         <span className="font-semibold">{data?.name}</span>
       </IconText>
       <IconText
@@ -39,7 +37,11 @@ const CustomerInfo = ({ data }: CustomerInfoProps) => {
       <hr className="my-5" />
       <h6 className="mb-4">Información de Envío</h6>
       <address className="not-italic">
-        <div className="mb-1">{data?.shippingAddress.line1}</div>
+        <div className="mb-1">
+          {data?.shippingAddress.line1 == null
+            ? data?.shippingAddress.line1
+            : "No Tiene Envío"}
+        </div>
       </address>
     </Card>
   );

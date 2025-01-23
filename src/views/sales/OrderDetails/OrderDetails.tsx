@@ -22,6 +22,7 @@ import {
 } from "../SalesDashboard/components/LatestOrder";
 import Label from "@/components/ui/Label";
 import handleEmail from "@/components/email";
+import PersonalizationDetails from "./components/PersonalizationDetails";
 
 type SalesOrderDetailsResponse = {
   id?: string;
@@ -60,6 +61,12 @@ type SalesOrderDetailsResponse = {
       recipient?: string;
     }[];
   }[];
+  personalization: {
+    description: string;
+    price: string;
+    quantity: string;
+    images: string[];
+  };
   customer?: {
     name: string;
     email: string;
@@ -82,6 +89,12 @@ type SalesOrderDetailsResponse = {
 };
 const initialState: SalesOrderDetailsResponse = {
   id: "",
+  personalization: {
+    description: "",
+    images: [],
+    price: "0",
+    quantity: "0",
+  },
   progressStatus: 0,
   deliveryStatus: 0,
   dateTime: 0,
@@ -143,23 +156,6 @@ const paymentStatus: Record<number, deliveryStatus> = {
   },
 };
 
-const progressStatus: Record<number, deliveryStatus> = {
-  0: {
-    label: "Terminada",
-    class: "bg-cyan-100 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-100",
-  },
-  1: {
-    label: "Pendiente",
-    class:
-      "text-amber-600 bg-amber-100 dark:text-amber-100 dark:bg-amber-500/20",
-  },
-  2: {
-    label: "Pendiente",
-    class:
-      "text-amber-600 bg-amber-100 dark:text-amber-100 dark:bg-amber-500/20",
-  },
-};
-
 export const getOrderDetails = async (
   orderId: string
 ): Promise<SalesOrderDetailsResponse> => {
@@ -174,8 +170,8 @@ export const getOrderDetails = async (
             delivery_state,
             created_at,
             shipping_cost,
-            personalized_orders(*)
-            clients (id, name, email, phone, locations(description, municipalities(name)))
+            personalized_orders(*),
+            clients (*, locations(*))
         `
     )
     .eq("id", orderId)
@@ -203,7 +199,7 @@ export const getOrderDetails = async (
     .eq("order_id", orderId);
   const personalization = order.personalized_orders[0];
   if (itemsError) throw itemsError;
-  console.log(order.created_at, dayjs(order.created_at).format("MM/DD/YYYY"));
+  console.log("SIMPLE", personalization?.custom_description);
   // Map the data to the required format
   const orderDetails: SalesOrderDetailsResponse = {
     id: order.id.toString(),
@@ -240,6 +236,12 @@ export const getOrderDetails = async (
       details: {}, // Not available in the current schema
     })),
     activity: [], // Not available in the current schema
+    personalization: {
+      description: personalization?.custom_description,
+      images: personalization?.images,
+      price: personalization?.price,
+      quantity: personalization?.quantity,
+    },
     customer: order.clients
       ? {
           name: order.clients.name,
@@ -309,6 +311,7 @@ const OrderDetails = () => {
   const handleSelectChange = (option: any) => {
     console.log(option?.value);
     setStateOfProduct(option?.value);
+    // supabase.from("orders").update({ status: option?.value }).eq("id", data.id);
   };
   const handleSelect2Change = (option: any) => {
     console.log(option?.value);
@@ -323,17 +326,18 @@ const OrderDetails = () => {
       handleEmail(data.progressStatus, data.customer.email);
 
     if (stateOfProduct2 != data.deliveryStatus)
-      handleEmail(data.deliveryStatus, data.customer.email);
+      handleEmail(data.deliveryStatus, data.customer.email).then(() =>
+        supabase
+          .from("orders")
+          .update({
+            status: stateOfProduct,
+            delivery_state: stateOfProduct2,
+          })
+          .eq("id", data.id)
+          .select("status, delivery_state")
+          .single()
+      );
     // Cambiar los estados en la base de datos - deliveryState - State
-    supabase
-      .from("orders")
-      .update({
-        state: stateOfProduct,
-        delivery_state: stateOfProduct2,
-      })
-      .eq("id", data.id)
-      .select("status, delivery_state")
-      .single();
   };
   return (
     <Container className="h-full">
@@ -349,18 +353,19 @@ const OrderDetails = () => {
                 <Tag
                   className={classNames(
                     "border-0 rounded-md ltr:ml-2 rtl:mr-2",
-                    paymentStatus[data.deliveryStatus || 0].class
+                    deliveryStatusColor[data.deliveryStatus || 0].class
                   )}
                 >
-                  {paymentStatus[data.deliveryStatus || 0].label}
+                  {deliveryStatusColor[data.deliveryStatus || 0].label}
                 </Tag>
                 <Tag
                   className={classNames(
                     "border-0 rounded-md ltr:ml-2 rtl:mr-2",
-                    progressStatus[data.progressStatus || 0].class
+                    orderStatusColor[data.progressStatus || 0].class
                   )}
+                  
                 >
-                  {progressStatus[data.progressStatus || 0].label}
+                  {orderStatusColor[data.progressStatus || 0].label}
                 </Tag>
               </div>
               <span className="flex items-center">
@@ -381,6 +386,9 @@ const OrderDetails = () => {
               </div>
               <div className="xl:max-w-[360px] w-full">
                 <CustomerInfo data={data.customer} />
+              </div>
+              <div className="xl:max-w-[360px] w-full">
+                <PersonalizationDetails data={data.personalization} />
               </div>
             </div>
             <div className="gap-4">

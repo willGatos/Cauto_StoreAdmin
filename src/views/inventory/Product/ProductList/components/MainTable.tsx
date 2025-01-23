@@ -1,3 +1,4 @@
+import { Tag } from "@/components/ui";
 import { Button } from "@/components/ui/Button";
 import HandleFeedback from "@/components/ui/FeedBack";
 import Table from "@/components/ui/Table";
@@ -97,6 +98,17 @@ function MainTable({
       {
         header: "Precio",
         accessorKey: "standard_price",
+        cell: ({ row }) => {
+          console.log(row);
+          return (
+            <div>
+              {(row.original.standard_price == "simple" && "Simple") ||
+                (row.original.standard_price == 0
+                  ? "No Tiene Precio"
+                  : row.original.standard_price)}
+            </div>
+          );
+        },
       },
       // {
       //   header: "Categoría",
@@ -128,6 +140,21 @@ function MainTable({
           );
         },
       },
+      {
+        header: "Insumos",
+        //accessorKey: "type",
+        cell: ({ row }) => {
+          console.log(row);
+          return (
+            <div>
+              {row.original.supplies.map((s) => (
+                <Tag>{s.name}</Tag>
+              ))}
+            </div>
+          );
+        },
+      },
+
       {
         header: "Acciones",
         cell: ({ row }) => {

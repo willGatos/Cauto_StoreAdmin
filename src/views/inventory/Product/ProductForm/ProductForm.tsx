@@ -1,9 +1,13 @@
+import { Attribute as TypeAttribute } from "@/@types/products";
+import { Loading } from "@/components/shared";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import StickyFooter from "@/components/shared/StickyFooter";
 import Button from "@/components/ui/Button";
+import HandleFeedback from "@/components/ui/FeedBack";
 import { FormContainer } from "@/components/ui/Form";
 import { supabaseService } from "@/services/Supabase/AttributeService";
 import supabase from "@/services/Supabase/BaseClient";
+import { useAppSelector } from "@/store";
 import { Form, Formik, FormikHelpers, FormikProps } from "formik";
 import { forwardRef, useEffect, useRef, useState } from "react";
 import { AiOutlineSave } from "react-icons/ai";
@@ -13,19 +17,14 @@ import * as Yup from "yup";
 import { Supply } from "../../Supply/List/Data/types";
 import BasicInformationFields from "./BasicInformationFields";
 import Attribute from "./components/Attribute";
+import { useCategories } from "./components/Categories/hook/useCategories";
 import OrganizationFields from "./OrganizationFields";
 import PricingFields from "./PricingFields";
 import ProductImages from "./ProductImages";
 import Supplies from "./Supplies";
-import { useAppSelector } from "@/store";
-import { Loading } from "@/components/shared";
-import HandleFeedback from "@/components/ui/FeedBack";
-import { useCategories } from "./components/Categories/hook/useCategories";
-import Attributes from "./Attributes";
-import { Attribute as TypeAttribute } from "@/@types/products";
 
 export type ProductVariation = {
-  id: any;
+  id?: any;
   name: string;
   price: number;
   stock: number;
@@ -48,14 +47,22 @@ function mergeArraysByIndex(arr1, arr2) {
   });
 }
 
+/**
+ * Crea un nuevo producto con sus relaciones en la base de datos
+ * @param productData - Datos principales del producto
+ * @param categories - Array de IDs de categorías a asociar
+ * @param variations - Variaciones del producto (tallas, colores, etc.)
+ * @param supplies - Insumos necesarios para productos fabricados
+ * @returns Objeto vacío (considerar devolver el producto creado)
+ */
 export const createProduct = async (
   productData: ProductData,
-  categories,
+  categories: number[],
   variations: ProductVariation[],
-  supplies
+  supplies: number[]
 ) => {
-  console.log(categories);
   try {
+    // 1. EXTRACCIÓN DE PROPIEDADES DEL PRODUCTO
     const {
       name,
       description,
@@ -73,11 +80,10 @@ export const createProduct = async (
       standard_price,
       status,
       images,
-      supplies,
+      socialMediaLink,
     } = productData;
-    // Primero, insertamos el producto principal
 
-    // Descomponer el producto
+    // 2. CREACIÓN DEL PRODUCTO PRINCIPAL
     const { data: product, error: productError } = await supabase
       .from("products")
       .insert([
@@ -97,7 +103,8 @@ export const createProduct = async (
           owner_id,
           standard_price,
           status,
-          images, // Solo si necesitas actualizar las imágenes
+          images,
+          social_media_link: socialMediaLink,
         },
       ])
       .select("*")
@@ -105,30 +112,32 @@ export const createProduct = async (
 
     if (productError) throw productError;
 
-    {
-      // hacer que se tomen todas las categorias seleccionadas y se hagan las llamadas correspondientes segun el producto
-      await supabase.from("category_product").insert(
-        categories.map((c) => ({
-          category_id: c,
-          product_id: product.id,
-        }))
-      );
-    }
+    // 3. ASOCIACIÓN CON CATEGORÍAS
+    await supabase.from("category_product").insert(
+      categories.map((categoryId) => ({
+        category_id: categoryId,
+        product_id: product.id,
+      }))
+    );
 
-    const dos = supplies.map((supplyVariation) => ({
-      supply_id: supplyVariation,
-      product_id: product.id,
-    }));
+    // 4. MANEJO DE INSUMOS PARA PRODUCTOS FABRICADOS
+    if (origin === "manufactured") {
+      const supplyRelations = supplies.map((supplyId) => ({
+        supply_id: supplyId,
+        product_id: product.id,
+      }));
 
-    if (productData.origin == "manufactured") {
       const { error: errorCP } = await supabase
         .from("product_supplies")
-        .insert(dos);
+        .insert(supplyRelations);
+
+      if (errorCP) throw errorCP;
     }
 
-    // Cambiar la forma que se hacen las Variaciones.
-    if (variations && variations.length > 0 && productData.type !== "simple") {
-      const variationsWithProductId = variations.map((variation) => ({
+    // 5. CREACIÓN DE VARIACIONES DEL PRODUCTO
+    if (variations?.length && type !== "simple") {
+      // Insertar variaciones principales
+      const variationsToInsert = variations.map((variation) => ({
         name: variation.name,
         price: variation.price,
         stock: variation.stock,
@@ -138,48 +147,43 @@ export const createProduct = async (
         enabled: variation.enabled,
       }));
 
-      const { data: variationsIds, error: variationsError } = await supabase
+      const { data: createdVariations, error: variationsError } = await supabase
         .from("product_variations")
-        .insert(variationsWithProductId)
+        .insert(variationsToInsert)
         .select("id, name");
 
-      //
-      const variationAttributes = mergeArraysByIndex(variationsIds, variations);
-
-      console.log(
-        `Resultado final de variationAttributes:`,
-        variationAttributes
-      ); // Filtra duplicados
       if (variationsError) throw variationsError;
 
-      // Insertar relaciones en product_variation_attributes
+      // 6. ASOCIACIÓN DE ATRIBUTOS DE VARIACIONES
+      const variationAttributes = createdVariations.flatMap(
+        (createdVar, index) =>
+          (variations[index].attributes || []).map((attr) => ({
+            product_variation_id: createdVar.id,
+            attribute_value_id: attr.id,
+          }))
+      );
+
       const { error: attributesError } = await supabase
         .from("product_variation_attributes")
         .insert(variationAttributes);
 
-      //supply_variation_product_variations
-      if (variationsError) throw variationsError;
+      if (attributesError) throw attributesError;
 
-      if (productData.origin == "manufactured") {
-        console.log("HOLA", variations);
-        const combinedPermutations = variations
-          .flatMap((variation) => {
-            return variationsIds.map((varId) => {
-              return variation.supply_variations
-                .map((supplyVariation) => {
-                  if (supplyVariation)
-                    return {
-                      supply_variation_id: supplyVariation,
-                      product_variation_id: varId.id,
-                    };
-                  else {
-                    return null;
-                  }
-                })
-                .filter(Boolean);
-            });
-          })
-          .flat()
+      // 7. RELACIONES CON INSUMOS PARA VARIACIONES FABRICADAS
+      if (origin === "manufactured") {
+        // Generar combinaciones únicas de insumos y variaciones
+        const combinedPermutations = createdVariations
+          .flatMap((createdVar) =>
+            variations.flatMap((variation) =>
+              (variation.supply_variations || [])
+                .filter(Boolean)
+                .map((supplyVarId) => ({
+                  supply_variation_id: supplyVarId,
+                  product_variation_id: createdVar.id,
+                }))
+            )
+          )
+          // Eliminar duplicados usando Set
           .filter(
             (value, index, self) =>
               index ===
@@ -188,42 +192,63 @@ export const createProduct = async (
                   t.product_variation_id === value.product_variation_id &&
                   t.supply_variation_id === value.supply_variation_id
               )
-          ); // Filtra duplicados;
-        console.log(combinedPermutations);
-        const { error: errorCP } = await supabase
+          );
+
+        const { error: supplyVarError } = await supabase
           .from("supply_variation_product_variations")
           .insert(combinedPermutations);
+
+        if (supplyVarError) throw supplyVarError;
       }
     }
 
-    return {};
+    return product || {};
   } catch (error) {
-    console.error("Error creating product:", error);
+    console.error("Error creando producto:", error);
     throw error;
   }
 };
 
-export const upsertProduct = async (
+/**
+ * Actualiza un producto y sus relaciones en la base de datos
+ * @param productData - Datos principales del producto
+ * @param categories - Array de IDs de categorías a asociar
+ * @param productId - ID del producto a actualizar
+ * @param variations - Variaciones del producto (tallas, colores, etc.)
+ * @returns Producto actualizado
+ */
+export const updateProduct = async (
   productData: ProductData,
-  categories,
-  productId?: number,
+  categories: number[],
+  productId: number,
   variations?: ProductVariation[]
 ) => {
   try {
-    console.log("first2", categories);
-    let product;
-    if (productId) {
-      const productVar = await supabase
-        .from("product_variations")
-        .select("id")
-        .eq("product_id", productId);
+    // 1. EXTRACCIÓN Y ACTUALIZACIÓN DE PROPIEDADES DEL PRODUCTO
+    const {
+      name,
+      description,
+      shop_id,
+      cost,
+      discount,
+      state,
+      gender,
+      commission,
+      type,
+      origin,
+      commission_type,
+      reference_currency,
+      owner_id,
+      standard_price,
+      status,
+      images,
+      socialMediaLink,
+    } = productData;
 
-      const categoriesArray = categories.map((c) => ({
-        category_id: c,
-        product_id: productId,
-      }));
-      // Actualización del producto existente
-      const {
+    // Actualizar producto principal
+    const { data: product, error: updateError } = await supabase
+      .from("products")
+      .update({
         name,
         description,
         shop_id,
@@ -240,101 +265,153 @@ export const upsertProduct = async (
         standard_price,
         status,
         images,
-        supplies,
-      } = productData;
+        social_media_link: socialMediaLink,
+      })
+      .eq("id", productId)
+      .single();
 
-      // Actualizar el producto principal
-      const { data: updateProduct, error: updateError } = await supabase
-        .from("products")
-        .update({
-          name,
-          description,
-          shop_id,
-          cost,
-          discount,
-          state,
-          gender,
-          commission,
-          type,
-          origin,
-          commission_type,
-          reference_currency,
-          owner_id,
-          standard_price,
-          status,
-          images, // Solo si necesitas actualizar las imágenes
-        })
-        .eq("id", productId)
-        .single();
+    if (updateError) throw updateError;
 
-      if (updateError) throw updateError;
-      product = updateProduct;
-      console.log("Variations", variations);
+    // 2. ACTUALIZACIÓN DE CATEGORÍAS
+    const categoriesPayload = categories.map((categoryId) => ({
+      category_id: categoryId,
+      product_id: productId,
+    }));
 
-      // hacer que se tomen todas las categorias
-      // seleccionadas y se hagan las llamadas correspondientes segun el producto
-      await supabase
-        .from("category_product")
-        .delete(categoriesArray)
-        .eq("product_id", productId);
-      await supabase.from("category_product").insert(categoriesArray);
+    await supabase
+      .from("category_product")
+      .delete()
+      .eq("product_id", productId);
 
-      // Insertar nuevas variaciones
-      if (variations && variations.length > 0) {
-        variations.map(async (variation) => {
-          console.log("Variations", variation);
+    await supabase.from("category_product").insert(categoriesPayload);
 
-          const { error: variationsError } = await supabase
+    // 3. MANEJO DE VARIACIONES
+    if (variations?.length) {
+      // Separar variaciones existentes de nuevas
+      const existingVariations = variations.filter((v) => v.id);
+      const newVariations = variations.filter((v) => !v.id);
+
+      // Actualizar variaciones existentes
+      await Promise.all(
+        existingVariations.map(async (variation) => {
+          const { error } = await supabase
             .from("product_variations")
             .update({
               name: variation.name,
               price: variation.price,
               stock: variation.stock,
               pictures: variation.pictures,
-              product_id: productId,
               currency_id: variation.currency_id,
+              enabled: variation.enabled,
             })
             .eq("id", variation.id);
-          if (variationsError) throw variationsError;
-        });
-        console.log("firstTTT");
-        if (productData.origin == "manufactured") {
-          console.log(variations);
 
-          const combinedPermutations = variations
-            .flatMap((variation) => {
-              console.log("Variations2", variation);
-              return variation.supply_variations
-                .map((supplyVariation) => {
-                  console.log("Status", supplyVariation);
-                  if (supplyVariation)
-                    return {
-                      supply_variation_id: supplyVariation,
-                      product_variation_id: variation.id,
-                    };
-                  else return null;
-                })
-                .filter(Boolean);
-            })
-            .flat();
+          if (error) throw error;
+        })
+      );
 
-          console.log(combinedPermutations);
-          const { error } = await supabase
-            .from("supply_variation_product_variations")
-            .upsert(combinedPermutations, {
-              onConflict: ["supply_variation_id", "product_variation_id"],
-            });
+      // Crear nuevas variaciones
+      let createdVariations: ProductVariation[] = [];
+
+      if (newVariations.length > 0) {
+        const { data, error } = await supabase
+          .from("product_variations")
+          .insert(
+            newVariations.map((v) => ({
+              product_id: productId,
+              name: v.name,
+              price: v.price,
+              stock: v.stock,
+              pictures: v.pictures,
+              currency_id: v.currency_id,
+              enabled: v.enabled,
+            }))
+          )
+          .select("id");
+
+        if (error) throw error;
+        createdVariations = data;
+      }
+
+      // Combinar todas las variaciones con IDs
+      const allVariations = [
+        ...existingVariations,
+        ...newVariations.map((v, i) => ({
+          ...v,
+          id: createdVariations[i]?.id,
+        })),
+      ].filter((v) => v.id);
+
+      // 4. MANEJO DE INSUMOS PARA PRODUCTOS FABRICADOS
+      if (origin === "manufactured") {
+        // Actualizar relaciones de insumos principales
+        if (productData.supplies) {
+          const suppliesPayload = productData.supplies.map((supplyId) => ({
+            supply_id: supplyId,
+            product_id: productId,
+          }));
+
+          await supabase
+            .from("product_supplies")
+            .delete()
+            .eq("product_id", productId);
+
+          await supabase.from("product_supplies").insert(suppliesPayload);
         }
 
-        // Insertar atributos de las variaciones
-        const variationAttributes = variations.flatMap((variation) =>
-          variation.attributes.map((attribute) => ({
-            product_variation_id: variation.id,
-            attribute_value_id: attribute.id,
-          }))
-        );
-        console.log(variationAttributes);
+        // Manejar relaciones de variaciones de insumos
+        const supplyVariationRelations = allVariations
+          .flatMap((variation) =>
+            (variation.supply_variations || [])
+              .filter(Boolean)
+              .map((supplyVarId) => ({
+                supply_variation_id: supplyVarId,
+                product_variation_id: variation.id!,
+              }))
+          )
+          .filter(
+            (v, i, self) =>
+              i ===
+              self.findIndex(
+                (t) =>
+                  t.supply_variation_id === v.supply_variation_id &&
+                  t.product_variation_id === v.product_variation_id
+              )
+          );
 
+        await supabase
+          .from("supply_variation_product_variations")
+          .upsert(supplyVariationRelations, {
+            onConflict: ["supply_variation_id", "product_variation_id"],
+          });
+      }
+
+      // 5. ACTUALIZACIÓN DE ATRIBUTOS
+      // Eliminar atributos existentes solo de variaciones actualizadas
+      await supabase
+        .from("product_variation_attributes")
+        .delete()
+        .in(
+          "product_variation_id",
+          existingVariations.map((v) => v.id!)
+        );
+
+      console.log("All Variations", allVariations);
+      // Filtrar atributos válidos y crear payload
+      const variationAttributes = allVariations
+        .flatMap((variation) =>
+          (variation.attributes || [])
+            // Filtrar atributos sin ID válido
+            //.filter((attribute) => Boolean(attribute?.id))
+            .map((attribute) => ({
+              product_variation_id: variation.id!,
+              attribute_value_id: attribute,
+            }))
+        )
+        // Filtrar posibles entradas nulas después del mapeo
+        .filter((attr) => Boolean(attr.attribute_value_id));
+      console.log(variationAttributes);
+      if (variationAttributes.length > 0) {
         const { error: attributesError } = await supabase
           .from("product_variation_attributes")
           .insert(variationAttributes);
@@ -342,9 +419,10 @@ export const upsertProduct = async (
         if (attributesError) throw attributesError;
       }
     }
+
     return product;
   } catch (error) {
-    console.error("Error updating/upserting product:", error);
+    console.error("Error actualizando producto:", error);
     throw error;
   }
 };
@@ -354,7 +432,7 @@ export const getProductById = async (productId: number) => {
     const { data: product, error: productError } = await supabase
       .from("products")
       .select(
-        "*, categories(*), supplies(*),variations: product_variations (*, supply_variation(*), attribute_values(*)))) "
+        "*, categories(*), supplies(*),variations: product_variations (*, supply_variation(*), attribute_values(*, type(id, name))))) "
       )
       .eq("id", productId)
       .single();
@@ -388,6 +466,7 @@ export type ProductData = {
   images: string[];
   supplies: string[];
   attributes: [];
+  socialMediaLink: string; // Nuevo campo
 };
 
 export function transformArrayToObjectArray(array: any) {
@@ -438,7 +517,7 @@ const productSchema = Yup.object().shape({
     "El precio estándar no puede ser negativo"
   ),
   status: Yup.number().oneOf([0, 1, 2, 3]),
-
+  socialMediaLink: Yup.string().url("Debe ser una URL válida").nullable(),
   variations: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required("El nombre de la variación es requerido"),
@@ -501,6 +580,8 @@ const DeleteProductButton = ({ onDelete }: { onDelete: OnDelete }) => {
   );
 };
 
+//
+
 const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
   const [categoriesOpt, setCategoriesOpt] = useState();
   const [variations, setVariations] = useState<ProductVariation[]>([
@@ -532,6 +613,9 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
   >(new Set());
   const [selectedIdsForAttributeValues, setSelectedIdsForAttributeValues] =
     useState<Set<number>>(new Set());
+  const [selectedAttributes, setSelectedAttributes] = useState<
+    Record<number, number[]>
+  >({});
   const [initialValues, setInitialValues] = useState<ProductData>({
     name: "",
     description: null,
@@ -570,55 +654,107 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
+    const fetchProductData = async () => {
+      setLoading(true);
 
-    if (productId) {
-      getProductById(parseInt(productId))
-        .then((prod) => {
-          const formik = formRef.current;
-          setSelectedIds(new Set(prod.categories.map((c) => c.id)));
+      if (!productId) {
+        setLoading(false);
+        return;
+      }
 
-          const data = prod.supplies
-            .map((supply) => supplies.find((s) => s.value === supply.id))
-            .filter(Boolean);
+      try {
+        const product = await getProductById(parseInt(productId));
+        const formik = formRef.current;
 
-          const transformedSupply = transformArrayToObjectArray(data);
-          const variations = prod.variations;
-          const vairationsTrans = variations.map((v) => ({
-            ...v,
-            supply_variation: transformArrayToObjectArray(v.supply_variation),
-            supply_variations: v.supply_variation.map((sv) => sv.id),
-          }));
+        // Configurar categorías
+        const categoryIds = new Set(product.categories.map((c) => c.id));
+        setSelectedIds(categoryIds);
 
-          console.log("TEM", vairationsTrans);
-          setVariations(vairationsTrans);
+        // Procesar atributos
+        const attributeData = processAttributeData(product.variations);
+        setSelectedIdsForAttributes(attributeData.typeIds);
+        setSelectedAttributes(attributeData.initialAttributes);
+        setSelectedIdsForAttributeValues(attributeData.valueIds);
 
-          delete prod.variations;
+        // Procesar variaciones
+        const processedVariations = processVariations(product.variations);
+        setVariations(processedVariations);
 
-          setInitialValues({
-            ...prod,
-            supplies: transformedSupply.map((ts) => ts.id),
-          });
+        // Procesar suministros
+        const suppliesData = processSupplies(product.supplies);
+        const formSupplies = suppliesData.map((supply) => supply.id);
 
-          setLocalImages(prod.images);
-
-          formik.setValues({
-            ...prod,
-            supplies: transformedSupply.map((ts) => ts.id),
-          });
-        })
-        .catch((error) => {
-          console.log(error);
-          setError("No se encontró el producto");
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
-    return () => {
-      setLoading(false);
+        // Configurar valores iniciales
+        const initialValues = prepareInitialValues(product, formSupplies);
+        setInitialValues(initialValues);
+        setLocalImages(product.images);
+        formik.setValues(initialValues);
+      } catch (error) {
+        setError("No se encontró el producto");
+      } finally {
+        setLoading(false);
+      }
     };
+
+    fetchProductData();
+
+    return () => setLoading(false);
   }, [supplies]);
+
+  // Funciones auxiliares
+  const processAttributeData = (variations: Variation[]) => {
+    const attributeValueIds = new Set<number>();
+    const attributeTypeIds = new Set<number>();
+    const initialAttributes: { [key: number]: number[] } = {};
+
+    variations.forEach((variation) => {
+      variation.attribute_values.forEach((av) => {
+        const typeId = av.type.id;
+        const valueId = av.id;
+
+        attributeValueIds.add(valueId);
+        attributeTypeIds.add(typeId);
+
+        if (!initialAttributes[typeId]) {
+          initialAttributes[typeId] = [];
+        }
+
+        if (!initialAttributes[typeId].includes(valueId)) {
+          initialAttributes[typeId].push(valueId);
+        }
+      });
+    });
+
+    return {
+      valueIds: attributeValueIds,
+      typeIds: attributeTypeIds,
+      initialAttributes,
+    };
+  };
+
+  const processVariations = (variations: ProductVariation[]) => {
+    return variations.map((v) => ({
+      ...v,
+      supply_variation: transformArrayToObjectArray(v.supply_variation),
+      supply_variations: v.supply_variation.map((sv) => sv.id),
+      attributes: v.attribute_values.map((av) => av.id),
+    }));
+  };
+
+  // Función corregida para procesar suministros
+  const processSupplies = (productSupplies: Supply[]) => {
+    return transformArrayToObjectArray(
+      productSupplies
+        .map((supply) => supplies.find((s) => s.value === supply.id)) // Usa el arreglo global 'supplies'
+        .filter(Boolean) as Supply[]
+    );
+  };
+
+  const prepareInitialValues = (product: ProductData, supplies: number[]) => {
+    const { variations, ...cleanProduct } = product;
+    return { ...cleanProduct, supplies };
+  };
+
   const { handleSuccess, handleLoading } = HandleFeedback();
   const {
     type,
@@ -642,7 +778,7 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
       const miArray = Array.from(selectedIds);
 
       if (productId) {
-        await upsertProduct(values, miArray, parseInt(productId), variations);
+        await updateProduct(values, miArray, parseInt(productId), variations);
       } else {
         await createProduct(values, miArray, variations, suppliesIds);
       }
@@ -673,7 +809,11 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
               <FormContainer>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   <div className="lg:col-span-2">
-                    <BasicInformationFields touched={touched} errors={errors} />
+                    <BasicInformationFields
+                      values={values}
+                      touched={touched}
+                      errors={errors}
+                    />
 
                     <OrganizationFields
                       touched={touched}
@@ -714,6 +854,8 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
                           setSelectedIdsForAttributes,
                           selectedIdsForAttributeValues,
                           setSelectedIdsForAttributeValues,
+                          selectedAttributes,
+                          setSelectedAttributes,
                         }}
                       />
                     )}

@@ -67,11 +67,11 @@ function ReactTable({
       },
       {
         header: "Cliente",
-        accessorKey: "client.user.name",
+        accessorKey: "clients.name",
       },
       {
         header: "Teléfono",
-        accessorKey: "client.user.phone",
+        accessorKey: "clients.phone",
       },
       {
         header: "Estado",
@@ -80,7 +80,7 @@ function ReactTable({
       {
         header: "Total",
         accessorKey: "total",
-        cell: ({ row }) => formatCurrency(row.original.total),
+        cell: ({ row }) => row.original.total + " CUP",
       },
       {
         header: "Fecha",
@@ -157,7 +157,7 @@ function RenderRowSubComponent({ row }: { row: Row<Order> }) {
       {
         header: "Precio",
         accessorKey: "price",
-        cell: ({ row }) => formatCurrency(row.original.price),
+        cell: ({ row }) => row.original.price + " CUP",
       },
     ],
     []

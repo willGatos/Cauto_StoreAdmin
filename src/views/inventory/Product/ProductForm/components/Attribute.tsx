@@ -84,11 +84,11 @@ export default function ProductVariationGenerator({
     setSelectedIdsForAttributes,
     selectedIdsForAttributeValues,
     setSelectedIdsForAttributeValues,
+    selectedAttributes,
+    setSelectedAttributes,
   } = selectIds;
   const [currencies, setCurrencies] = useState<Currency[]>([]);
-  const [selectedAttributes, setSelectedAttributes] = useState<
-    Record<number, number[]>
-  >({});
+
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(
     null
   );
@@ -102,7 +102,7 @@ export default function ProductVariationGenerator({
   const [selectedImages, setSelectedImages] = useState([]);
   const [error, setError] = useState(null);
   const [variationSelectionType, setVariationSelectionType] =
-    useState("generate");
+    useState("select");
 
   const [variationIndex, setVariationIndex] = useState(0);
   const handleSelectGallery = (gallery) => {
@@ -409,29 +409,27 @@ export default function ProductVariationGenerator({
           </Button>
         </>
       ) : (
-        values.type !== "simple" && (
-          <FormItem
-            invalid={(errors.attributes && touched.attributes) as boolean}
-            errorMessage={errors.attributes}
-          >
-            <Field name={`attributes`}>
-              {({ field, form }) => (
-                <AttributeSelect
-                  attributes={attributes}
-                  selectedIds={selectedIdsForAttributes}
-                  setSelectedIds={setSelectedIdsForAttributes}
-                  onSelectionChange={(selectedCategories) => {
-                    form.setFieldValue(
-                      field.name,
-                      Array.from(selectedIdsForAttributes)
-                    );
-                    //handleVariationChange(index, "attributes", selectedCategories);
-                  }}
-                />
-              )}
-            </Field>
-          </FormItem>
-        )
+        <FormItem
+          invalid={(errors.attributes && touched.attributes) as boolean}
+          errorMessage={errors.attributes}
+        >
+          <Field name={`attributes`}>
+            {({ field, form }) => (
+              <AttributeSelect
+                attributes={attributes}
+                selectedIds={selectedIdsForAttributes}
+                setSelectedIds={setSelectedIdsForAttributes}
+                onSelectionChange={(selectedCategories) => {
+                  form.setFieldValue(
+                    field.name,
+                    Array.from(selectedIdsForAttributes)
+                  );
+                  //handleVariationChange(index, "attributes", selectedCategories);
+                }}
+              />
+            )}
+          </Field>
+        </FormItem>
       )}
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-2">
@@ -456,7 +454,7 @@ export default function ProductVariationGenerator({
           <div className="grid grid-cols-1 gap-4">
             {variations.map((variation, index) => (
               <div key={index} className="bg-white p-4 rounded-lg shadow">
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Nombre
                   </label>
@@ -466,7 +464,25 @@ export default function ProductVariationGenerator({
                       handleVariationChange(index, "name", e.target.value)
                     }
                   />
-                </div>
+                </div> */}
+                <AttributeSelect
+                  attributes={attributes
+                    .filter((at) => selectedIdsForAttributes.has(at.id)) // Filtra tipos de atributos permitidos
+                    .flatMap((at) =>
+                      at.values.map((value) => ({
+                        ...value,
+                        label: value.value,
+                        name: value.value,
+                        value: value.id, // Asegura que `value` sea el ID del valor del atributo
+                      }))
+                    )}
+                  selectedIds={new Set(variation.attributes)}
+                  setSelectedIds={setSelectedIdsForAttributeValues}
+                  onSelectionChange={(selectedIds) => {
+                    handleVariationChange(index, "attributes", selectedIds);
+                  }}
+                />
+
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -633,34 +649,6 @@ export default function ProductVariationGenerator({
                     />
                   </div>
                 )}
-
-                <AttributeSelect
-                  attributes={attributes
-                    .map((at) => {
-                      const data = at.values
-                        .filter((value) =>
-                          Array.from(selectedIdsForAttributes).includes(at.id)
-                        )
-                        .map((filteredVariation) => ({
-                          ...filteredVariation,
-                          label: filteredVariation.value,
-                          name: filteredVariation.value,
-                          value: filteredVariation.id,
-                        }))
-                        .flat();
-                      return data;
-                    })
-                    .flat()}
-                  selectedIds={new Set(variation.attributes)}
-                  setSelectedIds={setSelectedIdsForAttributeValues}
-                  onSelectionChange={(selectedCategories) => {
-                    handleVariationChange(
-                      index,
-                      "attributes",
-                      selectedCategories
-                    );
-                  }}
-                />
 
                 <div className="flex mt-5 justify-center text-center">
                   <Checkbox
