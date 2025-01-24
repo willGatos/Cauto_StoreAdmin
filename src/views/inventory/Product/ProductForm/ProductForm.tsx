@@ -159,7 +159,7 @@ export const createProduct = async (
         (createdVar, index) =>
           (variations[index].attributes || []).map((attr) => ({
             product_variation_id: createdVar.id,
-            attribute_value_id: attr.id,
+            attribute_value_id: attr,
           }))
       );
 
@@ -169,21 +169,19 @@ export const createProduct = async (
 
       if (attributesError) throw attributesError;
 
-      // 7. RELACIONES CON INSUMOS PARA VARIACIONES FABRICADAS
+      // 7. RELACIONES CON INSUMOS PARA VARIACIONES FABRICADAS (CORREGIDO)
       if (origin === "manufactured") {
-        // Generar combinaciones únicas de insumos y variaciones
-        const combinedPermutations = createdVariations
-          .flatMap((createdVar) =>
-            variations.flatMap((variation) =>
-              (variation.supply_variations || [])
-                .filter(Boolean)
-                .map((supplyVarId) => ({
-                  supply_variation_id: supplyVarId,
-                  product_variation_id: createdVar.id,
-                }))
-            )
+        // Generar relaciones usando el índice para emparejar createdVariations con variations
+        const supplyVariationRelations = createdVariations
+          .flatMap((createdVar, index) =>
+            (variations[index].supply_variations || [])
+              .filter(Boolean)
+              .map((supplyVarId) => ({
+                supply_variation_id: supplyVarId,
+                product_variation_id: createdVar.id,
+              }))
           )
-          // Eliminar duplicados usando Set
+          // Eliminar duplicados
           .filter(
             (value, index, self) =>
               index ===
@@ -194,11 +192,13 @@ export const createProduct = async (
               )
           );
 
-        const { error: supplyVarError } = await supabase
-          .from("supply_variation_product_variations")
-          .insert(combinedPermutations);
+        if (supplyVariationRelations.length > 0) {
+          const { error: supplyVarError } = await supabase
+            .from("supply_variation_product_variations")
+            .insert(supplyVariationRelations);
 
-        if (supplyVarError) throw supplyVarError;
+          if (supplyVarError) throw supplyVarError;
+        }
       }
     }
 
@@ -750,9 +750,23 @@ const ProductForm = forwardRef<FormikRef, ProductForm>((props) => {
     );
   };
 
+  // Función corregida para preparar valores iniciales
   const prepareInitialValues = (product: ProductData, supplies: number[]) => {
-    const { variations, ...cleanProduct } = product;
-    return { ...cleanProduct, supplies };
+    if (!product) return { supplies: [] }; // Fallback seguro
+
+    const {
+      variations,
+      social_media_link, // Nombre de campo de la API
+      ...restProduct
+    } = product;
+
+    console.log(social_media_link, product);
+
+    return {
+      ...restProduct,
+      socialMediaLink: social_media_link || "", // Mapeo a camelCase
+      supplies,
+    };
   };
 
   const { handleSuccess, handleLoading } = HandleFeedback();
