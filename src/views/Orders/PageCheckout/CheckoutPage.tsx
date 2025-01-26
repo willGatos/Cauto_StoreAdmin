@@ -137,10 +137,6 @@ const CheckoutPage = () => {
 
   const { handleSuccess } = HandleFeedback();
   const onSubmit = async () => {
-    // TODO: Y ahora si la hay. La idea ser'ia que se analizara el modelo antiguo y en base a ese, se mirara si hacer un cambio o no
-    // Adem'as de eso, esta creando la location sin que sea necesario en el caso de que sea igual, y si es diferente a la original
-    // lo esta haciendo mal.
-
     try {
       const hasNewClient = clientId == 0;
       let clientIdForAPI = clientId;
@@ -199,7 +195,7 @@ const CheckoutPage = () => {
         const { data: orderData, error: Oerror } = await supabase
           .from("orders")
           .upsert({
-            status: 2,
+            status: 1,
             total: order.total,
             shop_id: sellersShops[0],
             client_id: clientIdForAPI,
@@ -244,13 +240,13 @@ const CheckoutPage = () => {
           }));
 
         try {
-          handleEmail(0, email);
+          handleEmail(1, email);
         } catch (error) {
           console.error("Error al enviar correo:", error);
         }
         try {
           handleEmail(
-            3,
+            6,
             dP.owner.email,
             orderData.id,
             name + " " + lastName,
@@ -259,7 +255,7 @@ const CheckoutPage = () => {
         } catch {
           try {
             handleEmail(
-              3,
+              6,
               dP.owner.email,
               orderData.id,
               name + " " + lastName,

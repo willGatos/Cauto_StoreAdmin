@@ -23,6 +23,7 @@ import {
 import Label from "@/components/ui/Label";
 import handleEmail from "@/components/email";
 import PersonalizationDetails from "./components/PersonalizationDetails";
+import SellerInfo from "./components/SellerInfo";
 
 type SalesOrderDetailsResponse = {
   id?: string;
@@ -61,6 +62,11 @@ type SalesOrderDetailsResponse = {
       recipient?: string;
     }[];
   }[];
+  seller: {
+    name: string;
+    email: string;
+    amountToPay: string | number;
+  };
   personalization: {
     description: string;
     price: string;
@@ -114,6 +120,11 @@ const initialState: SalesOrderDetailsResponse = {
   },
   product: [],
   activity: [],
+  seller: {
+    name: "",
+    email: "",
+    amountToPay: "",
+  },
   customer: {
     name: "",
     email: "",
@@ -171,7 +182,8 @@ export const getOrderDetails = async (
             created_at,
             shipping_cost,
             personalized_orders(*),
-            clients (*, locations(*))
+            clients (*, locations(*)),
+            seller : seller_id (*)
         `
     )
     .eq("id", orderId)
@@ -190,7 +202,7 @@ export const getOrderDetails = async (
                 id,
                 name,
                 pictures,
-                products (name, images),
+                products (name, images, commission, commission_type),
                 currency(name),
                 attribute_values(type(name),value)
             )
@@ -199,7 +211,43 @@ export const getOrderDetails = async (
     .eq("order_id", orderId);
   const personalization = order.personalized_orders[0];
   if (itemsError) throw itemsError;
-  console.log("SIMPLE", personalization?.custom_description);
+
+  let totalCommission = 0; // Variable para acumular comisiones
+
+  const productList = orderItems.map((item) => {
+    const productVariation = item.product_variations;
+    const product = productVariation.products;
+    const commission = product.commission || 0;
+    const commissionType = product.commission_type;
+    const price = parseFloat(item.price);
+    const quantity = item.quantity;
+
+    // Calcular comisión por item
+    let itemCommission = 0;
+    if (commissionType === "percentage") {
+      itemCommission = price * (commission / 100) * quantity;
+    } else if (commissionType === "fixed") {
+      itemCommission = commission * quantity;
+    }
+    totalCommission += itemCommission;
+
+    return {
+      id: productVariation?.id.toString(),
+      name: productVariation?.name,
+      productCode: "",
+      img: productVariation?.pictures[0] || "",
+      price: price,
+      quantity: quantity,
+      total: price * quantity,
+      currency: item.product_variations?.currency.name,
+      attributesValues: item.product_variations?.attribute_values.map((av) => ({
+        name: av.type.name,
+        value: av.value,
+      })),
+      details: {}, // Not available in the current schema
+    };
+  });
+
   // Map the data to the required format
   const orderDetails: SalesOrderDetailsResponse = {
     id: order.id.toString(),
@@ -213,6 +261,11 @@ export const getOrderDetails = async (
       deliveryFees: parseFloat(order.shipping_cost),
       total: parseFloat(order.total),
     },
+    seller: {
+      name: order.seller.name,
+      email: order.seller.email,
+      amountToPay: totalCommission,
+    },
     shipping: {
       deliveryFees: parseFloat(order.shipping_cost),
       estimatedMin: 0, // Not available in the current schema
@@ -220,21 +273,7 @@ export const getOrderDetails = async (
       shippingLogo: "", // Not available in the current schema
       shippingVendor: "", // Not available in the current schema
     },
-    product: orderItems.map((item) => ({
-      id: item.product_variations?.id.toString(),
-      name: item.product_variations?.name,
-      productCode: "",
-      images: item.product_variations?.pictures,
-      price: parseFloat(item?.price),
-      quantity: item?.quantity,
-      total: parseFloat(item?.price) * item?.quantity,
-      currency: item.product_variations?.currency.name,
-      attributesValues: item.product_variations?.attribute_values.map((av) => ({
-        name: av.type.name,
-        value: av.value,
-      })),
-      details: {}, // Not available in the current schema
-    })),
+    product: productList,
     activity: [], // Not available in the current schema
     personalization: {
       description: personalization?.custom_description,
@@ -320,13 +359,30 @@ const OrderDetails = () => {
 
   const changeState = () => {
     // Tienes que hacer las llamadas de email para los Correos
-
-    // Los Correos enviarlos a los Cliente con el Estado Correspondiente,
-    if (stateOfProduct != data.progressStatus)
-      handleEmail(data.progressStatus, data.customer.email);
+    if (stateOfProduct !== data.progressStatus) {
+      if ([0, 1, 2, 3].includes(stateOfProduct)) {
+        handleEmail(stateOfProduct, data.customer.email);
+      } else if (stateOfProduct === 4) {
+        const { name, email } = data.customer;
+        handleEmail(
+          stateOfProduct,
+          email, // Usar email desestructurado
+          data.id,
+          name, // Enviar nombre en lugar de objeto completo
+          data.seller.name,
+          data.seller.amountToPay
+        );
+      }
+    }
 
     if (stateOfProduct2 != data.deliveryStatus)
-      handleEmail(data.deliveryStatus, data.customer.email).then(() =>
+      handleEmail(
+        data.deliveryStatus,
+        data.customer.email,
+        data.id,
+        data.customer.name,
+        data.seller.name
+      ).then(() =>
         supabase
           .from("orders")
           .update({
@@ -363,7 +419,6 @@ const OrderDetails = () => {
                     "border-0 rounded-md ltr:ml-2 rtl:mr-2",
                     orderStatusColor[data.progressStatus || 0].class
                   )}
-                  
                 >
                   {orderStatusColor[data.progressStatus || 0].label}
                 </Tag>
@@ -386,6 +441,9 @@ const OrderDetails = () => {
               </div>
               <div className="xl:max-w-[360px] w-full">
                 <CustomerInfo data={data.customer} />
+              </div>
+              <div className="xl:max-w-[360px] w-full">
+                <SellerInfo seller={data.seller} />
               </div>
               <div className="xl:max-w-[360px] w-full">
                 <PersonalizationDetails data={data.personalization} />

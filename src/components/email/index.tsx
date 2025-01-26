@@ -3,7 +3,8 @@ export default async function handleEmail(
   email = "suxcesagency@gmail.com",
   orderId = null,
   client = null,
-  seller = null
+  seller = null,
+  amount = null
 ) {
   try {
     const response = await fetch(
@@ -16,6 +17,7 @@ export default async function handleEmail(
           orderId,
           client,
           seller,
+          amount,
         }),
       }
     );

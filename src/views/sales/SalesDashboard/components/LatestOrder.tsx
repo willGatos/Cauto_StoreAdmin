@@ -35,59 +35,50 @@ type OrderColumnPros = {
 
 const { Tr, Td, TBody, THead, Th } = Table;
 
-
 export const orderStatusColor: Record<
   number,
   {
     label: string;
     dotClass: string;
     textClass: string;
-    value: number
+    value: number;
   }
 > = {
   0: {
-    label: "Cancelado - Pagado",
+    label: "Cancelado",
     dotClass: "bg-gray-500", // Color genérico para estados no conocidos
     textClass: "text-gray-500",
     value: 0,
   },
   1: {
-    label: "Cancelado",
-    dotClass: "bg-gray-500", // Color genérico para estados no conocidos
-    textClass: "text-gray-500",
-    value: 1,
-  },
-  2: {
     label: "Pendiente",
     dotClass: "bg-amber-500", // Color para el punto
     textClass: "text-amber-500", // Color para el texto
-    value: 2,
-
+    value: 1,
   },
-  3: {
+  2: {
     label: "En proceso",
     dotClass: "bg-blue-500",
     textClass: "text-blue-500",
-    value: 3,
-
+    value: 2,
   },
-  4: {
+  3: {
     label: "Listo para Entrega",
     dotClass: "bg-purple-500",
     textClass: "text-purple-500",
-    value: 4,
+    value: 3,
   },
-  5: {
+  4: {
     label: "Pagar a al Gestor",
     dotClass: "bg-emerald-500",
     textClass: "text-emerald-500",
-    value: 5,
+    value: 4,
   },
-  6: {
-    label: "Pagar a al Gestor",
+  5: {
+    label: "Completado - Cerrar Pedido",
     dotClass: "bg-emerald-500", // Completado
     textClass: "text-emerald-500",
-    value: 6,
+    value: 5,
   },
 };
 
@@ -97,7 +88,7 @@ export const deliveryStatusColor: Record<
     label: string;
     dotClass: string;
     textClass: string;
-    value: number
+    value: number;
   }
 > = {
   0: {
@@ -117,17 +108,14 @@ export const deliveryStatusColor: Record<
     dotClass: "bg-amber-500", // Color para el punto
     textClass: "text-amber-500", // Color para el texto
     value: 2,
-
   },
   3: {
     label: "Pagado",
     dotClass: "bg-blue-500",
     textClass: "text-blue-500",
     value: 3,
-
   },
 };
-
 
 const OrderColumn = ({ row }: OrderColumnPros) => {
   const { textTheme } = useThemeClass();
@@ -158,7 +146,7 @@ const columns = [
     header: "Estado",
     cell: (props) => {
       const { status } = props.row.original;
-      console.log('',status);
+      console.log("", status);
       return (
         <div className="flex items-center">
           <Badge className={orderStatusColor[status].dotClass} />

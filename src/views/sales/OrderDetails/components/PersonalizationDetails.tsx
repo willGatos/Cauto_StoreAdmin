@@ -10,26 +10,34 @@ const PersonalizationDetails = ({ data }) => {
     <Card className="my-5">
       <h5 className="mb-4">Información de Personalización</h5>
       <hr className="my-5" />
-      <div className="not-italic">
-        <div className="mb-1">{data?.description}</div>
-      </div>
-      <hr className="my-5" />
-      <div className="not-italic">
-        <div className="mb-1">
-          <span className="font-bold">Precio:</span> {data?.price}
-        </div>
-        <div className="mb-1">
-          <span className="font-bold">Cantidad: </span>
-          {data?.quantity}
-        </div>
-      </div>
-      <hr className="my-5" />
+      {data?.description && data.price ? (
+        <>
+          <div className="not-italic">
+            <div className="mb-1">{data?.description}</div>
+          </div>
+          <hr className="my-5" />
+          <div className="not-italic">
+            <div className="mb-1">
+              <span className="font-bold">Precio:</span> {data?.price}
+            </div>
+            <div className="mb-1">
+              <span className="font-bold">Cantidad: </span>
+              {data?.quantity}
+            </div>
+          </div>
+          <hr className="my-5" />
 
-      <div className="flex overflow-scroll mt-4">
-        {data?.images.map((img) => (
-          <img className="mx-2" src={img} />
-        ))}
-      </div>
+          <div className="flex overflow-scroll mt-4">
+            {data?.images?.map((img) => (
+              <img className="mx-2" src={img} />
+            ))}
+          </div>
+        </>
+      ) : (
+        <div>
+          <p>No Tiene Personalización Requerida</p>
+        </div>
+      )}
     </Card>
   );
 };

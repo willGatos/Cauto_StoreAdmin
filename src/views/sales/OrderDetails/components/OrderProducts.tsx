@@ -32,13 +32,13 @@ const columnHelper = createColumnHelper<ProductVariation>();
 const ProductColumn = ({ row }: { row: ProductVariation }) => {
   return (
     <div className="flex">
-      <Avatar size={90} src={row.images[0]} />
+       <Avatar size={90} src={row.images} />
       <div className="">
         <div className="ltr:ml-2 rtl:mr-2">
           <h6 className="mb-2">{row.name}</h6>
         </div>
 
-        <div className="flex mx-2 gap-2">
+       <div className="flex mx-2 gap-2">
           {row.attributesValues.map((av, key) => (
             <div key={key} className="bg-slate-500 text-red-50 px-2 rounded-md">
               <span>{av.value}</span>
