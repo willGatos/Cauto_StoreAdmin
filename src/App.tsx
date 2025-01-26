@@ -8,7 +8,6 @@ import "./locales";
 import mockServer from "./mock";
 import { AuthProvider } from "./services/Supabase/Auth/AuthContext";
 import store, { persistor } from "./store";
-import { ConnectionBadge } from "./components/ui/Connection";
 
 const environment = import.meta.env.VITE_NODE_ENV;
 
