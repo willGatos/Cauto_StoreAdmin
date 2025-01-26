@@ -177,7 +177,7 @@ const CheckoutPage = () => {
           clientIdForAPI = data.id;
 
           await supabase
-            .from("clients_seller")
+            .from("clients_sellers")
             .upsert({ seller_id: id, client_id: clientIdForAPI });
         } else {
           const { data } = await supabase
