@@ -138,16 +138,41 @@ const CheckoutPage = () => {
   const { handleSuccess } = HandleFeedback();
   const onSubmit = async () => {
     try {
-      const hasNewClient = clientId == 0;
+      const hasNewClient = clientId === 0;
       let clientIdForAPI = clientId;
 
-      console.log("s", delivery);
+      // Validación básica de campos obligatorios
       const { name, lastName, phone, email } = formData;
+      if (
+        !name?.trim() ||
+        !lastName?.trim() ||
+        !phone?.trim() ||
+        !email?.trim()
+      ) {
+        handleError("Todos los campos en CONTACTO son obligatorios");
+        return;
+      }
+
+      // Validar tienda asociada
+      if (!sellersShops?.length) {
+        handleError("El vendedor no tiene tienda asociada");
+        return;
+      }
+      const shopId = sellersShops[0];
+
+      let locationId = null;
       const hasDel = formData.hasDelivery;
-      let locationId = null; // Falta tomarlo del fetch en Contact
-      if (name && lastName && phone && email) {
-        if (hasDel) {
-          const { data } = await supabase
+
+      // 1. Manejo de ubicación para delivery
+      if (hasDel) {
+        if (!delivery?.address?.trim() || !delivery?.municipality) {
+          handleError("Faltan datos de entrega");
+          return;
+        }
+
+        if (hasNewClient) {
+          // Lógica para nuevo cliente (igual que antes)
+          const { data: locationData, error: locationError } = await supabase
             .from("locations")
             .upsert({
               description: delivery.address,
@@ -155,132 +180,269 @@ const CheckoutPage = () => {
             })
             .select("id")
             .single();
-          locationId = data.id;
-        }
 
-        if (hasNewClient) {
-          const { data } = await supabase
-            .from("clients")
-            .upsert({
-              name,
-              lastname: lastName,
-              phone,
-              email,
-              location_id: locationId,
-            })
-            .select("id")
-            .single();
-          clientIdForAPI = data.id;
-
-          await supabase
-            .from("clients_sellers")
-            .upsert({ seller_id: id, client_id: clientIdForAPI });
+          if (locationError || !locationData) {
+            throw new Error(
+              "Error creando ubicación: " + locationError?.message
+            );
+          }
+          locationId = locationData.id;
         } else {
-          const { data } = await supabase
+          // Verificar cliente existente
+          const { data: existingClient, error: fetchError } = await supabase
             .from("clients")
-            .update({
-              name,
-              lastname: lastName,
-              phone,
-              email,
-              location_id: locationId,
-            })
+            .select("location_id")
             .eq("id", clientId)
-            .select("id")
-
             .single();
-          clientIdForAPI = data.id;
-        }
 
-        const { data: orderData, error: Oerror } = await supabase
-          .from("orders")
+          if (fetchError)
+            throw new Error("Error obteniendo cliente: " + fetchError.message);
+
+          if (!existingClient.location_id) {
+            // Cliente sin ubicación: crear nueva
+            const { data: locationData, error: locationError } = await supabase
+              .from("locations")
+              .upsert({
+                description: delivery.address,
+                municipality_id: delivery.municipality,
+              })
+              .select("id")
+              .single();
+
+            if (locationError || !locationData) {
+              throw new Error(
+                "Error creando ubicación: " + locationError?.message
+              );
+            }
+
+            // Actualizar cliente con nueva ubicación
+            const { error: updateError } = await supabase
+              .from("clients")
+              .update({ location_id: locationData.id })
+              .eq("id", clientId);
+
+            if (updateError)
+              throw new Error(
+                "Error actualizando cliente: " + updateError.message
+              );
+            locationId = locationData.id;
+          } else {
+            // Cliente CON ubicación existente: comparar detalles
+            const { data: currentLocation, error: locError } = await supabase
+              .from("locations")
+              .select("description, municipality_id")
+              .eq("id", existingClient.location_id)
+              .single();
+
+            if (locError)
+              throw new Error(
+                "Error obteniendo ubicación: " + locError.message
+              );
+
+            // Comparar dirección Y municipio
+            const isSameLocation =
+              currentLocation.description === delivery.address.trim() &&
+              currentLocation.municipality_id === delivery.municipality;
+
+            if (!isSameLocation) {
+              // Crear nueva ubicación para el cambio
+              const { data: newLocation, error: locationError } = await supabase
+                .from("locations")
+                .upsert({
+                  description: delivery.address,
+                  municipality_id: delivery.municipality,
+                })
+                .select("id")
+                .single();
+
+              if (locationError || !newLocation) {
+                throw new Error(
+                  "Error actualizando ubicación: " + locationError?.message
+                );
+              }
+
+              // Actualizar cliente con nueva ubicación
+              const { error: updateError } = await supabase
+                .from("clients")
+                .update({ location_id: newLocation.id })
+                .eq("id", clientId);
+
+              if (updateError)
+                throw new Error(
+                  "Error actualizando cliente: " + updateError.message
+                );
+              locationId = newLocation.id;
+            } else {
+              // Usar ubicación existente si es la misma
+              locationId = existingClient.location_id;
+            }
+          }
+        }
+      }
+
+      // 2. Crear/Actualizar cliente
+      if (hasNewClient) {
+        const { data: clientData, error: clientError } = await supabase
+          .from("clients")
           .upsert({
-            status: 1,
-            total: order.total,
-            shop_id: sellersShops[0],
-            client_id: clientIdForAPI,
-            seller_id: id,
-            shipping_cost: hasDel ? delivery.shipping_cost : 0,
-            amount_paid: order.total / 2,
+            name,
+            lastname: lastName,
+            phone,
+            email,
+            location_id: locationId,
           })
           .select("id")
           .single();
-        let oiArray = orderItems.map((oi) => ({
+
+        if (clientError || !clientData) {
+          throw new Error("Error creando cliente: " + clientError?.message);
+        }
+        clientIdForAPI = clientData.id;
+
+        // Vincular cliente con vendedor
+        const { error: linkError } = await supabase
+          .from("clients_sellers")
+          .upsert({ seller_id: id, client_id: clientIdForAPI });
+
+        if (linkError)
+          throw new Error("Error vinculando cliente: " + linkError.message);
+      } else {
+        // Actualizar solo datos básicos (la ubicación ya se manejó antes si era necesario)
+        const { data: clientData, error: updateError } = await supabase
+          .from("clients")
+          .update({ name, lastname: lastName, phone, email })
+          .eq("id", clientId)
+          .select("id")
+          .single();
+
+        if (updateError || !clientData) {
+          throw new Error(
+            "Error actualizando cliente: " + updateError?.message
+          );
+        }
+      }
+
+      // 3. Crear orden
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .upsert({
+          status: 1,
+          total: order.total,
+          shop_id: shopId,
+          client_id: clientIdForAPI,
+          seller_id: id,
+          shipping_cost: hasDel ? delivery.shipping_cost : 0,
+          amount_paid: order.total / 2,
+        })
+        .select("id")
+        .single();
+
+      if (orderError || !orderData) {
+        throw new Error("Error creando orden: " + orderError?.message);
+      }
+
+      // 4. Items de la orden
+      const oiArray = [
+        ...createOrderItemsArray(
+          offersSelected.reduce((acc, os) => acc.concat(os.variations), []),
+          orderData.id
+        ),
+        ...orderItems.map((oi) => ({
           order_id: orderData.id,
           variation_id: oi.variation_id,
           price: oi.price,
           quantity: oi.quantity,
-        }));
+        })),
+      ];
 
-        const allVariations = offersSelected.reduce((acc, os) => {
-          return acc.concat(os.variations);
-        }, []);
+      if (oiArray.length === 0) {
+        throw new Error("La orden debe tener al menos un item");
+      }
 
-        const oiArray2 = createOrderItemsArray(allVariations, orderData.id);
-        oiArray = [...oiArray2, ...oiArray];
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(oiArray);
 
-        const { error: OIError } = await supabase
-          .from("order_items")
-          .insert(oiArray)
-          .select("*");
+      if (itemsError)
+        throw new Error("Error insertando items: " + itemsError.message);
 
-        const { data: dP } = await supabase
-          .from("shops")
-          .select("owner: owner_id(email)")
-          .eq("id", sellersShops[0])
-          .single();
+      // 5. Orden personalizada
+      if (hasPersonalizedOrder) {
+        if (
+          !personalizedOrder?.custom_description ||
+          !personalizedOrder?.price
+        ) {
+          handleError("Faltan datos en la orden personalizada");
+          return;
+        }
 
-        hasPersonalizedOrder &&
-          (await supabase.from("personalized_orders").upsert({
+        const { error: customError } = await supabase
+          .from("personalized_orders")
+          .upsert({
             order_id: orderData.id,
             custom_description: personalizedOrder.custom_description,
             images: personalizedOrder.images,
             price: personalizedOrder.price,
             quantity: personalizedOrder.quantity,
-          }));
+          });
 
-        try {
-          handleEmail(1, email);
-        } catch (error) {
-          console.error("Error al enviar correo:", error);
-        }
-        try {
-          handleEmail(
-            6,
-            dP.owner.email,
-            orderData.id,
-            name + " " + lastName,
-            sellerName
+        if (customError)
+          throw new Error(
+            "Error en orden personalizada: " + customError.message
           );
-        } catch {
+      }
+
+      // 6. Notificaciones
+      const { data: shopData } = await supabase
+        .from("shops")
+        .select("owner:owner_id(email)")
+        .eq("id", shopId)
+        .single();
+
+      // Enviar emails con manejo de errores robusto
+      const sendWithRetry = async (fn, retries = 2) => {
+        for (let i = 0; i < retries; i++) {
           try {
-            handleEmail(
-              6,
-              dP.owner.email,
-              orderData.id,
-              name + " " + lastName,
-              sellerName
-            );
-          } catch {
-            handleError(
-              "Notificación no Enviada. Escribale por WhatsApp al Dueño de la Tienda de su nueva Orden."
-            );
+            await fn();
+            return;
+          } catch (error) {
+            if (i === retries - 1) throw error;
           }
         }
-        dispatch(
-          setProductsSelected({
-            productsSelected: [],
-            offersSelected: [],
-          })
-        );
-        navigate("/app/sales/sellerCatalog");
-      } else {
-        handleError("Tienes un campo en CONTACTO sin llenar.");
+      };
+
+      try {
+        await sendWithRetry(() => handleEmail(1, email));
+      } catch (error) {
+        console.error("Error enviando email al cliente:", error);
       }
+
+      if (shopData?.owner?.email) {
+        try {
+          await sendWithRetry(() =>
+            handleEmail(
+              6,
+              shopData.owner.email,
+              orderData.id,
+              `${name} ${lastName}`,
+              sellerName
+            )
+          );
+        } catch (error) {
+          handleError("No se pudo notificar al dueño. Contactar manualmente.");
+        }
+      }
+
+      // Éxito
+      dispatch(
+        setProductsSelected({ productsSelected: [], offersSelected: [] })
+      );
+      navigate("/app/sales/sellerCatalog");
+      handleSuccess("Orden creada correctamente");
     } catch (error) {
-      handleError(error);
+      console.error("Error completo:", error);
+      handleError(error.message || "Error desconocido");
     }
-    handleSuccess("Éxito en Creación de Orden");
   };
   const dispatch = useAppDispatch();
 

@@ -182,7 +182,7 @@ export const getOrderDetails = async (
             created_at,
             shipping_cost,
             personalized_orders(*),
-            clients (*, locations(*)),
+            clients (*, locations(*, municipalities(*))),
             seller : seller_id (*)
         `
     )
@@ -213,7 +213,8 @@ export const getOrderDetails = async (
   if (itemsError) throw itemsError;
 
   let totalCommission = 0; // Variable para acumular comisiones
-
+  const clientLocation = order.clients?.locations;
+  console.log("LOCA", order.clients?.locations);
   const productList = orderItems.map((item) => {
     const productVariation = item.product_variations;
     const product = productVariation.products;
@@ -286,13 +287,13 @@ export const getOrderDetails = async (
           name: order.clients.name,
           email: order.clients.email,
           phone: order.clients.phone,
-          img: "", // Not available in the current schema
+          img: "",
           previousOrder: 0, // Not available in the current schema
           shippingAddress: {
-            line1: order.clients?.locations
-              ? order.clients?.locations?.description +
+            line1: clientLocation
+              ? (clientLocation?.description +
                 " " +
-                order.clients?.locations?.municipalities?.name
+                clientLocation?.municipalities?.name)
               : "",
           },
         }

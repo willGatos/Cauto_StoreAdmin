@@ -39,8 +39,8 @@ const CustomerInfo = ({ data }: CustomerInfoProps) => {
       <address className="not-italic">
         <div className="mb-1">
           {data?.shippingAddress.line1 == null
-            ? data?.shippingAddress.line1
-            : "No Tiene Envío"}
+            ? "No Tiene Envío"
+            : data?.shippingAddress.line1}
         </div>
       </address>
     </Card>

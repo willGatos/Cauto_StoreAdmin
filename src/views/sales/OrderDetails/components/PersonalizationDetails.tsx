@@ -10,7 +10,7 @@ const PersonalizationDetails = ({ data }) => {
     <Card className="my-5">
       <h5 className="mb-4">Información de Personalización</h5>
       <hr className="my-5" />
-      {data?.description && data.price ? (
+      {data?.description && data.quantity ? (
         <>
           <div className="not-italic">
             <div className="mb-1">{data?.description}</div>
